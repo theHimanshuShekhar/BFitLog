@@ -18,8 +18,8 @@ FROM base AS runtime
 ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=build /app/apps/api/dist ./apps/api/dist
-COPY --from=build /app/apps/api/drizzle ./apps/api/drizzle
-COPY apps/api/package.json apps/api/package.json
+COPY --from=build /app/tsconfig.base.json ./tsconfig.base.json
+COPY --from=build /app/apps/api ./apps/api
+COPY --from=build /app/packages/shared ./packages/shared
 WORKDIR /app/apps/api
-CMD ["node", "dist/index.js"]
+CMD ["./node_modules/.bin/tsx", "src/index.ts"]
