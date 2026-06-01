@@ -88,6 +88,10 @@ export default function HomeScreen() {
 			<Pressable style={styles.button}>
 				<Text style={styles.buttonText}>Add body weight soon</Text>
 			</Pressable>
+
+			<Pressable style={styles.secondaryButton} onPress={() => router.push('/settings')}>
+				<Text style={styles.secondaryButtonText}>Open settings</Text>
+			</Pressable>
 		</View>
 	);
 }
@@ -147,6 +151,18 @@ const styles = StyleSheet.create({
 	},
 	buttonText: {
 		color: colors.background,
+		fontSize: 16,
+		fontWeight: "700",
+	},
+	secondaryButton: {
+		alignItems: "center",
+		padding: spacing.md,
+		borderRadius: 999,
+		borderWidth: 1,
+		borderColor: colors.border,
+	},
+	secondaryButtonText: {
+		color: colors.text,
 		fontSize: 16,
 		fontWeight: "700",
 	},

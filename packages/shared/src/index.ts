@@ -1,3 +1,3 @@
-export * from "./auth.js";
-export * from "./body-weight.js";
-export * from "./sync.js";
+export * from "./auth";
+export * from "./body-weight";
+export * from "./sync";

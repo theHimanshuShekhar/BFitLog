@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bodyWeightGoalSchema, bodyWeightLogSchema } from "./body-weight.js";
+import { bodyWeightGoalSchema, bodyWeightLogSchema } from "./body-weight";
 
 const userId = "better-auth-user-id";
 const logId = "00000000-0000-4000-8000-000000000002";

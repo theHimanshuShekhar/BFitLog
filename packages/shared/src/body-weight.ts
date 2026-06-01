@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isoDateTimeSchema, userIdSchema, uuidSchema } from "./sync.js";
+import { isoDateTimeSchema, userIdSchema, uuidSchema } from "./sync";
 
 export const bodyWeightDirectionSchema = z.enum(["lose", "gain", "maintain"]);
 
