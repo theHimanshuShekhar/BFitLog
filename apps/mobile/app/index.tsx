@@ -92,6 +92,10 @@ export default function HomeScreen() {
 
       {user ? <AddBodyWeightLogForm userId={user.id} onSaved={setLatestLog} /> : null}
 
+      <Pressable style={styles.secondaryButton} onPress={() => router.push('/stats')}>
+        <Text style={styles.secondaryButtonText}>View stats</Text>
+      </Pressable>
+
       <Pressable style={styles.secondaryButton} onPress={() => router.push('/settings')}>
         <Text style={styles.secondaryButtonText}>Open settings</Text>
       </Pressable>
