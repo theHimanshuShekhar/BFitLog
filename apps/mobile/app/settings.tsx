@@ -1,48 +1,72 @@
-import { router } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { authClient } from '../src/auth/auth-client';
-import { useAuth } from '../src/auth/use-auth';
-import { BodyWeightGoalForm } from '../src/body-weight/BodyWeightGoalForm';
-import { colors, spacing } from '../src/theme';
+import { router } from "expo-router";
+import {
+	ActivityIndicator,
+	Pressable,
+	StyleSheet,
+	Text,
+	View,
+} from "react-native";
+import { authClient } from "../src/auth/auth-client";
+import { useAuth } from "../src/auth/use-auth";
+import { BodyWeightGoalForm } from "../src/body-weight/BodyWeightGoalForm";
+import { colors, spacing } from "../src/theme";
 
 export default function SettingsScreen() {
-  const session = useAuth();
+	const session = useAuth();
 
-  if (session.isPending) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={colors.primary} />
-      </View>
-    );
-  }
+	if (session.isPending) {
+		return (
+			<View style={styles.centered}>
+				<ActivityIndicator color={colors.primary} />
+			</View>
+		);
+	}
 
-  if (!session.data) {
-    router.replace('/login');
-    return null;
-  }
+	if (!session.data) {
+		router.replace("/login");
+		return null;
+	}
 
-  async function logout() {
-    await authClient.signOut();
-    router.replace('/login');
-  }
+	async function logout() {
+		await authClient.signOut();
+		router.replace("/login");
+	}
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
-      <Text style={styles.description}>Signed in as {session.data.user.name}</Text>
-      <BodyWeightGoalForm userId={session.data.user.id} />
-      <Pressable style={styles.secondaryButton} onPress={logout}>
-        <Text style={styles.secondaryButtonText}>Log out</Text>
-      </Pressable>
-    </View>
-  );
+	return (
+		<View style={styles.container}>
+			<Text style={styles.title}>Settings</Text>
+			<Text style={styles.description}>
+				Signed in as {session.data.user.name}
+			</Text>
+			<BodyWeightGoalForm userId={session.data.user.id} />
+			<Pressable style={styles.secondaryButton} onPress={logout}>
+				<Text style={styles.secondaryButtonText}>Log out</Text>
+			</Pressable>
+		</View>
+	);
 }
 
 const styles = StyleSheet.create({
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
-  container: { flex: 1, gap: spacing.md, padding: spacing.lg, backgroundColor: colors.background },
-  title: { color: colors.text, fontSize: 28, fontWeight: '800' },
-  description: { color: colors.mutedText, fontSize: 16 },
-  secondaryButton: { alignItems: 'center', padding: spacing.md, borderRadius: 999, borderWidth: 1, borderColor: colors.border },
-  secondaryButtonText: { color: colors.text, fontSize: 16, fontWeight: '700' },
+	centered: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+		backgroundColor: colors.background,
+	},
+	container: {
+		flex: 1,
+		gap: spacing.md,
+		padding: spacing.lg,
+		backgroundColor: colors.background,
+	},
+	title: { color: colors.text, fontSize: 28, fontWeight: "800" },
+	description: { color: colors.mutedText, fontSize: 16 },
+	secondaryButton: {
+		alignItems: "center",
+		padding: spacing.md,
+		borderRadius: 999,
+		borderWidth: 1,
+		borderColor: colors.border,
+	},
+	secondaryButtonText: { color: colors.text, fontSize: 16, fontWeight: "700" },
 });
