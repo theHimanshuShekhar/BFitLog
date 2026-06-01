@@ -8,12 +8,14 @@
     "android": "expo start --android",
     "web": "expo start --web",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo 'mobile tests pending Expo setup'",
+    "test": "vitest run",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@better-auth/expo": "^1.6.13",
+    "@bfitlog/shared": "workspace:*",
     "@expo/metro-runtime": "^56.0.13",
+    "@react-native-async-storage/async-storage": "^3.1.1",
     "better-auth": "^1.6.13",
     "expo": "^56.0.8",
     "expo-network": "^56.0.4",
@@ -28,6 +30,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.16",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.8"
   }
 }
