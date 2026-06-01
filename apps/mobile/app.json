@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "BFitLog",
+    "slug": "bfitlog",
+    "scheme": "bfitlog",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "platforms": ["android", "web"],
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
