@@ -120,6 +120,34 @@ describe("workout routes", () => {
 		expect(nextBody.day.id).toBe(day2.id);
 	});
 
+	it("lists completed workout history for the current user", async () => {
+		const { app, cookie, plan } = await createSessionWithActivePlan();
+		const day1 = plan.template.days[0];
+
+		const start = await app.request("/workouts/draft", {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({ trainingDayId: day1.id, startedAt: "2026-06-02T10:00:00.000Z" }),
+		});
+		const started = await start.json();
+		await app.request(`/workouts/${started.workout.id}/complete`, {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({ completedAt: "2026-06-02T11:00:00.000Z", note: "Good session" }),
+		});
+
+		const response = await app.request("/workouts", { headers: { cookie } });
+		expect(response.status).toBe(200);
+		const body = await response.json();
+		expect(body.workouts).toHaveLength(1);
+		expect(body.workouts[0]).toMatchObject({
+			id: started.workout.id,
+			status: "completed",
+			trainingDay: { sequence: day1.sequence, title: day1.title },
+			note: "Good session",
+		});
+	});
+
 	it("updates exercise logs, set logs, and completes a draft workout", async () => {
 		const { app, cookie, plan } = await createSessionWithActivePlan();
 		const trainingDayId = plan.template.days[0].id as string;

@@ -61,6 +61,48 @@ function formatTarget(planned: {
 }
 
 export const workoutRoutes = new Hono<{ Variables: Variables }>()
+	.get("/workouts", async (c) => {
+		const user = requireUser(c);
+		if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+		const rows = await db
+			.select({
+				id: workoutLogs.id,
+				userId: workoutLogs.userId,
+				trainingDayId: workoutLogs.trainingDayId,
+				status: workoutLogs.status,
+				startedAt: workoutLogs.startedAt,
+				completedAt: workoutLogs.completedAt,
+				note: workoutLogs.note,
+				trainingDaySequence: trainingDays.sequence,
+				trainingDayTitle: trainingDays.title,
+			})
+			.from(workoutLogs)
+			.innerJoin(trainingDays, eq(trainingDays.id, workoutLogs.trainingDayId))
+			.where(
+				and(
+					eq(workoutLogs.userId, user.id),
+					eq(workoutLogs.status, "completed"),
+				),
+			)
+			.orderBy(desc(workoutLogs.completedAt), desc(workoutLogs.startedAt));
+
+		return c.json({
+			workouts: rows.map((row) => ({
+				id: row.id,
+				userId: row.userId,
+				trainingDayId: row.trainingDayId,
+				status: row.status,
+				startedAt: row.startedAt.toISOString(),
+				completedAt: row.completedAt?.toISOString() ?? null,
+				note: row.note,
+				trainingDay: {
+					sequence: row.trainingDaySequence,
+					title: row.trainingDayTitle,
+				},
+			})),
+		});
+	})
 	.get("/workouts/draft", async (c) => {
 		const user = requireUser(c);
 		if (!user) return c.json({ error: "Unauthorized" }, 401);

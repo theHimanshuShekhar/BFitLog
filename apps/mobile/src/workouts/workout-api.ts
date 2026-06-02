@@ -11,6 +11,15 @@ export type WorkoutExercise = {
   sets: Array<{ id: string; setIndex: number; weightKg: number | null; reps: number | null; durationSeconds: number | null }>;
 };
 
+export type WorkoutHistoryItem = {
+  id: string;
+  status: 'completed';
+  startedAt: string;
+  completedAt: string | null;
+  note: string | null;
+  trainingDay: { sequence: number; title: string };
+};
+
 export type DraftWorkout = {
   id: string;
   userId: string;
@@ -56,6 +65,12 @@ export async function getActivePlan(): Promise<ActivePlan | null> {
   });
   body = await parseJson<{ plan: ActivePlan }>(response, 'Create active plan');
   return body.plan;
+}
+
+export async function listCompletedWorkouts(): Promise<WorkoutHistoryItem[]> {
+  const response = await fetch(`${apiBaseUrl}/workouts`, authHeaders());
+  const body = await parseJson<{ workouts: WorkoutHistoryItem[] }>(response, 'Load workout history');
+  return body.workouts;
 }
 
 export async function getNextTrainingDay(): Promise<TrainingDaySummary | null> {
