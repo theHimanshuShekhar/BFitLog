@@ -289,7 +289,7 @@ Recent verification passed:
 - `[x]` Add goal reference to chart
 - `[ ]` Improve form validation UX
 - `[ ]` Add loading/error/success toasts instead of alerts
-- `[ ]` Add delete body weight log UI
+- `[x]` Add delete body weight log UI
 - `[ ]` Add edit body weight log UI
 - `[ ]` Add pull-to-refresh where appropriate
 

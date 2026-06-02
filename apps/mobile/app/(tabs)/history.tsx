@@ -23,6 +23,21 @@ export default function HistoryScreen() {
 	const [workouts, setWorkouts] = useState<WorkoutHistoryItem[]>([]);
 	const [syncStatus, setSyncStatus] = useState("Loaded locally");
 
+	const deleteBodyWeightLog = async (logId: string) => {
+		const now = new Date().toISOString();
+		const repository = getBodyWeightRepository();
+		await repository.deleteLog(logId, now);
+		setLogs(await repository.listLogs());
+		setSyncStatus("Syncing…");
+		try {
+			await repository.sync();
+			setLogs(await repository.listLogs());
+			setSyncStatus("Synced");
+		} catch {
+			setSyncStatus("Offline / sync pending");
+		}
+	};
+
 	const load = useCallback(async () => {
 		const repository = getBodyWeightRepository();
 		setLogs(await repository.listLogs());
@@ -112,6 +127,12 @@ export default function HistoryScreen() {
 						{log.note ? (
 							<Text style={styles.description}>{log.note}</Text>
 						) : null}
+						<Pressable
+							style={styles.dangerButton}
+							onPress={() => void deleteBodyWeightLog(log.id)}
+						>
+							<Text style={styles.dangerButtonText}>Delete</Text>
+						</Pressable>
 					</View>
 				))
 			)}
@@ -148,6 +169,14 @@ const styles = StyleSheet.create({
 		marginTop: spacing.sm,
 	},
 	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+	dangerButton: {
+		alignItems: "center",
+		padding: spacing.sm,
+		borderRadius: 999,
+		borderWidth: 1,
+		borderColor: colors.danger,
+	},
+	dangerButtonText: { color: colors.danger, fontSize: 14, fontWeight: "700" },
 	secondaryButton: {
 		alignItems: "center",
 		padding: spacing.md,
