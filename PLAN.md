@@ -193,7 +193,7 @@ Recent verification passed:
 - `[x]` Add richer setup validation messages in UI
 - `[x]` Add admin user-management endpoints
 - `[x]` Add admin create-user flow
-- `[ ]` Add admin Partner Link management
+- `[x]` Add admin Partner Link management
 
 ---
 
@@ -510,8 +510,8 @@ Recent verification passed:
 - `[ ]` Admin area visible only for admin role
 - `[ ]` Create user
 - `[x]` Reset user password
-- `[ ]` Create Partner Link
-- `[ ]` View existing Partner Links
+- `[x]` Create Partner Link
+- `[x]` View existing Partner Links
 - `[ ]` Promote/demote role
 - `[ ]` Admin-only plan editor
 - `[ ]` Admin-only exercise/media editor
@@ -523,7 +523,7 @@ Recent verification passed:
 ## Visibility
 
 - `[x]` Partner Link table
-- `[ ]` Initial Partner Link no longer created during setup; add admin Partner Link management before enabling partner visibility
+- `[x]` Initial Partner Link no longer created during setup; admin Partner Link management exists
 - `[ ]` Enforce Partner Link read visibility in APIs
 - `[ ]` User switcher for Stats
 - `[ ]` User switcher for Body Weight Stats

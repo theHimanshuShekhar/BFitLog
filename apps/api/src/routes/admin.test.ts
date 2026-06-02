@@ -89,6 +89,49 @@ describe("admin routes", () => {
 		expect(body.user).toMatchObject({ username: "member", role: "member" });
 	});
 
+	it("lets admins create and list Partner Links", async () => {
+		const { app, cookie } = await createRealAdminSession();
+		const memberA = await app.request("/admin/users", {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				username: "membera",
+				displayName: "Member A",
+				password: "password1234",
+			}),
+		});
+		const memberB = await app.request("/admin/users", {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				username: "memberb",
+				displayName: "Member B",
+				password: "password1234",
+			}),
+		});
+		const memberABody = await memberA.json();
+		const memberBBody = await memberB.json();
+
+		const createLink = await app.request("/admin/partner-links", {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				userAId: memberABody.user.id,
+				userBId: memberBBody.user.id,
+			}),
+		});
+		expect(createLink.status).toBe(201);
+
+		const links = await app.request("/admin/partner-links", { headers: { cookie } });
+		expect(links.status).toBe(200);
+		const linksBody = await links.json();
+		expect(linksBody.partnerLinks).toHaveLength(1);
+		expect([
+			linksBody.partnerLinks[0].userA.username,
+			linksBody.partnerLinks[0].userB.username,
+		].sort()).toEqual(["membera", "memberb"]);
+	});
+
 	it("lets admins reset another user's password", async () => {
 		const { app, cookie } = await createRealAdminSession();
 		const create = await app.request("/admin/users", {

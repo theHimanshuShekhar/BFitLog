@@ -11,17 +11,23 @@ import {
 import { colors, spacing } from "@/theme";
 import {
 	createAdminUser,
+	createPartnerLink,
 	listAdminUsers,
+	listPartnerLinks,
 	resetUserPassword,
 	type AdminUser,
+	type PartnerLink,
 } from "./admin-api";
 
 export function AdminUserManagement() {
 	const [users, setUsers] = useState<AdminUser[]>([]);
+	const [partnerLinks, setPartnerLinks] = useState<PartnerLink[]>([]);
 	const [username, setUsername] = useState("");
 	const [displayName, setDisplayName] = useState("");
 	const [password, setPassword] = useState("");
 	const [resetPasswords, setResetPasswords] = useState<Record<string, string>>({});
+	const [partnerUsernameA, setPartnerUsernameA] = useState("");
+	const [partnerUsernameB, setPartnerUsernameB] = useState("");
 	const [status, setStatus] = useState<
 		"loading" | "ready" | "saving" | "error"
 	>("loading");
@@ -31,7 +37,12 @@ export function AdminUserManagement() {
 		setStatus("loading");
 		setMessage(null);
 		try {
-			setUsers(await listAdminUsers());
+			const [nextUsers, nextLinks] = await Promise.all([
+				listAdminUsers(),
+				listPartnerLinks(),
+			]);
+			setUsers(nextUsers);
+			setPartnerLinks(nextLinks);
 			setStatus("ready");
 		} catch (error) {
 			setMessage(
@@ -44,6 +55,30 @@ export function AdminUserManagement() {
 	useEffect(() => {
 		void load();
 	}, [load]);
+
+	const addPartnerLink = async () => {
+		const partnerUserAId = userIdForName(users, partnerUsernameA);
+		const partnerUserBId = userIdForName(users, partnerUsernameB);
+		if (!partnerUserAId || !partnerUserBId || partnerUserAId === partnerUserBId) {
+			setMessage("Enter two different existing usernames for the Partner Link.");
+			return;
+		}
+		setStatus("saving");
+		setMessage(null);
+		try {
+			await createPartnerLink(partnerUserAId, partnerUserBId);
+			setPartnerUsernameA("");
+			setPartnerUsernameB("");
+			setPartnerLinks(await listPartnerLinks());
+			setMessage("Partner Link created.");
+			setStatus("ready");
+		} catch (error) {
+			setMessage(
+				error instanceof Error ? error.message : "Unable to create Partner Link",
+			);
+			setStatus("error");
+		}
+	};
 
 	const resetPassword = async (user: AdminUser) => {
 		const nextPassword = resetPasswords[user.id] ?? "";
@@ -117,6 +152,7 @@ export function AdminUserManagement() {
 				</Text>
 			) : null}
 
+			<Text style={styles.sectionTitle}>Existing users</Text>
 			{users.map((user) => (
 				<View key={user.id} style={styles.userCard}>
 					<Text style={styles.status}>
@@ -145,6 +181,7 @@ export function AdminUserManagement() {
 				</View>
 			))}
 
+			<Text style={styles.sectionTitle}>Create user</Text>
 			<TextInput
 				style={styles.input}
 				placeholder="Username"
@@ -177,9 +214,48 @@ export function AdminUserManagement() {
 					{status === "saving" ? "Creating…" : "Create user"}
 				</Text>
 			</Pressable>
+
+			<Text style={styles.sectionTitle}>Partner Links</Text>
+			{partnerLinks.length === 0 ? (
+				<Text style={styles.status}>No Partner Links yet.</Text>
+			) : (
+				partnerLinks.map((link) => (
+					<Text key={`${link.userA.id}:${link.userB.id}`} style={styles.status}>
+						{link.userA.username} ↔ {link.userB.username}
+					</Text>
+				))
+			)}
+			<TextInput
+				style={styles.input}
+				placeholder="First username"
+				placeholderTextColor={colors.mutedText}
+				value={partnerUsernameA}
+				onChangeText={setPartnerUsernameA}
+				autoCapitalize="none"
+			/>
+			<TextInput
+				style={styles.input}
+				placeholder="Second username"
+				placeholderTextColor={colors.mutedText}
+				value={partnerUsernameB}
+				onChangeText={setPartnerUsernameB}
+				autoCapitalize="none"
+			/>
+			<Pressable
+				style={styles.secondaryButton}
+				onPress={() => void addPartnerLink()}
+				disabled={status === "saving"}
+			>
+				<Text style={styles.secondaryButtonText}>Create Partner Link</Text>
+			</Pressable>
 		</View>
 	);
 }
+
+function userIdForName(users: AdminUser[], username: string) {
+	return users.find((user) => user.username === username.trim())?.id ?? "";
+}
+
 
 const styles = StyleSheet.create({
 	card: {
@@ -193,6 +269,7 @@ const styles = StyleSheet.create({
 	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
 	description: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
 	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
+	sectionTitle: { color: colors.primary, fontSize: 15, fontWeight: "800" },
 	error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
 	userCard: {
 		gap: spacing.sm,

@@ -1,4 +1,4 @@
-import { asc, count, eq, ne } from "drizzle-orm";
+import { asc, count, eq, inArray, ne, or } from "drizzle-orm";
 import { Hono } from "hono";
 import { auth } from "../auth/auth.js";
 import {
@@ -7,7 +7,7 @@ import {
 	internalEmailForUsername,
 } from "../bootstrap.js";
 import { createDb } from "../db/client.js";
-import { user } from "../db/schema.js";
+import { partnerLinks, user } from "../db/schema.js";
 
 const db = createDb(
 	process.env.DATABASE_URL ??
@@ -116,6 +116,69 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 			},
 			201,
 		);
+	})
+	.get("/admin/partner-links", async (c) => {
+		const links = await db
+			.select()
+			.from(partnerLinks)
+			.orderBy(asc(partnerLinks.createdAt));
+		const userIds = [
+			...new Set(links.flatMap((link) => [link.userAId, link.userBId])),
+		];
+		const linkedUsers = userIds.length
+			? await db
+					.select({
+						id: user.id,
+						username: user.username,
+						displayName: user.name,
+						role: user.role,
+					})
+					.from(user)
+					.where(inArray(user.id, userIds))
+			: [];
+		const usersById = new Map(linkedUsers.map((item) => [item.id, item]));
+
+		return c.json({
+			partnerLinks: links.map((link) => ({
+				userA: usersById.get(link.userAId) ?? { id: link.userAId },
+				userB: usersById.get(link.userBId) ?? { id: link.userBId },
+				createdAt: link.createdAt.toISOString(),
+			})),
+		});
+	})
+	.post("/admin/partner-links", async (c) => {
+		const body = (await c.req.json().catch(() => null)) as {
+			userAId?: unknown;
+			userBId?: unknown;
+		} | null;
+		if (typeof body?.userAId !== "string" || typeof body.userBId !== "string") {
+			return c.json({ error: "userAId and userBId are required" }, 400);
+		}
+		if (body.userAId === body.userBId) {
+			return c.json({ error: "Partner Link users must be different" }, 400);
+		}
+
+		const sortedIds = [body.userAId, body.userBId].sort();
+		const existingUsers = await db
+			.select({ id: user.id })
+			.from(user)
+			.where(
+				or(
+					eq(user.id, sortedIds[0] ?? ""),
+					eq(user.id, sortedIds[1] ?? ""),
+				),
+			);
+		if (existingUsers.length !== 2) return c.json({ error: "Both users must exist" }, 404);
+
+		await db
+			.insert(partnerLinks)
+			.values({
+				userAId: sortedIds[0] ?? body.userAId,
+				userBId: sortedIds[1] ?? body.userBId,
+			})
+			.onConflictDoNothing();
+
+		return c.json({ ok: true }, 201);
 	})
 	.post("/admin/users/:userId/password", async (c) => {
 		const body = (await c.req.json().catch(() => null)) as {
