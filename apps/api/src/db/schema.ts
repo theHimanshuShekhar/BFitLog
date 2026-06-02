@@ -26,6 +26,16 @@ export const exerciseMediaKind = pgEnum("exercise_media_kind", [
 	"video",
 ]);
 export const checklistKind = pgEnum("checklist_kind", ["warmup", "cooldown"]);
+export const workoutLogStatus = pgEnum("workout_log_status", [
+	"draft",
+	"completed",
+	"discarded",
+]);
+export const exerciseLogStatus = pgEnum("exercise_log_status", [
+	"planned",
+	"completed",
+	"skipped",
+]);
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -263,6 +273,100 @@ export const plannedExerciseSubstitutes = pgTable(
 	],
 );
 
+export const workoutLogs = pgTable(
+	"workout_logs",
+	{
+		id: uuid("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		userTrainingPlanId: text("user_training_plan_id").references(
+			() => userTrainingPlans.id,
+			{ onDelete: "set null" },
+		),
+		trainingDayId: text("training_day_id")
+			.notNull()
+			.references(() => trainingDays.id, { onDelete: "restrict" }),
+		status: workoutLogStatus("status").notNull().default("draft"),
+		startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+		completedAt: timestamp("completed_at", { withTimezone: true }),
+		note: text("note"),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+		deletedAt: timestamp("deleted_at", { withTimezone: true }),
+	},
+	(table) => [
+		index("workout_logs_user_started_idx").on(table.userId, table.startedAt),
+		index("workout_logs_user_status_idx").on(table.userId, table.status),
+	],
+);
+
+export const exerciseLogs = pgTable(
+	"exercise_logs",
+	{
+		id: uuid("id").primaryKey(),
+		workoutLogId: uuid("workout_log_id")
+			.notNull()
+			.references(() => workoutLogs.id, { onDelete: "cascade" }),
+		plannedExerciseId: text("planned_exercise_id").references(
+			() => plannedExercises.id,
+			{ onDelete: "set null" },
+		),
+		plannedExerciseName: text("planned_exercise_name").notNull(),
+		plannedExerciseTarget: text("planned_exercise_target").notNull(),
+		originalExerciseId: text("original_exercise_id").references(() => exercises.id, {
+			onDelete: "set null",
+		}),
+		performedExerciseId: text("performed_exercise_id").references(
+			() => exercises.id,
+			{ onDelete: "set null" },
+		),
+		status: exerciseLogStatus("status").notNull().default("planned"),
+		goodForm: boolean("good_form"),
+		note: text("note"),
+		skipReason: text("skip_reason"),
+		substitutionNote: text("substitution_note"),
+		sortOrder: integer("sort_order").notNull(),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+	},
+	(table) => [index("exercise_logs_workout_idx").on(table.workoutLogId)],
+);
+
+export const setLogs = pgTable(
+	"set_logs",
+	{
+		id: uuid("id").primaryKey(),
+		exerciseLogId: uuid("exercise_log_id")
+			.notNull()
+			.references(() => exerciseLogs.id, { onDelete: "cascade" }),
+		setIndex: integer("set_index").notNull(),
+		weightKg: text("weight_kg"),
+		reps: integer("reps"),
+		durationSeconds: integer("duration_seconds"),
+		createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+	},
+	(table) => [index("set_logs_exercise_idx").on(table.exerciseLogId)],
+);
+
+export const workoutChecklistLogs = pgTable(
+	"workout_checklist_logs",
+	{
+		workoutLogId: uuid("workout_log_id")
+			.notNull()
+			.references(() => workoutLogs.id, { onDelete: "cascade" }),
+		checklistItemId: text("checklist_item_id")
+			.notNull()
+			.references(() => trainingDayChecklistItems.id, { onDelete: "restrict" }),
+		checked: boolean("checked").notNull().default(false),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+	},
+	(table) => [
+		primaryKey({ columns: [table.workoutLogId, table.checklistItemId] }),
+	],
+);
+
 export const bodyWeightLogs = pgTable(
 	"body_weight_logs",
 	{
@@ -289,6 +393,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
 	bodyWeightLogs: many(bodyWeightLogs),
 	bodyWeightGoal: one(bodyWeightGoals),
 	trainingPlans: many(userTrainingPlans),
+	workoutLogs: many(workoutLogs),
 }));
 
 export const bodyWeightLogsRelations = relations(bodyWeightLogs, ({ one }) => ({
