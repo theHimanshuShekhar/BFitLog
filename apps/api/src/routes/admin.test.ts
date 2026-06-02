@@ -122,14 +122,18 @@ describe("admin routes", () => {
 		});
 		expect(createLink.status).toBe(201);
 
-		const links = await app.request("/admin/partner-links", { headers: { cookie } });
+		const links = await app.request("/admin/partner-links", {
+			headers: { cookie },
+		});
 		expect(links.status).toBe(200);
 		const linksBody = await links.json();
 		expect(linksBody.partnerLinks).toHaveLength(1);
-		expect([
-			linksBody.partnerLinks[0].userA.username,
-			linksBody.partnerLinks[0].userB.username,
-		].sort()).toEqual(["membera", "memberb"]);
+		expect(
+			[
+				linksBody.partnerLinks[0].userA.username,
+				linksBody.partnerLinks[0].userB.username,
+			].sort(),
+		).toEqual(["membera", "memberb"]);
 	});
 
 	it("lets admins reset another user's password", async () => {

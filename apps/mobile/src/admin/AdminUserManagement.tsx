@@ -25,7 +25,9 @@ export function AdminUserManagement() {
 	const [username, setUsername] = useState("");
 	const [displayName, setDisplayName] = useState("");
 	const [password, setPassword] = useState("");
-	const [resetPasswords, setResetPasswords] = useState<Record<string, string>>({});
+	const [resetPasswords, setResetPasswords] = useState<Record<string, string>>(
+		{},
+	);
 	const [partnerUsernameA, setPartnerUsernameA] = useState("");
 	const [partnerUsernameB, setPartnerUsernameB] = useState("");
 	const [status, setStatus] = useState<
@@ -59,8 +61,14 @@ export function AdminUserManagement() {
 	const addPartnerLink = async () => {
 		const partnerUserAId = userIdForName(users, partnerUsernameA);
 		const partnerUserBId = userIdForName(users, partnerUsernameB);
-		if (!partnerUserAId || !partnerUserBId || partnerUserAId === partnerUserBId) {
-			setMessage("Enter two different existing usernames for the Partner Link.");
+		if (
+			!partnerUserAId ||
+			!partnerUserBId ||
+			partnerUserAId === partnerUserBId
+		) {
+			setMessage(
+				"Enter two different existing usernames for the Partner Link.",
+			);
 			return;
 		}
 		setStatus("saving");
@@ -74,7 +82,9 @@ export function AdminUserManagement() {
 			setStatus("ready");
 		} catch (error) {
 			setMessage(
-				error instanceof Error ? error.message : "Unable to create Partner Link",
+				error instanceof Error
+					? error.message
+					: "Unable to create Partner Link",
 			);
 			setStatus("error");
 		}
@@ -255,7 +265,6 @@ export function AdminUserManagement() {
 function userIdForName(users: AdminUser[], username: string) {
 	return users.find((user) => user.username === username.trim())?.id ?? "";
 }
-
 
 const styles = StyleSheet.create({
 	card: {

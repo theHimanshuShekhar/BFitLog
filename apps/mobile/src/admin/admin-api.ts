@@ -32,7 +32,10 @@ async function parseJson<T>(response: Response, label: string): Promise<T> {
 }
 
 export async function listPartnerLinks(): Promise<PartnerLink[]> {
-	const response = await fetch(`${apiBaseUrl}/admin/partner-links`, authHeaders());
+	const response = await fetch(
+		`${apiBaseUrl}/admin/partner-links`,
+		authHeaders(),
+	);
 	const body = await parseJson<{ partnerLinks: PartnerLink[] }>(
 		response,
 		"List Partner Links",
@@ -40,7 +43,10 @@ export async function listPartnerLinks(): Promise<PartnerLink[]> {
 	return body.partnerLinks;
 }
 
-export async function createPartnerLink(userAId: string, userBId: string): Promise<void> {
+export async function createPartnerLink(
+	userAId: string,
+	userBId: string,
+): Promise<void> {
 	const response = await fetch(`${apiBaseUrl}/admin/partner-links`, {
 		method: "POST",
 		...authHeaders(true),

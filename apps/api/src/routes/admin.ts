@@ -163,12 +163,10 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 			.select({ id: user.id })
 			.from(user)
 			.where(
-				or(
-					eq(user.id, sortedIds[0] ?? ""),
-					eq(user.id, sortedIds[1] ?? ""),
-				),
+				or(eq(user.id, sortedIds[0] ?? ""), eq(user.id, sortedIds[1] ?? "")),
 			);
-		if (existingUsers.length !== 2) return c.json({ error: "Both users must exist" }, 404);
+		if (existingUsers.length !== 2)
+			return c.json({ error: "Both users must exist" }, 404);
 
 		await db
 			.insert(partnerLinks)
