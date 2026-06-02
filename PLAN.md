@@ -382,7 +382,7 @@ Recent verification passed:
 - `[x]` Complete workout
 - `[x]` Completed workout advances soft sequence
 - `[x]` Completed workout with skips advances sequence
-- `[ ]` Manual Training Day override
+- `[x]` Manual Training Day override
 - `[x]` Determine next Training Day from latest completed Workout Log
 
 ## Exercise logging
@@ -394,42 +394,42 @@ Recent verification passed:
 - `[x]` Exercise-level notes
 - `[x]` Workout-level note
 - `[x]` Show completed workout history timeline
-- `[ ]` Edit completed workout logs
-- `[ ]` Delete own workout logs
-- `[ ]` Own-log mutation only
-- `[ ]` Partner visibility read-only
+- `[x]` Edit completed workout logs
+- `[x]` Delete own workout logs
+- `[x]` Own-log mutation only
+- `[x]` Partner visibility read-only
 
 ## Skips and substitutions
 
-- `[ ]` Allow preferred substitute selection
-- `[ ]` Allow ad-hoc substitute with note
-- `[ ]` Preserve originally planned exercise and actually performed exercise
-- `[ ]` Stats count toward actual performed exercise only
-- `[ ]` Substitute counts as completing Planned Exercise slot
-- `[ ]` Allow skip with required note
-- `[ ]` Skip is neutral for progression
-- `[ ]` Skip remains visible in history
-- `[ ]` Handle different substitute tracking type with explicit target adjustment
+- `[x]` Allow preferred substitute selection
+- `[x]` Allow ad-hoc substitute with note
+- `[x]` Preserve originally planned exercise and actually performed exercise
+- `[x]` Stats count toward actual performed exercise only
+- `[x]` Substitute counts as completing Planned Exercise slot
+- `[x]` Allow skip with required note
+- `[x]` Skip is neutral for progression
+- `[x]` Skip remains visible in history
+- `[x]` Handle different substitute tracking type with explicit target adjustment — substitute ID + note make target adjustment explicit in the log
 
 ## Checklists/rest timer
 
-- `[ ]` Save warmup checklist state in draft/completed Workout Log
-- `[ ]` Save cooldown checklist state in draft/completed Workout Log
-- `[ ]` Auto-start rest timer after set save
-- `[ ]` Rest timer uses exercise-specific rest seconds
-- `[ ]` Rest timer can skip/pause
-- `[ ]` Rest timer notification on Android
-- `[ ]` Rest timer not stored in stats
+- `[x]` Save warmup checklist state in draft/completed Workout Log
+- `[x]` Save cooldown checklist state in draft/completed Workout Log
+- `[x]` Auto-start rest timer after set save
+- `[x]` Rest timer uses exercise-specific rest seconds
+- `[x]` Rest timer can skip/pause
+- `[~]` Rest timer notification on Android — notification permission plumbing tracked in Phase 10/14
+- `[x]` Rest timer not stored in stats
 
 ## Offline sync
 
-- `[ ]` Offline workout logging
-- `[ ]` Offline set logging
-- `[ ]` Offline checklist state
-- `[ ]` Offline skip/substitution state
-- `[ ]` Sync completed/draft workouts later
-- `[ ]` Last-write-wins fallback for conflicts
-- `[ ]` PowerSync spike before committing to final sync implementation
+- `[~]` Offline workout logging — deferred with broader local-first workout sync after PowerSync spike
+- `[~]` Offline set logging — deferred with broader local-first workout sync after PowerSync spike
+- `[~]` Offline checklist state — deferred with broader local-first workout sync after PowerSync spike
+- `[~]` Offline skip/substitution state — deferred with broader local-first workout sync after PowerSync spike
+- `[~]` Sync completed/draft workouts later — deferred with broader local-first workout sync after PowerSync spike
+- `[~]` Last-write-wins fallback for conflicts — deferred with broader local-first workout sync after PowerSync spike
+- `[x]` PowerSync spike before committing to final sync implementation — see `docs/spikes/2026-06-02-powersync.md`
 
 ---
 

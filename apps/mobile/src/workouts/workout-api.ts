@@ -5,10 +5,14 @@ export type WorkoutExercise = {
 	id: string;
 	plannedExerciseName: string;
 	plannedExerciseTarget: string;
+	restSeconds?: number | null;
 	status: "planned" | "completed" | "skipped";
 	goodForm: boolean | null;
 	note: string | null;
 	skipReason: string | null;
+	substitutionNote?: string | null;
+	originalExerciseId?: string | null;
+	performedExerciseId?: string | null;
 	sets: Array<{
 		id: string;
 		setIndex: number;
@@ -114,6 +118,15 @@ export async function getNextTrainingDay(): Promise<TrainingDaySummary | null> {
 	return body.day;
 }
 
+export async function getWorkout(workoutId: string): Promise<DraftWorkout> {
+	const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}`, authHeaders());
+	const body = await parseJson<{ workout: DraftWorkout }>(
+		response,
+		"Load workout",
+	);
+	return body.workout;
+}
+
 export async function getDraftWorkout(): Promise<DraftWorkout | null> {
 	const response = await fetch(`${apiBaseUrl}/workouts/draft`, authHeaders());
 	const body = await parseJson<{ workout: DraftWorkout | null }>(
@@ -145,7 +158,11 @@ export async function saveExerciseSet(
 	workoutId: string,
 	exercise: WorkoutExercise,
 	set: { weightKg?: number; reps?: number; durationSeconds?: number },
-	note?: string,
+	options: {
+		note?: string;
+		performedExerciseId?: string;
+		substitutionNote?: string;
+	} = {},
 ): Promise<WorkoutExercise> {
 	const response = await fetch(
 		`${apiBaseUrl}/workouts/${workoutId}/exercises/${exercise.id}`,
@@ -155,7 +172,9 @@ export async function saveExerciseSet(
 			body: JSON.stringify({
 				status: "completed",
 				goodForm: true,
-				note: note?.trim() || undefined,
+				note: options.note?.trim() || undefined,
+				performedExerciseId: options.performedExerciseId?.trim() || undefined,
+				substitutionNote: options.substitutionNote?.trim() || undefined,
 				sets: [{ setIndex: 1, ...set }],
 			}),
 		},
@@ -185,6 +204,50 @@ export async function skipExercise(
 		"Skip exercise",
 	);
 	return body.exercise;
+}
+
+export async function updateWorkoutChecklist(
+	workoutId: string,
+	checklistItemId: string,
+	checked: boolean,
+): Promise<DraftWorkout> {
+	const response = await fetch(
+		`${apiBaseUrl}/workouts/${workoutId}/checklist/${checklistItemId}`,
+		{
+			method: "PUT",
+			...authHeaders(true),
+			body: JSON.stringify({ checked }),
+		},
+	);
+	const body = await parseJson<{ workout: DraftWorkout }>(
+		response,
+		"Update checklist",
+	);
+	return body.workout;
+}
+
+export async function updateWorkoutNote(
+	workoutId: string,
+	note: string,
+): Promise<DraftWorkout> {
+	const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}`, {
+		method: "PATCH",
+		...authHeaders(true),
+		body: JSON.stringify({ note }),
+	});
+	const body = await parseJson<{ workout: DraftWorkout }>(
+		response,
+		"Update workout",
+	);
+	return body.workout;
+}
+
+export async function deleteWorkout(workoutId: string): Promise<void> {
+	const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}`, {
+		method: "DELETE",
+		...authHeaders(),
+	});
+	await parseJson<{ ok: true }>(response, "Delete workout");
 }
 
 export async function completeWorkout(

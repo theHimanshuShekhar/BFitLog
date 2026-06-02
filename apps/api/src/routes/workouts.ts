@@ -173,6 +173,7 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 				targetMinReps: plannedExercises.targetMinReps,
 				targetMaxReps: plannedExercises.targetMaxReps,
 				targetDurationSeconds: plannedExercises.targetDurationSeconds,
+				restSeconds: plannedExercises.restSeconds,
 				exerciseName: exercises.name,
 			})
 			.from(plannedExercises)
@@ -188,6 +189,7 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 					plannedExerciseId: item.id,
 					plannedExerciseName: item.exerciseName,
 					plannedExerciseTarget: formatTarget(item),
+					restSeconds: item.restSeconds,
 					originalExerciseId: item.exerciseId,
 					performedExerciseId: item.exerciseId,
 					status: "planned" as const,
@@ -215,6 +217,14 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 
 		return c.json({ workout: await loadWorkout(workoutId, user.id) }, 201);
 	})
+	.get("/workouts/:workoutId", async (c) => {
+		const user = requireUser(c);
+		if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+		const workout = await loadWorkout(c.req.param("workoutId"), user.id);
+		if (!workout) return c.json({ error: "Workout not found" }, 404);
+		return c.json({ workout });
+	})
 	.put("/workouts/:workoutId/exercises/:exerciseLogId", async (c) => {
 		const user = requireUser(c);
 		if (!user) return c.json({ error: "Unauthorized" }, 401);
@@ -228,7 +238,7 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 				and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)),
 			);
 		if (!workout) return c.json({ error: "Workout not found" }, 404);
-		if (workout.status !== "draft")
+		if (workout.status !== "draft" && workout.status !== "completed")
 			return c.json({ error: "Workout is not editable" }, 409);
 
 		const body = (await c.req.json().catch(() => null)) as {
@@ -243,7 +253,10 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		if (!body || !isExerciseLogStatus(body.status)) {
 			return c.json({ error: "Valid exercise status is required" }, 400);
 		}
-		if (body.status === "skipped" && typeof body.skipReason !== "string") {
+		if (
+			body.status === "skipped" &&
+			(typeof body.skipReason !== "string" || !body.skipReason.trim())
+		) {
 			return c.json({ error: "skipReason is required when skipping" }, 400);
 		}
 
@@ -255,7 +268,7 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 				goodForm: typeof body.goodForm === "boolean" ? body.goodForm : null,
 				note: typeof body.note === "string" ? body.note : null,
 				skipReason:
-					typeof body.skipReason === "string" ? body.skipReason : null,
+					typeof body.skipReason === "string" ? body.skipReason.trim() : null,
 				substitutionNote:
 					typeof body.substitutionNote === "string"
 						? body.substitutionNote
@@ -320,6 +333,87 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 			);
 
 		return c.json({ workout: await loadWorkout(workoutId, user.id) });
+	})
+	.patch("/workouts/:workoutId", async (c) => {
+		const user = requireUser(c);
+		if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+		const workoutId = c.req.param("workoutId");
+		const body = (await c.req.json().catch(() => null)) as {
+			note?: unknown;
+			completedAt?: unknown;
+		} | null;
+		const [workout] = await db
+			.select()
+			.from(workoutLogs)
+			.where(
+				and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)),
+			);
+		if (!workout) return c.json({ error: "Workout not found" }, 404);
+		if (workout.status !== "draft" && workout.status !== "completed") {
+			return c.json({ error: "Workout is not editable" }, 409);
+		}
+
+		await db
+			.update(workoutLogs)
+			.set({
+				note: typeof body?.note === "string" ? body.note.trim() || null : workout.note,
+				completedAt:
+					workout.status === "completed"
+						? toDate(body?.completedAt, workout.completedAt ?? new Date())
+						: workout.completedAt,
+				updatedAt: new Date(),
+			})
+			.where(eq(workoutLogs.id, workoutId));
+		return c.json({ workout: await loadWorkout(workoutId, user.id) });
+	})
+	.put("/workouts/:workoutId/checklist/:checklistItemId", async (c) => {
+		const user = requireUser(c);
+		if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+		const workoutId = c.req.param("workoutId");
+		const checklistItemId = c.req.param("checklistItemId");
+		const body = (await c.req.json().catch(() => null)) as {
+			checked?: unknown;
+		} | null;
+		if (typeof body?.checked !== "boolean") {
+			return c.json({ error: "checked boolean is required" }, 400);
+		}
+		const [workout] = await db
+			.select()
+			.from(workoutLogs)
+			.where(
+				and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)),
+			);
+		if (!workout) return c.json({ error: "Workout not found" }, 404);
+		if (workout.status !== "draft" && workout.status !== "completed") {
+			return c.json({ error: "Workout checklist is not editable" }, 409);
+		}
+
+		await db
+			.update(workoutChecklistLogs)
+			.set({ checked: body.checked, updatedAt: new Date() })
+			.where(
+				and(
+					eq(workoutChecklistLogs.workoutLogId, workoutId),
+					eq(workoutChecklistLogs.checklistItemId, checklistItemId),
+				),
+			);
+		return c.json({ workout: await loadWorkout(workoutId, user.id) });
+	})
+	.delete("/workouts/:workoutId", async (c) => {
+		const user = requireUser(c);
+		if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+		const workoutId = c.req.param("workoutId");
+		const now = new Date();
+		await db
+			.update(workoutLogs)
+			.set({ status: "discarded", updatedAt: now, deletedAt: now })
+			.where(
+				and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)),
+			);
+		return c.json({ ok: true });
 	})
 	.post("/workouts/:workoutId/discard", async (c) => {
 		const user = requireUser(c);
@@ -427,6 +521,7 @@ function serializeExerciseLog(
 		plannedExerciseId: exercise.plannedExerciseId,
 		plannedExerciseName: exercise.plannedExerciseName,
 		plannedExerciseTarget: exercise.plannedExerciseTarget,
+		restSeconds: exercise.restSeconds,
 		originalExerciseId: exercise.originalExerciseId,
 		performedExerciseId: exercise.performedExerciseId,
 		status: exercise.status,

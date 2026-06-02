@@ -358,6 +358,7 @@ export const exerciseLogs = pgTable(
 		),
 		plannedExerciseName: text("planned_exercise_name").notNull(),
 		plannedExerciseTarget: text("planned_exercise_target").notNull(),
+		restSeconds: integer("rest_seconds"),
 		originalExerciseId: text("original_exercise_id").references(
 			() => exercises.id,
 			{

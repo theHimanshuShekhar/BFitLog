@@ -15,9 +15,11 @@ import { AddBodyWeightLogForm } from "@/body-weight/AddBodyWeightLogForm";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { colors, layout, spacing } from "@/theme";
 import {
+	getActivePlan,
 	getDraftWorkout,
 	getNextTrainingDay,
 	startDraftWorkout,
+	type TrainingDaySummary,
 } from "@/workouts/workout-api";
 
 type HealthResponse = { ok: boolean };
@@ -35,6 +37,8 @@ export default function HomeScreen() {
 	>("idle");
 	const [workoutCta, setWorkoutCta] = useState("Start next workout");
 	const [nextWorkoutLabel, setNextWorkoutLabel] = useState<string | null>(null);
+	const [trainingDays, setTrainingDays] = useState<TrainingDaySummary[]>([]);
+	const [selectedTrainingDayId, setSelectedTrainingDayId] = useState<string | null>(null);
 
 	useEffect(() => {
 		let active = true;
@@ -61,6 +65,13 @@ export default function HomeScreen() {
 			.then((logs) => {
 				if (active) setLatestLog(logs[0] ?? null);
 			});
+
+		getActivePlan()
+			.then((plan) => {
+				if (!active) return;
+				setTrainingDays(plan?.template.days ?? []);
+			})
+			.catch(() => undefined);
 
 		getDraftWorkout()
 			.then(async (draft) => {
@@ -103,7 +114,9 @@ export default function HomeScreen() {
 		try {
 			const draft = await getDraftWorkout();
 			if (!draft) {
-				const nextDay = await getNextTrainingDay();
+				const nextDay = selectedTrainingDayId
+					? { id: selectedTrainingDayId }
+					: await getNextTrainingDay();
 				if (!nextDay) throw new Error("No active training day found");
 				await startDraftWorkout(nextDay.id);
 			}
@@ -147,11 +160,36 @@ export default function HomeScreen() {
 				</Text>
 			</View>
 
-			<View style={styles.card}>
+				<View style={styles.card}>
 				<Text style={styles.cardTitle}>Workout</Text>
 				<Text style={styles.status}>
 					{nextWorkoutLabel ?? "Start or resume today's draft workout."}
 				</Text>
+				{trainingDays.length ? (
+					<View style={styles.dayOverrideRow}>
+						{trainingDays.map((day) => (
+							<Pressable
+								key={day.id}
+								style={[
+									styles.dayOverrideButton,
+									selectedTrainingDayId === day.id &&
+										styles.dayOverrideButtonActive,
+								]}
+								onPress={() => setSelectedTrainingDayId(day.id)}
+							>
+								<Text
+									style={[
+										styles.dayOverrideText,
+										selectedTrainingDayId === day.id &&
+											styles.dayOverrideTextActive,
+									]}
+								>
+									Day {day.sequence}
+								</Text>
+							</Pressable>
+						))}
+					</View>
+				) : null}
 				{workoutStatus === "error" ? (
 					<Text style={styles.error}>
 						Could not start workout. Check API connectivity and active plan.
@@ -239,6 +277,22 @@ const styles = StyleSheet.create({
 		color: colors.mutedText,
 		fontSize: 16,
 	},
+	dayOverrideRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+	dayOverrideButton: {
+		minHeight: layout.androidMinTouchTarget,
+		alignItems: "center",
+		justifyContent: "center",
+		paddingHorizontal: spacing.md,
+		borderRadius: 999,
+		borderWidth: 1,
+		borderColor: colors.border,
+	},
+	dayOverrideButtonActive: {
+		backgroundColor: colors.primary,
+		borderColor: colors.primary,
+	},
+	dayOverrideText: { color: colors.mutedText, fontWeight: "800" },
+	dayOverrideTextActive: { color: colors.background },
 	error: {
 		color: colors.danger,
 		fontSize: 14,

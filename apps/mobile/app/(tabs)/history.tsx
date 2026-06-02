@@ -154,6 +154,14 @@ export default function HistoryScreen() {
 						{workout.note ? (
 							<Text style={styles.description}>{workout.note}</Text>
 						) : null}
+						<Pressable
+							style={styles.secondaryButtonCompact}
+							onPress={() =>
+								router.push(`/workout?workoutId=${workout.id}` as never)
+							}
+						>
+							<Text style={styles.secondaryButtonText}>View / edit</Text>
+						</Pressable>
 					</View>
 				))
 			)}

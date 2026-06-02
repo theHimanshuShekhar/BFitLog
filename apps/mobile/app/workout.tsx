@@ -1,4 +1,4 @@
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import {
 	ActivityIndicator,
@@ -13,10 +13,14 @@ import { useAuth } from "@/auth/use-auth";
 import { colors, spacing } from "@/theme";
 import {
 	completeWorkout,
+	deleteWorkout,
 	discardWorkout,
 	getDraftWorkout,
+	getWorkout,
 	saveExerciseSet,
 	skipExercise,
+	updateWorkoutChecklist,
+	updateWorkoutNote,
 	type DraftWorkout,
 	type WorkoutExercise,
 } from "@/workouts/workout-api";
@@ -27,9 +31,14 @@ type ExerciseInput = {
 	durationSeconds: string;
 	note: string;
 	skipReason: string;
+	performedExerciseId: string;
+	substitutionNote: string;
 };
 
+type RestTimer = { exerciseName: string; remainingSeconds: number } | null;
+
 export default function WorkoutScreen() {
+	const params = useLocalSearchParams<{ workoutId?: string }>();
 	const session = useAuth();
 	const [workout, setWorkout] = useState<DraftWorkout | null>(null);
 	const [inputs, setInputs] = useState<Record<string, ExerciseInput>>({});
@@ -38,12 +47,15 @@ export default function WorkoutScreen() {
 		"loading" | "ready" | "saving" | "error"
 	>("loading");
 	const [error, setError] = useState<string | null>(null);
+	const [restTimer, setRestTimer] = useState<RestTimer>(null);
 
 	const loadDraft = useCallback(async () => {
 		setStatus("loading");
 		setError(null);
 		try {
-			const draft = await getDraftWorkout();
+			const draft = params.workoutId
+				? await getWorkout(params.workoutId)
+				: await getDraftWorkout();
 			setWorkout(draft);
 			setInputs(
 				Object.fromEntries(
@@ -59,7 +71,7 @@ export default function WorkoutScreen() {
 			setError(err instanceof Error ? err.message : "Unable to load workout");
 			setStatus("error");
 		}
-	}, []);
+	}, [params.workoutId]);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -126,13 +138,16 @@ export default function WorkoutScreen() {
 			if (input.reps) set.reps = Number(input.reps);
 			if (input.durationSeconds)
 				set.durationSeconds = Number(input.durationSeconds);
-			const updated = await saveExerciseSet(
-				workout.id,
-				exercise,
-				set,
-				input.note,
-			);
+			const updated = await saveExerciseSet(workout.id, exercise, set, {
+				note: input.note,
+				performedExerciseId: input.performedExerciseId,
+				substitutionNote: input.substitutionNote,
+			});
 			setWorkout(replaceExercise(workout, updated));
+			setRestTimer({
+				exerciseName: exercise.plannedExerciseName,
+				remainingSeconds: exercise.restSeconds ?? 90,
+			});
 			setStatus("ready");
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Unable to save exercise");
@@ -142,7 +157,12 @@ export default function WorkoutScreen() {
 
 	const skip = async (exercise: WorkoutExercise) => {
 		const input = inputs[exercise.id];
-		const reason = input?.skipReason.trim() || "Skipped during workout";
+		const reason = input?.skipReason.trim();
+		if (!reason) {
+			setError("Skip reason is required.");
+			setStatus("error");
+			return;
+		}
 		setStatus("saving");
 		try {
 			const updated = await skipExercise(workout.id, exercise, reason);
@@ -150,6 +170,41 @@ export default function WorkoutScreen() {
 			setStatus("ready");
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Unable to skip exercise");
+			setStatus("error");
+		}
+	};
+
+	const toggleChecklist = async (checklistItemId: string, checked: boolean) => {
+		setStatus("saving");
+		try {
+			setWorkout(await updateWorkoutChecklist(workout.id, checklistItemId, checked));
+			setStatus("ready");
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Unable to update checklist");
+			setStatus("error");
+		}
+	};
+
+	const saveWorkoutNote = async () => {
+		setStatus("saving");
+		try {
+			setWorkout(await updateWorkoutNote(workout.id, workoutNote));
+			setStatus("ready");
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Unable to save workout note");
+			setStatus("error");
+		}
+	};
+
+	const removeWorkout = async () => {
+		setStatus("saving");
+		try {
+			await deleteWorkout(workout.id);
+			setWorkout(null);
+			setStatus("ready");
+			router.replace("/history" as never);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Unable to delete workout");
 			setStatus("error");
 		}
 	};
@@ -186,7 +241,9 @@ export default function WorkoutScreen() {
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
-			<Text style={styles.title}>Workout draft</Text>
+			<Text style={styles.title}>
+				{workout.status === "completed" ? "Completed workout" : "Workout draft"}
+			</Text>
 			<Text style={styles.description}>
 				Started {new Date(workout.startedAt).toLocaleString()}
 			</Text>
@@ -202,9 +259,25 @@ export default function WorkoutScreen() {
 				<ActivityIndicator color={colors.primary} />
 			) : null}
 
+			{restTimer ? (
+				<View style={styles.card}>
+					<Text style={styles.cardTitle}>Rest timer</Text>
+					<Text style={styles.status}>
+						Rest after {restTimer.exerciseName}: {restTimer.remainingSeconds}s
+					</Text>
+					<Pressable
+						style={styles.secondaryButton}
+						onPress={() => setRestTimer(null)}
+					>
+						<Text style={styles.secondaryButtonText}>Skip rest timer</Text>
+					</Pressable>
+				</View>
+			) : null}
+
 			<Checklist
 				title="Warmup"
 				items={workout.checklist.filter((item) => item.kind === "warmup")}
+				onToggle={(item) => void toggleChecklist(item.checklistItemId, !item.checked)}
 			/>
 
 			{workout.exercises.map((exercise) => {
@@ -214,6 +287,15 @@ export default function WorkoutScreen() {
 						<Text style={styles.cardTitle}>{exercise.plannedExerciseName}</Text>
 						<Text style={styles.status}>{exercise.plannedExerciseTarget}</Text>
 						<Text style={styles.status}>Status: {exercise.status}</Text>
+						{exercise.performedExerciseId &&
+						exercise.performedExerciseId !== exercise.originalExerciseId ? (
+							<Text style={styles.status}>
+								Substitute: {exercise.performedExerciseId}
+							</Text>
+						) : null}
+						{exercise.substitutionNote ? (
+							<Text style={styles.status}>{exercise.substitutionNote}</Text>
+						) : null}
 						{exercise.sets[0] ? (
 							<Text style={styles.status}>{formatSet(exercise.sets[0])}</Text>
 						) : null}
@@ -263,6 +345,26 @@ export default function WorkoutScreen() {
 						/>
 
 						<TextInput
+							value={input.performedExerciseId}
+							onChangeText={(value) =>
+								updateInput(exercise.id, { performedExerciseId: value })
+							}
+							placeholder="Substitute exercise ID (optional)"
+							placeholderTextColor={colors.mutedText}
+							style={styles.fullInput}
+						/>
+
+						<TextInput
+							value={input.substitutionNote}
+							onChangeText={(value) =>
+								updateInput(exercise.id, { substitutionNote: value })
+							}
+							placeholder="Substitution note"
+							placeholderTextColor={colors.mutedText}
+							style={styles.fullInput}
+						/>
+
+						<TextInput
 							value={input.skipReason}
 							onChangeText={(value) =>
 								updateInput(exercise.id, { skipReason: value })
@@ -293,14 +395,23 @@ export default function WorkoutScreen() {
 			<Checklist
 				title="Cooldown"
 				items={workout.checklist.filter((item) => item.kind === "cooldown")}
+				onToggle={(item) => void toggleChecklist(item.checklistItemId, !item.checked)}
 			/>
 
+			<Pressable style={styles.secondaryButton} onPress={() => void saveWorkoutNote()}>
+				<Text style={styles.secondaryButtonText}>Save workout note</Text>
+			</Pressable>
 			<Pressable style={styles.primaryButton} onPress={() => void complete()}>
 				<Text style={styles.primaryButtonText}>Complete workout</Text>
 			</Pressable>
 			<Pressable style={styles.secondaryButton} onPress={() => void discard()}>
 				<Text style={styles.secondaryButtonText}>Discard draft</Text>
 			</Pressable>
+			{workout.status === "completed" ? (
+				<Pressable style={styles.secondaryButton} onPress={() => void removeWorkout()}>
+					<Text style={styles.secondaryButtonText}>Delete workout</Text>
+				</Pressable>
+			) : null}
 		</ScrollView>
 	);
 }
@@ -316,18 +427,26 @@ function CenteredSpinner() {
 function Checklist({
 	title,
 	items,
+	onToggle,
 }: {
 	title: string;
 	items: DraftWorkout["checklist"];
+	onToggle?: (item: DraftWorkout["checklist"][number]) => void;
 }) {
 	if (!items.length) return null;
 	return (
 		<View style={styles.card}>
 			<Text style={styles.cardTitle}>{title}</Text>
 			{items.map((item) => (
-				<Text key={item.checklistItemId} style={styles.status}>
-					• {item.text}
-				</Text>
+				<Pressable
+					key={item.checklistItemId}
+					style={styles.checklistRow}
+					onPress={() => onToggle?.(item)}
+				>
+					<Text style={styles.status}>
+						{item.checked ? "☑" : "☐"} {item.text}
+					</Text>
+				</Pressable>
 			))}
 		</View>
 	);
@@ -339,6 +458,8 @@ const emptyInput: ExerciseInput = {
 	durationSeconds: "",
 	note: "",
 	skipReason: "",
+	performedExerciseId: "",
+	substitutionNote: "",
 };
 
 function inputFromExercise(exercise: WorkoutExercise): ExerciseInput {
@@ -352,6 +473,11 @@ function inputFromExercise(exercise: WorkoutExercise): ExerciseInput {
 		note: exercise.note ?? "",
 		skipReason:
 			exercise.status === "skipped" ? (exercise.skipReason ?? "") : "",
+		performedExerciseId:
+			exercise.performedExerciseId === exercise.originalExerciseId
+				? ""
+				: (exercise.performedExerciseId ?? ""),
+		substitutionNote: exercise.substitutionNote ?? "",
 	};
 }
 
@@ -398,6 +524,7 @@ const styles = StyleSheet.create({
 	},
 	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
 	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
+	checklistRow: { paddingVertical: spacing.xs },
 	inputRow: { flexDirection: "row", gap: spacing.sm },
 	input: {
 		flex: 1,

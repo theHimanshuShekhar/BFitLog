@@ -145,6 +145,55 @@ describe("workout routes", () => {
 		});
 	});
 
+	it("edits completed workouts, checklist state, and soft deletes own logs", async () => {
+		const { app, cookie, plan } = await createSessionWithActivePlan();
+		const day1 = plan.template.days[0];
+
+		const start = await app.request("/workouts/draft", {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({ trainingDayId: day1.id }),
+		});
+		const started = await start.json();
+		const checklistItemId = started.workout.checklist[0].checklistItemId;
+
+		const checklist = await app.request(
+			`/workouts/${started.workout.id}/checklist/${checklistItemId}`,
+			{
+				method: "PUT",
+				headers: { "content-type": "application/json", cookie },
+				body: JSON.stringify({ checked: true }),
+			},
+		);
+		expect(checklist.status).toBe(200);
+		const checklistBody = await checklist.json();
+		expect(checklistBody.workout.checklist[0].checked).toBe(true);
+
+		await app.request(`/workouts/${started.workout.id}/complete`, {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({ completedAt: "2026-06-02T11:00:00.000Z" }),
+		});
+		const edit = await app.request(`/workouts/${started.workout.id}`, {
+			method: "PATCH",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({ note: "Edited completed note" }),
+		});
+		expect(edit.status).toBe(200);
+		const editBody = await edit.json();
+		expect(editBody.workout.note).toBe("Edited completed note");
+
+		const deleteWorkout = await app.request(`/workouts/${started.workout.id}`, {
+			method: "DELETE",
+			headers: { cookie },
+		});
+		expect(deleteWorkout.status).toBe(200);
+
+		const history = await app.request("/workouts", { headers: { cookie } });
+		const historyBody = await history.json();
+		expect(historyBody.workouts).toHaveLength(0);
+	});
+
 	it("updates exercise logs, set logs, and completes a draft workout", async () => {
 		const { app, cookie, plan } = await createSessionWithActivePlan();
 		const trainingDayId = plan.template.days[0].id as string;
