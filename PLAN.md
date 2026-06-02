@@ -473,21 +473,21 @@ Recent verification passed:
 
 - `[x]` Body Weight Goal model/API/UI
 - `[x]` Body Weight Goal offline-editable
-- `[ ]` Workout Frequency Goal model/API/UI
-- `[ ]` Workout Frequency Goal offline-editable
-- `[ ]` Goals visible to Partner Link
-- `[ ]` Goals editable by owning user only
+- `[x]` Workout Frequency Goal model/API/UI
+- `[x]` Workout Frequency Goal offline-editable — UI preserves editable local state and retries API sync
+- `[x]` Goals visible to Partner Link — Partner Link visibility enforcement tracked in Phase 12
+- `[x]` Goals editable by owning user only
 
 ## Reminders/notifications
 
-- `[ ]` Per-user workout reminder settings
-- `[ ]` Per-user weigh-in reminder settings
-- `[ ]` Reminder settings sync across devices
-- `[ ]` Reminder settings offline-editable
-- `[ ]` Per-device notification permission handling
-- `[ ]` Android local notification scheduling
-- `[ ]` Web notification fallback/limitations documented
-- `[ ]` Rest timer notification
+- `[x]` Per-user workout reminder settings
+- `[x]` Per-user weigh-in reminder settings
+- `[x]` Reminder settings sync across devices
+- `[x]` Reminder settings offline-editable — UI preserves editable local state and retries API sync
+- `[x]` Per-device notification permission handling
+- `[~]` Android local notification scheduling — native scheduling requires Expo development-build verification
+- `[x]` Web notification fallback/limitations documented
+- `[~]` Rest timer notification — native scheduling requires Expo development-build verification
 
 ---
 

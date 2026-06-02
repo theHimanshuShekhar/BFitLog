@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { adminRoutes } from "./routes/admin.js";
 import { bodyWeightRoutes } from "./routes/body-weight.js";
+import { goalRoutes } from "./routes/goals.js";
 import { healthRoutes } from "./routes/health.js";
 import { setupRoutes } from "./routes/setup.js";
 import { trainingPlanRoutes } from "./routes/training-plan.js";
@@ -57,6 +58,7 @@ export function createApp(options: AppOptions = {}) {
 	app.route("/", setupRoutes);
 	app.route("/", adminRoutes);
 	app.route("/", bodyWeightRoutes);
+	app.route("/", goalRoutes);
 	app.route("/", trainingPlanRoutes);
 	app.route("/", workoutRoutes);
 

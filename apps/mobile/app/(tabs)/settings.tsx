@@ -12,6 +12,7 @@ import { authClient } from "@/auth/auth-client";
 import { ChangePasswordForm } from "@/auth/ChangePasswordForm";
 import { useAuth } from "@/auth/use-auth";
 import { BodyWeightGoalForm } from "@/body-weight/BodyWeightGoalForm";
+import { GoalReminderSettings } from "@/goals/GoalReminderSettings";
 import { colors, layout, spacing } from "@/theme";
 
 export default function SettingsScreen() {
@@ -44,6 +45,7 @@ export default function SettingsScreen() {
 				Signed in as {session.data.user.name}
 			</Text>
 			<BodyWeightGoalForm userId={session.data.user.id} />
+			<GoalReminderSettings />
 			<ChangePasswordForm />
 			{role === "admin" ? <AdminUserManagement /> : null}
 			<Pressable style={styles.secondaryButton} onPress={logout}>
