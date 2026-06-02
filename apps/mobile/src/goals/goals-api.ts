@@ -33,7 +33,10 @@ async function parseJson<T>(response: Response, label: string): Promise<T> {
 }
 
 export async function getWorkoutFrequencyGoal() {
-	const response = await fetch(`${apiBaseUrl}/goals/workout-frequency`, authHeaders());
+	const response = await fetch(
+		`${apiBaseUrl}/goals/workout-frequency`,
+		authHeaders(),
+	);
 	const body = await parseJson<{ goal: WorkoutFrequencyGoal | null }>(
 		response,
 		"Load workout frequency goal",
@@ -58,7 +61,10 @@ export async function saveWorkoutFrequencyGoal(targetWorkoutsPerWeek: number) {
 }
 
 export async function getReminderSettings() {
-	const response = await fetch(`${apiBaseUrl}/reminders/settings`, authHeaders());
+	const response = await fetch(
+		`${apiBaseUrl}/reminders/settings`,
+		authHeaders(),
+	);
 	const body = await parseJson<{ settings: ReminderSettings | null }>(
 		response,
 		"Load reminder settings",

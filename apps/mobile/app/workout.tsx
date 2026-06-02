@@ -177,10 +177,14 @@ export default function WorkoutScreen() {
 	const toggleChecklist = async (checklistItemId: string, checked: boolean) => {
 		setStatus("saving");
 		try {
-			setWorkout(await updateWorkoutChecklist(workout.id, checklistItemId, checked));
+			setWorkout(
+				await updateWorkoutChecklist(workout.id, checklistItemId, checked),
+			);
 			setStatus("ready");
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Unable to update checklist");
+			setError(
+				err instanceof Error ? err.message : "Unable to update checklist",
+			);
 			setStatus("error");
 		}
 	};
@@ -191,7 +195,9 @@ export default function WorkoutScreen() {
 			setWorkout(await updateWorkoutNote(workout.id, workoutNote));
 			setStatus("ready");
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Unable to save workout note");
+			setError(
+				err instanceof Error ? err.message : "Unable to save workout note",
+			);
 			setStatus("error");
 		}
 	};
@@ -277,7 +283,9 @@ export default function WorkoutScreen() {
 			<Checklist
 				title="Warmup"
 				items={workout.checklist.filter((item) => item.kind === "warmup")}
-				onToggle={(item) => void toggleChecklist(item.checklistItemId, !item.checked)}
+				onToggle={(item) =>
+					void toggleChecklist(item.checklistItemId, !item.checked)
+				}
 			/>
 
 			{workout.exercises.map((exercise) => {
@@ -395,10 +403,15 @@ export default function WorkoutScreen() {
 			<Checklist
 				title="Cooldown"
 				items={workout.checklist.filter((item) => item.kind === "cooldown")}
-				onToggle={(item) => void toggleChecklist(item.checklistItemId, !item.checked)}
+				onToggle={(item) =>
+					void toggleChecklist(item.checklistItemId, !item.checked)
+				}
 			/>
 
-			<Pressable style={styles.secondaryButton} onPress={() => void saveWorkoutNote()}>
+			<Pressable
+				style={styles.secondaryButton}
+				onPress={() => void saveWorkoutNote()}
+			>
 				<Text style={styles.secondaryButtonText}>Save workout note</Text>
 			</Pressable>
 			<Pressable style={styles.primaryButton} onPress={() => void complete()}>
@@ -408,7 +421,10 @@ export default function WorkoutScreen() {
 				<Text style={styles.secondaryButtonText}>Discard draft</Text>
 			</Pressable>
 			{workout.status === "completed" ? (
-				<Pressable style={styles.secondaryButton} onPress={() => void removeWorkout()}>
+				<Pressable
+					style={styles.secondaryButton}
+					onPress={() => void removeWorkout()}
+				>
 					<Text style={styles.secondaryButtonText}>Delete workout</Text>
 				</Pressable>
 			) : null}

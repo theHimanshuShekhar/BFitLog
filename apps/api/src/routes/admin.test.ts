@@ -151,11 +151,14 @@ describe("admin routes", () => {
 		);
 		expect(updateTemplate.status).toBe(200);
 
-		const updateDay = await app.request("/admin/training-plan/days/day-1-upper-a", {
-			method: "PATCH",
-			headers: { "content-type": "application/json", cookie },
-			body: JSON.stringify({ title: "Updated Upper A" }),
-		});
+		const updateDay = await app.request(
+			"/admin/training-plan/days/day-1-upper-a",
+			{
+				method: "PATCH",
+				headers: { "content-type": "application/json", cookie },
+				body: JSON.stringify({ title: "Updated Upper A" }),
+			},
+		);
 		expect(updateDay.status).toBe(200);
 
 		const updateExercise = await app.request(

@@ -58,7 +58,9 @@ export const goalRoutes = new Hono<{ Variables: Variables }>()
 			return c.json({ error: "Target workouts per week must be 1-14" }, 400);
 		}
 		const updatedAt =
-			typeof body.updatedAt === "string" ? new Date(body.updatedAt) : new Date();
+			typeof body.updatedAt === "string"
+				? new Date(body.updatedAt)
+				: new Date();
 		await db
 			.insert(workoutFrequencyGoals)
 			.values({
@@ -110,11 +112,16 @@ export const goalRoutes = new Hono<{ Variables: Variables }>()
 		) {
 			return c.json({ error: "Workout reminder time must be HH:MM" }, 400);
 		}
-		if (body.weighInReminderEnabled && !isReminderTime(body.weighInReminderTime)) {
+		if (
+			body.weighInReminderEnabled &&
+			!isReminderTime(body.weighInReminderTime)
+		) {
 			return c.json({ error: "Weigh-in reminder time must be HH:MM" }, 400);
 		}
 		const updatedAt =
-			typeof body.updatedAt === "string" ? new Date(body.updatedAt) : new Date();
+			typeof body.updatedAt === "string"
+				? new Date(body.updatedAt)
+				: new Date();
 		const values = {
 			userId: user.id,
 			workoutReminderEnabled: body.workoutReminderEnabled,
@@ -127,13 +134,10 @@ export const goalRoutes = new Hono<{ Variables: Variables }>()
 				: null,
 			updatedAt,
 		};
-		await db
-			.insert(reminderSettings)
-			.values(values)
-			.onConflictDoUpdate({
-				target: reminderSettings.userId,
-				set: values,
-			});
+		await db.insert(reminderSettings).values(values).onConflictDoUpdate({
+			target: reminderSettings.userId,
+			set: values,
+		});
 		const [settings] = await db
 			.select()
 			.from(reminderSettings)

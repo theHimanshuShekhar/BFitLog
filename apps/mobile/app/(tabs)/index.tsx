@@ -38,7 +38,9 @@ export default function HomeScreen() {
 	const [workoutCta, setWorkoutCta] = useState("Start next workout");
 	const [nextWorkoutLabel, setNextWorkoutLabel] = useState<string | null>(null);
 	const [trainingDays, setTrainingDays] = useState<TrainingDaySummary[]>([]);
-	const [selectedTrainingDayId, setSelectedTrainingDayId] = useState<string | null>(null);
+	const [selectedTrainingDayId, setSelectedTrainingDayId] = useState<
+		string | null
+	>(null);
 
 	useEffect(() => {
 		let active = true;
@@ -160,7 +162,7 @@ export default function HomeScreen() {
 				</Text>
 			</View>
 
-				<View style={styles.card}>
+			<View style={styles.card}>
 				<Text style={styles.cardTitle}>Workout</Text>
 				<Text style={styles.status}>
 					{nextWorkoutLabel ?? "Start or resume today's draft workout."}

@@ -7,7 +7,10 @@ const db = createDb(
 		"postgres://bfitlog:bfitlog@localhost:5432/bfitlog",
 );
 
-export async function canReadUserData(currentUserId: string, targetUserId: string) {
+export async function canReadUserData(
+	currentUserId: string,
+	targetUserId: string,
+) {
 	if (currentUserId === targetUserId) return true;
 	const [link] = await db
 		.select()

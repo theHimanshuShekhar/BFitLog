@@ -103,7 +103,8 @@ export default function StatsScreen() {
 						<View key={exercise.exerciseId} style={styles.statRow}>
 							<Text style={styles.status}>{exercise.exerciseName}</Text>
 							<Text style={styles.description}>
-								Best: {exercise.bestWeightKg ?? "—"} kg · Volume: {Math.round(exercise.volumeKg)} kg
+								Best: {exercise.bestWeightKg ?? "—"} kg · Volume:{" "}
+								{Math.round(exercise.volumeKg)} kg
 								{exercise.bestDurationSeconds
 									? ` · Duration: ${exercise.bestDurationSeconds}s`
 									: ""}
@@ -114,7 +115,9 @@ export default function StatsScreen() {
 						</View>
 					))
 				) : (
-					<Text style={styles.description}>Complete workouts to see exercise stats.</Text>
+					<Text style={styles.description}>
+						Complete workouts to see exercise stats.
+					</Text>
 				)}
 			</View>
 
@@ -123,7 +126,8 @@ export default function StatsScreen() {
 				{workoutStats?.consistency.length ? (
 					workoutStats.consistency.map((week) => (
 						<Text key={week.week} style={styles.status}>
-							Week of {week.week}: {week.count} workout{week.count === 1 ? "" : "s"}
+							Week of {week.week}: {week.count} workout
+							{week.count === 1 ? "" : "s"}
 						</Text>
 					))
 				) : (

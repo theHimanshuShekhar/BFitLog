@@ -83,7 +83,9 @@ function MediaItem({ item }: { item: MediaLink }) {
 }
 
 function getYouTubeEmbedUrl(url: string) {
-	const match = url.match(/youtube\.com\/(?:shorts\/|watch\?v=)([a-zA-Z0-9_-]+)/);
+	const match = url.match(
+		/youtube\.com\/(?:shorts\/|watch\?v=)([a-zA-Z0-9_-]+)/,
+	);
 	return match?.[1] ? `https://www.youtube.com/embed/${match[1]}` : null;
 }
 

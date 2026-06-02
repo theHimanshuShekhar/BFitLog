@@ -115,7 +115,10 @@ describe("workout routes", () => {
 		const { app, cookie, plan } = await createSessionWithActivePlan();
 		const day1 = plan.template.days[0];
 
-		for (const startedAt of ["2026-06-02T10:00:00.000Z", "2026-06-05T10:00:00.000Z"]) {
+		for (const startedAt of [
+			"2026-06-02T10:00:00.000Z",
+			"2026-06-05T10:00:00.000Z",
+		]) {
 			const start = await app.request("/workouts/draft", {
 				method: "POST",
 				headers: { "content-type": "application/json", cookie },
@@ -141,7 +144,9 @@ describe("workout routes", () => {
 			});
 		}
 
-		const response = await app.request("/stats/workouts", { headers: { cookie } });
+		const response = await app.request("/stats/workouts", {
+			headers: { cookie },
+		});
 		expect(response.status).toBe(200);
 		const body = await response.json();
 		expect(body.exercises[0]).toMatchObject({

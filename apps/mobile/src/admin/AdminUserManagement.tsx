@@ -100,7 +100,9 @@ export function AdminUserManagement() {
 			setMessage(`Updated role for ${user.username}.`);
 			setStatus("ready");
 		} catch (error) {
-			setMessage(error instanceof Error ? error.message : "Unable to update role");
+			setMessage(
+				error instanceof Error ? error.message : "Unable to update role",
+			);
 			setStatus("error");
 		}
 	};

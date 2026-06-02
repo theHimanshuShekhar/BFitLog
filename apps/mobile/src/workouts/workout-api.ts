@@ -137,7 +137,10 @@ export async function getNextTrainingDay(): Promise<TrainingDaySummary | null> {
 }
 
 export async function getWorkout(workoutId: string): Promise<DraftWorkout> {
-	const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}`, authHeaders());
+	const response = await fetch(
+		`${apiBaseUrl}/workouts/${workoutId}`,
+		authHeaders(),
+	);
 	const body = await parseJson<{ workout: DraftWorkout }>(
 		response,
 		"Load workout",

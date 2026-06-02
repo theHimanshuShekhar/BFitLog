@@ -140,15 +140,21 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 					row.durationSeconds,
 				);
 			}
-			if (row.goodForm && row.reps && hitsTopRepRange(row.plannedExerciseTarget, row.reps)) {
-				const sessions = successfulSessions.get(row.performedExerciseId) ?? new Set<string>();
+			if (
+				row.goodForm &&
+				row.reps &&
+				hitsTopRepRange(row.plannedExerciseTarget, row.reps)
+			) {
+				const sessions =
+					successfulSessions.get(row.performedExerciseId) ?? new Set<string>();
 				sessions.add(row.workoutLogId);
 				successfulSessions.set(row.performedExerciseId, sessions);
 			}
 			exerciseStats.set(row.performedExerciseId, current);
 		}
 		for (const stat of exerciseStats.values()) {
-			stat.successfulTopRangeSessions = successfulSessions.get(stat.exerciseId)?.size ?? 0;
+			stat.successfulTopRangeSessions =
+				successfulSessions.get(stat.exerciseId)?.size ?? 0;
 			stat.progressionHint =
 				stat.successfulTopRangeSessions >= 2
 					? "Consider increasing load next time; do not auto-change the plan."
@@ -470,7 +476,10 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		await db
 			.update(workoutLogs)
 			.set({
-				note: typeof body?.note === "string" ? body.note.trim() || null : workout.note,
+				note:
+					typeof body?.note === "string"
+						? body.note.trim() || null
+						: workout.note,
 				completedAt:
 					workout.status === "completed"
 						? toDate(body?.completedAt, workout.completedAt ?? new Date())
