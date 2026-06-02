@@ -176,7 +176,7 @@ Recent verification passed:
 - `[x]` Configure trusted origins for Expo/Web
 - `[x]` Mount Better Auth handler at `/api/auth/*`
 - `[x]` Verify username sign-in works
-- `[ ]` Harden production cookie/trusted-origin config
+- `[x]` Harden production cookie/trusted-origin config
 - `[ ]` Add admin password reset endpoint/UI
 - `[ ]` Add user self-password-change UI
 
@@ -582,10 +582,10 @@ Recent verification passed:
 
 ## Security
 
-- `[ ]` Strong production Better Auth secret docs
-- `[ ]` HTTPS required in production docs
-- `[ ]` Restrict CORS origins in production
-- `[ ]` Review cookie attributes for production deployment
+- `[x]` Strong production Better Auth secret docs
+- `[x]` HTTPS required in production docs
+- `[x]` Restrict CORS origins in production
+- `[x]` Review cookie attributes for production deployment
 - `[ ]` Rate limit auth endpoints
 - `[ ]` Add basic request logging
 

@@ -14,6 +14,9 @@ DATABASE_URL=postgres://bfitlog:<strong-random-password>@postgres:5432/bfitlog
 PORT=3000
 BETTER_AUTH_SECRET=<strong-random-secret>
 BETTER_AUTH_URL=https://bfitlog.example.com
+BETTER_AUTH_TRUSTED_ORIGINS=https://bfitlog.example.com,bfitlog://
+BETTER_AUTH_SECURE_COOKIES=true
+CORS_ALLOWED_ORIGINS=https://bfitlog.example.com
 EXPO_PUBLIC_API_URL=https://bfitlog.example.com
 ```
 
@@ -45,7 +48,7 @@ bfitlog.example.com {
 }
 ```
 
-If the web app is hosted separately, update API CORS production config before exposing it publicly. The current development config reflects any origin and should be hardened before production internet exposure.
+If the web app is hosted separately, include its HTTPS origin in both `CORS_ALLOWED_ORIGINS` and `BETTER_AUTH_TRUSTED_ORIGINS`. In development, an empty `CORS_ALLOWED_ORIGINS` allows reflected origins for convenience; in production, set the variable explicitly.
 
 ## Dockhand deployment notes
 

@@ -6,19 +6,30 @@ import { healthRoutes } from "./routes/health.js";
 import { setupRoutes } from "./routes/setup.js";
 import { trainingPlanRoutes } from "./routes/training-plan.js";
 import { workoutRoutes } from "./routes/workouts.js";
+import { readEnv } from "./env.js";
 
 type Variables = {
 	user: typeof auth.$Infer.Session.user | null;
 	session: typeof auth.$Infer.Session.session | null;
 };
 
-export function createApp() {
+type AppOptions = {
+	corsAllowedOrigins?: string[];
+};
+
+export function createApp(options: AppOptions = {}) {
 	const app = new Hono<{ Variables: Variables }>();
+	const env = readEnv();
+	const corsAllowedOrigins = options.corsAllowedOrigins ?? env.corsAllowedOrigins;
 
 	app.use(
 		"*",
 		cors({
-			origin: (origin) => origin,
+			origin: (origin) => {
+				if (!origin) return null;
+				if (corsAllowedOrigins.length === 0) return origin;
+				return corsAllowedOrigins.includes(origin) ? origin : null;
+			},
 			allowHeaders: ["Content-Type", "Authorization", "Cookie"],
 			allowMethods: ["POST", "GET", "PUT", "PATCH", "DELETE", "OPTIONS"],
 			exposeHeaders: ["Content-Length", "Set-Cookie"],
