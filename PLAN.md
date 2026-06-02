@@ -357,14 +357,14 @@ Recent verification passed:
 
 ## Plan UI
 
-- `[ ]` Fetch training plan in Plan tab
-- `[ ]` Render Training Days as Day 1–Day 4
-- `[ ]` Render warmup checklist
-- `[ ]` Render cooldown checklist
-- `[ ]` Render Planned Exercises and targets
+- `[x]` Fetch training plan in Plan tab
+- `[x]` Render Training Days as Day 1–Day 4
+- `[x]` Render warmup checklist
+- `[x]` Render cooldown checklist
+- `[x]` Render Planned Exercises and targets
 - `[ ]` Render Exercise detail screen
-- `[ ]` Show embedded media inline where possible
-- `[ ]` Add fallback source link when embed fails
+- `[~]` Show embedded media inline where possible — current UI shows in-app media buttons/fallback links, not embedded players
+- `[x]` Add fallback source link when embed fails
 - `[ ]` Add substitute list display
 - `[ ]` Cache plan text for offline use
 
@@ -627,11 +627,11 @@ Recent verification passed:
 
 # Immediate next tasks
 
-1. `[ ]` Fetch and render seeded training plan in the mobile Plan tab.
-2. `[ ]` Add current-user active plan creation from seeded template.
-3. `[ ]` Start workout logging schema: Workout Log, Exercise Log, Set Log.
-4. `[ ]` Build draft workout flow.
-5. `[ ]` Run PowerSync spike before deepening custom sync.
+1. `[ ]` Add current-user active plan creation from seeded template.
+2. `[ ]` Start workout logging schema: Workout Log, Exercise Log, Set Log.
+3. `[ ]` Build draft workout flow.
+4. `[ ]` Run PowerSync spike before deepening custom sync.
+5. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
 
 # Verification commands
 
