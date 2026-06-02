@@ -1,13 +1,6 @@
 import type { BodyWeightDirection } from "@bfitlog/shared";
 import { useEffect, useState } from "react";
-import {
-	Alert,
-	Pressable,
-	StyleSheet,
-	Text,
-	TextInput,
-	View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { colors, spacing } from "../theme";
 import { getBodyWeightRepository } from "./repository";
 
@@ -21,6 +14,7 @@ export function BodyWeightGoalForm({ userId }: Props) {
 	const [targetKg, setTargetKg] = useState("");
 	const [direction, setDirection] = useState<BodyWeightDirection>("lose");
 	const [syncStatus, setSyncStatus] = useState("Loaded locally");
+	const [messageKind, setMessageKind] = useState<"status" | "error">("status");
 	const [saving, setSaving] = useState(false);
 
 	useEffect(() => {
@@ -40,11 +34,13 @@ export function BodyWeightGoalForm({ userId }: Props) {
 	async function save() {
 		const parsedTarget = Number(targetKg);
 		if (!Number.isFinite(parsedTarget) || parsedTarget <= 0) {
-			Alert.alert("Invalid goal", "Enter a target weight in kg.");
+			setMessageKind("error");
+			setSyncStatus("Enter a target weight in kg.");
 			return;
 		}
 
 		setSaving(true);
+		setMessageKind("status");
 		try {
 			const repository = getBodyWeightRepository();
 			await repository.saveGoal({
@@ -57,10 +53,11 @@ export function BodyWeightGoalForm({ userId }: Props) {
 			await repository.sync();
 			setSyncStatus("Synced");
 		} catch (error) {
-			setSyncStatus("Saved locally; sync pending");
-			Alert.alert(
-				"Sync pending",
-				error instanceof Error ? error.message : "Goal saved locally.",
+			setMessageKind("error");
+			setSyncStatus(
+				error instanceof Error
+					? `Saved locally; sync pending. ${error.message}`
+					: "Saved locally; sync pending.",
 			);
 		} finally {
 			setSaving(false);
@@ -108,7 +105,9 @@ export function BodyWeightGoalForm({ userId }: Props) {
 					{saving ? "Saving…" : "Save goal"}
 				</Text>
 			</Pressable>
-			<Text style={styles.status}>{syncStatus}</Text>
+			<Text style={messageKind === "error" ? styles.error : styles.status}>
+				{syncStatus}
+			</Text>
 		</View>
 	);
 }
@@ -158,4 +157,5 @@ const styles = StyleSheet.create({
 	},
 	buttonText: { color: colors.background, fontSize: 16, fontWeight: "700" },
 	status: { color: colors.mutedText, fontSize: 13 },
+	error: { color: colors.danger, fontSize: 13, lineHeight: 18 },
 });

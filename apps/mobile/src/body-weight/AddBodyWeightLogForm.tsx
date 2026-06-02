@@ -1,13 +1,6 @@
 import type { BodyWeightLog } from "@bfitlog/shared";
 import { useState } from "react";
-import {
-	Alert,
-	Pressable,
-	StyleSheet,
-	Text,
-	TextInput,
-	View,
-} from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { colors, spacing } from "../theme";
 import { createClientId } from "./id";
 import { getBodyWeightRepository } from "./repository";
@@ -21,16 +14,19 @@ export function AddBodyWeightLogForm({ userId, onSaved }: Props) {
 	const [weightKg, setWeightKg] = useState("");
 	const [note, setNote] = useState("");
 	const [syncStatus, setSyncStatus] = useState("Ready");
+	const [messageKind, setMessageKind] = useState<"status" | "error">("status");
 	const [saving, setSaving] = useState(false);
 
 	async function save() {
 		const parsedWeight = Number(weightKg);
 		if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
-			Alert.alert("Invalid weight", "Enter your body weight in kg.");
+			setMessageKind("error");
+			setSyncStatus("Enter your body weight in kg.");
 			return;
 		}
 
 		setSaving(true);
+		setMessageKind("status");
 		const now = new Date().toISOString();
 		const log: BodyWeightLog = {
 			id: createClientId(),
@@ -52,10 +48,11 @@ export function AddBodyWeightLogForm({ userId, onSaved }: Props) {
 			await repository.sync();
 			setSyncStatus("Synced");
 		} catch (error) {
-			setSyncStatus("Saved locally; sync pending");
-			Alert.alert(
-				"Sync pending",
-				error instanceof Error ? error.message : "Body weight saved locally.",
+			setMessageKind("error");
+			setSyncStatus(
+				error instanceof Error
+					? `Saved locally; sync pending. ${error.message}`
+					: "Saved locally; sync pending.",
 			);
 		} finally {
 			setSaving(false);
@@ -85,7 +82,9 @@ export function AddBodyWeightLogForm({ userId, onSaved }: Props) {
 					{saving ? "Saving…" : "Save body weight"}
 				</Text>
 			</Pressable>
-			<Text style={styles.status}>{syncStatus}</Text>
+			<Text style={messageKind === "error" ? styles.error : styles.status}>
+				{syncStatus}
+			</Text>
 		</View>
 	);
 }
@@ -115,4 +114,5 @@ const styles = StyleSheet.create({
 	},
 	buttonText: { color: colors.background, fontSize: 16, fontWeight: "700" },
 	status: { color: colors.mutedText, fontSize: 13 },
+	error: { color: colors.danger, fontSize: 13, lineHeight: 18 },
 });

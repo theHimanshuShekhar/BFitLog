@@ -287,8 +287,8 @@ Recent verification passed:
 - `[x]` Add body weight stats screen
 - `[x]` Add 30d/90d/1y/all range filters
 - `[x]` Add goal reference to chart
-- `[ ]` Improve form validation UX
-- `[ ]` Add loading/error/success toasts instead of alerts
+- `[x]` Improve form validation UX
+- `[x]` Add loading/error/success toasts instead of alerts — implemented as inline status/error messages
 - `[x]` Add delete body weight log UI
 - `[ ]` Add edit body weight log UI
 - `[ ]` Add pull-to-refresh where appropriate
