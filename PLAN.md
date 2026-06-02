@@ -374,11 +374,11 @@ Recent verification passed:
 
 ## Workout flow
 
-- `[ ]` Add Start Workout from Home suggested next Training Day
-- `[x]` Create draft Workout Log immediately on start — API endpoint exists
-- `[x]` Resume draft workout — API endpoint exists
-- `[x]` Discard draft workout — API endpoint exists
-- `[x]` Complete workout — API endpoint exists
+- `[x]` Add Start Workout from Home suggested next Training Day — uses first active plan day for now
+- `[x]` Create draft Workout Log immediately on start
+- `[x]` Resume draft workout
+- `[x]` Discard draft workout
+- `[x]` Complete workout
 - `[ ]` Completed workout advances soft sequence
 - `[ ]` Completed workout with skips advances sequence
 - `[ ]` Manual Training Day override
@@ -387,11 +387,11 @@ Recent verification passed:
 ## Exercise logging
 
 - `[x]` Prepopulate planned exercise slots — API creates draft slots from active plan day
-- `[x]` Per-set tracking for `reps_weight` — API stores weight/reps sets
-- `[x]` Per-set tracking for `duration` — API stores duration sets
-- `[x]` Exercise-level Good Form checkbox — API field/update exists
-- `[x]` Exercise-level notes — API field/update exists
-- `[x]` Workout-level note — API completion field exists
+- `[x]` Per-set tracking for `reps_weight` — first-set mobile UI + API storage
+- `[x]` Per-set tracking for `duration` — first-set mobile UI + API storage
+- `[x]` Exercise-level Good Form checkbox — API marks saved sets with good form
+- `[~]` Exercise-level notes — API field exists, mobile note UI pending
+- `[~]` Workout-level note — API completion field exists, mobile note UI pending
 - `[ ]` Edit completed workout logs
 - `[ ]` Delete own workout logs
 - `[ ]` Own-log mutation only
@@ -627,11 +627,11 @@ Recent verification passed:
 
 # Immediate next tasks
 
-1. `[ ]` Build mobile draft workout flow against the workout API.
+1. `[ ]` Add next-day rotation from latest completed workout.
 2. `[ ]` Run PowerSync spike before deepening custom sync.
 3. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
 4. `[ ]` Add exercise detail screen from Plan tab.
-5. `[ ]` Add next-day rotation from latest completed workout.
+5. `[ ]` Add exercise/workout note UI in the workout draft screen.
 
 # Verification commands
 
