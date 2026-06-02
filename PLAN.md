@@ -320,7 +320,7 @@ Recent verification passed:
 - `[x]` Add tab icons
 - `[ ]` Polish responsive web layout
 - `[ ]` Polish Android layout
-- `[ ]` Add PWA manifest/icon polish
+- `[x]` Add PWA manifest/icon polish
 
 ---
 
