@@ -9,6 +9,7 @@ import {
 	View,
 } from "react-native";
 import { apiBaseUrl } from "../src/api/client";
+import { validateSetupForm, type SetupFormErrors } from "../src/setup/setup-validation";
 import { colors, spacing } from "../src/theme";
 
 export default function SetupScreen() {
@@ -19,8 +20,21 @@ export default function SetupScreen() {
 	const [partnerDisplayName, setPartnerDisplayName] = useState("");
 	const [partnerPassword, setPartnerPassword] = useState("");
 	const [saving, setSaving] = useState(false);
+	const [errors, setErrors] = useState<SetupFormErrors>({});
 
 	async function submit() {
+		const values = {
+			adminUsername,
+			adminDisplayName,
+			adminPassword,
+			partnerUsername,
+			partnerDisplayName,
+			partnerPassword,
+		};
+		const nextErrors = validateSetupForm(values);
+		setErrors(nextErrors);
+		if (Object.keys(nextErrors).length > 0) return;
+
 		setSaving(true);
 		try {
 			const response = await fetch(`${apiBaseUrl}/setup`, {
@@ -28,13 +42,13 @@ export default function SetupScreen() {
 				headers: { "content-type": "application/json" },
 				body: JSON.stringify({
 					admin: {
-						username: adminUsername,
-						displayName: adminDisplayName,
+						username: adminUsername.trim(),
+						displayName: adminDisplayName.trim(),
 						password: adminPassword,
 					},
 					partner: {
-						username: partnerUsername,
-						displayName: partnerDisplayName,
+						username: partnerUsername.trim(),
+						displayName: partnerDisplayName.trim(),
 						password: partnerPassword,
 					},
 				}),
@@ -74,6 +88,7 @@ export default function SetupScreen() {
 				onChangeText={setAdminUsername}
 				autoCapitalize="none"
 			/>
+			<FieldError message={errors.adminUsername} />
 			<TextInput
 				style={styles.input}
 				placeholder="Display name"
@@ -81,6 +96,7 @@ export default function SetupScreen() {
 				value={adminDisplayName}
 				onChangeText={setAdminDisplayName}
 			/>
+			<FieldError message={errors.adminDisplayName} />
 			<TextInput
 				style={styles.input}
 				placeholder="Password"
@@ -89,6 +105,7 @@ export default function SetupScreen() {
 				onChangeText={setAdminPassword}
 				secureTextEntry
 			/>
+			<FieldError message={errors.adminPassword} />
 
 			<Text style={styles.section}>Partner</Text>
 			<TextInput
@@ -99,6 +116,7 @@ export default function SetupScreen() {
 				onChangeText={setPartnerUsername}
 				autoCapitalize="none"
 			/>
+			<FieldError message={errors.partnerUsername} />
 			<TextInput
 				style={styles.input}
 				placeholder="Display name"
@@ -106,6 +124,7 @@ export default function SetupScreen() {
 				value={partnerDisplayName}
 				onChangeText={setPartnerDisplayName}
 			/>
+			<FieldError message={errors.partnerDisplayName} />
 			<TextInput
 				style={styles.input}
 				placeholder="Password"
@@ -114,6 +133,7 @@ export default function SetupScreen() {
 				onChangeText={setPartnerPassword}
 				secureTextEntry
 			/>
+			<FieldError message={errors.partnerPassword} />
 
 			<Pressable style={styles.button} onPress={submit} disabled={saving}>
 				<Text style={styles.buttonText}>
@@ -122,6 +142,11 @@ export default function SetupScreen() {
 			</Pressable>
 		</View>
 	);
+}
+
+function FieldError({ message }: { message: string | undefined }) {
+	if (!message) return null;
+	return <Text style={styles.error}>{message}</Text>;
 }
 
 const styles = StyleSheet.create({
@@ -146,6 +171,12 @@ const styles = StyleSheet.create({
 		borderRadius: 12,
 		padding: spacing.md,
 		backgroundColor: colors.surface,
+	},
+	error: {
+		color: colors.danger,
+		fontSize: 13,
+		lineHeight: 18,
+		marginTop: -spacing.sm,
 	},
 	button: {
 		alignItems: "center",

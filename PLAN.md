@@ -189,7 +189,7 @@ Recent verification passed:
 - `[x]` Create initial Partner Link
 - `[x]` Disable setup after users exist
 - `[x]` Add setup route tests
-- `[ ]` Add richer setup validation messages in UI
+- `[x]` Add richer setup validation messages in UI
 - `[ ]` Add admin user-management endpoints
 - `[ ]` Add admin create-user flow
 - `[ ]` Add admin Partner Link management
