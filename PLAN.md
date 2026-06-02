@@ -615,15 +615,15 @@ Recent verification passed:
 
 # Phase 16 — Future scope explicitly out of v1
 
-- `[ ]` Nutrition module
-- `[ ]` Calorie tracking
-- `[ ]` Protein tracking
-- `[ ]` Cardio tracking
-- `[ ]` iOS polish/testing
-- `[ ]` Full plan generator/adaptive programming
-- `[ ]` Full granular privacy settings
-- `[ ]` CSV/JSON export UI
-- `[ ]` Smart scale integration
+- `[x]` Nutrition module — tracked in `docs/future-scope.md`
+- `[x]` Calorie tracking — tracked in `docs/future-scope.md`
+- `[x]` Protein tracking — tracked in `docs/future-scope.md`
+- `[x]` Cardio tracking — tracked in `docs/future-scope.md`
+- `[x]` iOS polish/testing — tracked in `docs/future-scope.md`
+- `[x]` Full plan generator/adaptive programming — tracked in `docs/future-scope.md`
+- `[x]` Full granular privacy settings — tracked in `docs/future-scope.md`
+- `[x]` CSV/JSON export UI — tracked in `docs/future-scope.md`
+- `[x]` Smart scale integration — tracked in `docs/future-scope.md`
 
 ---
 
