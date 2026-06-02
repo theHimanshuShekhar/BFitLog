@@ -5,6 +5,7 @@ import { bodyWeightRoutes } from "./routes/body-weight.js";
 import { healthRoutes } from "./routes/health.js";
 import { setupRoutes } from "./routes/setup.js";
 import { trainingPlanRoutes } from "./routes/training-plan.js";
+import { workoutRoutes } from "./routes/workouts.js";
 
 type Variables = {
 	user: typeof auth.$Infer.Session.user | null;
@@ -43,6 +44,7 @@ export function createApp() {
 	app.route("/", setupRoutes);
 	app.route("/", bodyWeightRoutes);
 	app.route("/", trainingPlanRoutes);
+	app.route("/", workoutRoutes);
 
 	return app;
 }
