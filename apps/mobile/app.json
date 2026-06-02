@@ -5,6 +5,7 @@
     "scheme": "bfitlog",
     "version": "0.1.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "platforms": ["android", "web"],
     "web": {
@@ -13,7 +14,14 @@
       "name": "BFitLog",
       "shortName": "BFitLog",
       "themeColor": "#2563eb",
-      "backgroundColor": "#0f172a"
+      "backgroundColor": "#0f172a",
+      "favicon": "./assets/favicon.png"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      }
     },
     "plugins": ["expo-router", "expo-secure-store"],
     "experiments": {

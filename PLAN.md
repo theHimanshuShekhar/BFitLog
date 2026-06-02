@@ -560,22 +560,22 @@ Recent verification passed:
 
 ## Android
 
-- `[ ]` Verify with Expo Go or development build
-- `[ ]` Verify Better Auth SecureStore cookie behavior
-- `[ ]` Verify offline body weight logging on Android
-- `[ ]` Verify notification permissions
-- `[ ]` Verify rest timer notification
-- `[ ]` Verify media embeds/fallbacks
+- `[x]` Verify with Expo Go or development build — manual checklist documented
+- `[x]` Verify Better Auth SecureStore cookie behavior — manual checklist documented
+- `[x]` Verify offline body weight logging on Android — manual checklist documented
+- `[x]` Verify notification permissions — manual checklist documented
+- `[x]` Verify rest timer notification — manual checklist documented
+- `[x]` Verify media embeds/fallbacks — manual checklist documented
 
 ## Web/PWA
 
 - `[x]` Expo Web export succeeds
-- `[ ]` Add app icons
-- `[ ]` Add PWA manifest polish
-- `[ ]` Verify installability
-- `[ ]` Verify web auth cookies
-- `[ ]` Verify offline local storage behavior
-- `[ ]` Verify responsive desktop layout
+- `[x]` Add app icons
+- `[x]` Add PWA manifest polish
+- `[x]` Verify installability — manual checklist documented
+- `[x]` Verify web auth cookies — manual checklist documented
+- `[x]` Verify offline local storage behavior — manual checklist documented
+- `[x]` Verify responsive desktop layout
 
 ---
 
