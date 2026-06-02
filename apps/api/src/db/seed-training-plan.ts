@@ -465,8 +465,9 @@ const planned = [
 	],
 ] as const;
 
-await db
-	.insert(trainingPlanTemplates)
+export async function seedTrainingPlan() {
+	await db
+		.insert(trainingPlanTemplates)
 	.values({
 		id: templateId,
 		name: "4-Day Beginner Upper/Lower Split",
@@ -561,4 +562,9 @@ for (const [
 		.onConflictDoNothing();
 }
 
-console.log(`Seeded training plan template: ${templateId}`);
+	console.log(`Seeded training plan template: ${templateId}`);
+}
+
+if (process.env.NODE_ENV !== "test") {
+	await seedTrainingPlan();
+}

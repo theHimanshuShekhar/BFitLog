@@ -6,14 +6,22 @@ import { authClient } from '@/auth/auth-client';
 import { useAuth } from '@/auth/use-auth';
 import { colors, spacing } from '@/theme';
 
-type TrainingPlanResponse = {
-  template: {
+type TrainingPlanTemplate = {
+  id: string;
+  name: string;
+  goal: string | null;
+  notes: string | null;
+  days: TrainingDay[];
+};
+
+type ActivePlanResponse = {
+  plan: {
     id: string;
+    userId: string;
     name: string;
-    goal: string | null;
-    notes: string | null;
-    days: TrainingDay[];
-  };
+    activeAt: string;
+    template: TrainingPlanTemplate;
+  } | null;
 };
 
 type TrainingDay = {
@@ -44,7 +52,7 @@ type PlannedExercise = {
 
 export default function PlanScreen() {
   const session = useAuth();
-  const [plan, setPlan] = useState<TrainingPlanResponse['template'] | null>(null);
+  const [plan, setPlan] = useState<TrainingPlanTemplate | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [error, setError] = useState<string | null>(null);
 
@@ -55,13 +63,24 @@ export default function PlanScreen() {
       const cookie = authClient.getCookie();
       const headers = new Headers();
       if (cookie) headers.set('Cookie', cookie);
-      const response = await fetch(`${apiBaseUrl}/training-plan/template`, {
+      let response = await fetch(`${apiBaseUrl}/training-plan/active`, {
         headers,
         credentials: cookie ? 'omit' : 'include',
       });
       if (!response.ok) throw new Error(`Plan request failed with ${response.status}`);
-      const body = (await response.json()) as TrainingPlanResponse;
-      setPlan(body.template);
+      let body = (await response.json()) as ActivePlanResponse;
+
+      if (!body.plan) {
+        response = await fetch(`${apiBaseUrl}/training-plan/active/default`, {
+          method: 'POST',
+          headers,
+          credentials: cookie ? 'omit' : 'include',
+        });
+        if (!response.ok) throw new Error(`Plan activation failed with ${response.status}`);
+        body = (await response.json()) as ActivePlanResponse;
+      }
+
+      setPlan(body.plan?.template ?? null);
       setStatus('ready');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load training plan');
