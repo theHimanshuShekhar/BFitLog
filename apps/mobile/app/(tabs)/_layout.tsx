@@ -1,5 +1,10 @@
 import { Tabs } from "expo-router";
+import { type ColorValue, Text } from "react-native";
 import { colors } from "../../src/theme";
+
+function TabIcon({ color, label }: { color: ColorValue; label: string }) {
+	return <Text style={{ color, fontSize: 20 }}>{label}</Text>;
+}
 
 export default function TabsLayout() {
 	return (
@@ -15,11 +20,41 @@ export default function TabsLayout() {
 				tabBarInactiveTintColor: colors.mutedText,
 			}}
 		>
-			<Tabs.Screen name="index" options={{ title: "Home" }} />
-			<Tabs.Screen name="plan" options={{ title: "Plan" }} />
-			<Tabs.Screen name="history" options={{ title: "History" }} />
-			<Tabs.Screen name="stats" options={{ title: "Stats" }} />
-			<Tabs.Screen name="settings" options={{ title: "Settings" }} />
+			<Tabs.Screen
+				name="index"
+				options={{
+					title: "Home",
+					tabBarIcon: ({ color }) => <TabIcon color={color} label="⌂" />,
+				}}
+			/>
+			<Tabs.Screen
+				name="plan"
+				options={{
+					title: "Plan",
+					tabBarIcon: ({ color }) => <TabIcon color={color} label="▤" />,
+				}}
+			/>
+			<Tabs.Screen
+				name="history"
+				options={{
+					title: "History",
+					tabBarIcon: ({ color }) => <TabIcon color={color} label="◷" />,
+				}}
+			/>
+			<Tabs.Screen
+				name="stats"
+				options={{
+					title: "Stats",
+					tabBarIcon: ({ color }) => <TabIcon color={color} label="↗" />,
+				}}
+			/>
+			<Tabs.Screen
+				name="settings"
+				options={{
+					title: "Settings",
+					tabBarIcon: ({ color }) => <TabIcon color={color} label="⚙" />,
+				}}
+			/>
 		</Tabs>
 	);
 }

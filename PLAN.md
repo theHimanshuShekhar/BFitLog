@@ -317,7 +317,7 @@ Recent verification passed:
 - `[x]` Add History tab
 - `[x]` Add Stats tab
 - `[x]` Add Settings tab
-- `[ ]` Add tab icons
+- `[x]` Add tab icons
 - `[ ]` Polish responsive web layout
 - `[ ]` Polish Android layout
 - `[ ]` Add PWA manifest/icon polish
