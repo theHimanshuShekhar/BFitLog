@@ -22,4 +22,4 @@ COPY --from=build /app/tsconfig.base.json ./tsconfig.base.json
 COPY --from=build /app/apps/api ./apps/api
 COPY --from=build /app/packages/shared ./packages/shared
 WORKDIR /app/apps/api
-CMD ["./node_modules/.bin/tsx", "src/index.ts"]
+CMD ["sh", "-lc", "./node_modules/.bin/tsx src/db/migrate.ts && ./node_modules/.bin/tsx src/index.ts"]
