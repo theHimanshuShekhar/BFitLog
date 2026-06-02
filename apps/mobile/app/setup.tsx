@@ -9,7 +9,10 @@ import {
 	View,
 } from "react-native";
 import { apiBaseUrl } from "../src/api/client";
-import { validateSetupForm, type SetupFormErrors } from "../src/setup/setup-validation";
+import {
+	validateSetupForm,
+	type SetupFormErrors,
+} from "../src/setup/setup-validation";
 import { colors, spacing } from "../src/theme";
 
 export default function SetupScreen() {

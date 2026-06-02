@@ -30,7 +30,10 @@ describe("setup form validation", () => {
 				partnerDisplayName: "Partner",
 				partnerPassword: "password123",
 			}),
-		).toMatchObject({ partnerUsername: "Partner username must be different from admin username." });
+		).toMatchObject({
+			partnerUsername:
+				"Partner username must be different from admin username.",
+		});
 	});
 
 	it("accepts a valid setup form", () => {

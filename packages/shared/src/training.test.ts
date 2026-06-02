@@ -21,7 +21,11 @@ describe("training schemas", () => {
 				equipment: "Dumbbell",
 				trackingType: "reps_weight",
 				media: [
-					{ id: "goblet-squat-video", kind: "video", url: "https://example.com/video" },
+					{
+						id: "goblet-squat-video",
+						kind: "video",
+						url: "https://example.com/video",
+					},
 				],
 			}),
 		).toMatchObject({ id: "goblet-squat", media: [{ kind: "video" }] });
@@ -51,7 +55,12 @@ describe("training schemas", () => {
 					sequence: 1,
 					title: "Upper A",
 					checklist: [
-						{ id: "warmup-1", kind: "warmup", text: "5 min easy cardio", sortOrder: 1 },
+						{
+							id: "warmup-1",
+							kind: "warmup",
+							text: "5 min easy cardio",
+							sortOrder: 1,
+						},
 					],
 					exercises: [
 						{
@@ -98,12 +107,21 @@ describe("training schemas", () => {
 						goodForm: true,
 						sortOrder: 1,
 						sets: [
-							{ id: setLogId, exerciseLogId, setIndex: 1, weightKg: 24, reps: 12 },
+							{
+								id: setLogId,
+								exerciseLogId,
+								setIndex: 1,
+								weightKg: 24,
+								reps: 12,
+							},
 						],
 					},
 				],
 				checklist: [],
 			}),
-		).toMatchObject({ status: "completed", exercises: [{ sets: [{ reps: 12 }] }] });
+		).toMatchObject({
+			status: "completed",
+			exercises: [{ sets: [{ reps: 12 }] }],
+		});
 	});
 });

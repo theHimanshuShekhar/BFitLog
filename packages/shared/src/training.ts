@@ -152,10 +152,13 @@ export const workoutLogSchema = z
 		exercises: z.array(exerciseLogSchema).default([]),
 		checklist: z.array(workoutChecklistLogSchema).default([]),
 	})
-	.refine((value) => value.status !== "completed" || Boolean(value.completedAt), {
-		message: "Completed workouts require completedAt",
-		path: ["completedAt"],
-	});
+	.refine(
+		(value) => value.status !== "completed" || Boolean(value.completedAt),
+		{
+			message: "Completed workouts require completedAt",
+			path: ["completedAt"],
+		},
+	);
 
 export const progressionHintSchema = z.object({
 	exerciseId: entityIdSchema,

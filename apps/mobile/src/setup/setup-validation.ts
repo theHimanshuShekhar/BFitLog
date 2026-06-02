@@ -32,7 +32,12 @@ export function validateSetupForm(values: SetupFormValues): SetupFormErrors {
 		values.partnerDisplayName,
 		errors,
 	);
-	validatePassword("partnerPassword", "Partner", values.partnerPassword, errors);
+	validatePassword(
+		"partnerPassword",
+		"Partner",
+		values.partnerPassword,
+		errors,
+	);
 
 	if (
 		adminUsername &&

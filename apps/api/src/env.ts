@@ -35,7 +35,8 @@ export function readEnv(env = process.env): ApiEnv {
 					: [],
 		betterAuthTrustedOrigins,
 		useSecureCookies:
-			env.BETTER_AUTH_SECURE_COOKIES === "true" || env.NODE_ENV === "production",
+			env.BETTER_AUTH_SECURE_COOKIES === "true" ||
+			env.NODE_ENV === "production",
 	};
 }
 

@@ -20,7 +20,8 @@ type AppOptions = {
 export function createApp(options: AppOptions = {}) {
 	const app = new Hono<{ Variables: Variables }>();
 	const env = readEnv();
-	const corsAllowedOrigins = options.corsAllowedOrigins ?? env.corsAllowedOrigins;
+	const corsAllowedOrigins =
+		options.corsAllowedOrigins ?? env.corsAllowedOrigins;
 
 	app.use(
 		"*",

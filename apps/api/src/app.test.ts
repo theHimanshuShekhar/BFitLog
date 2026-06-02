@@ -11,7 +11,9 @@ describe("api app", () => {
 	});
 
 	it("allows configured CORS origins", async () => {
-		const app = createApp({ corsAllowedOrigins: ["https://bfitlog.example.com"] });
+		const app = createApp({
+			corsAllowedOrigins: ["https://bfitlog.example.com"],
+		});
 		const response = await app.request("/health", {
 			headers: { origin: "https://bfitlog.example.com" },
 		});
@@ -22,7 +24,9 @@ describe("api app", () => {
 	});
 
 	it("does not reflect unconfigured CORS origins", async () => {
-		const app = createApp({ corsAllowedOrigins: ["https://bfitlog.example.com"] });
+		const app = createApp({
+			corsAllowedOrigins: ["https://bfitlog.example.com"],
+		});
 		const response = await app.request("/health", {
 			headers: { origin: "https://evil.example.com" },
 		});
