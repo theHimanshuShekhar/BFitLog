@@ -269,6 +269,22 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 			return c.json({ plannedExercise: updated });
 		},
 	)
+	.patch("/admin/users/:userId/role", async (c) => {
+		const body = (await c.req.json().catch(() => null)) as {
+			role?: unknown;
+		} | null;
+		if (body?.role !== "admin" && body?.role !== "member") {
+			return c.json({ error: "Role must be admin or member" }, 400);
+		}
+		const targetUserId = c.req.param("userId");
+		const [updated] = await db
+			.update(user)
+			.set({ role: body.role })
+			.where(eq(user.id, targetUserId))
+			.returning({ id: user.id, username: user.username, role: user.role });
+		if (!updated) return c.json({ error: "User not found" }, 404);
+		return c.json({ user: updated });
+	})
 	.post("/admin/users/:userId/password", async (c) => {
 		const body = (await c.req.json().catch(() => null)) as {
 			newPassword?: unknown;

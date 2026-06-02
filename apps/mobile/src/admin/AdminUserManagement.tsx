@@ -15,6 +15,7 @@ import {
 	listAdminUsers,
 	listPartnerLinks,
 	resetUserPassword,
+	updateUserRole,
 	type AdminUser,
 	type PartnerLink,
 } from "./admin-api";
@@ -86,6 +87,20 @@ export function AdminUserManagement() {
 					? error.message
 					: "Unable to create Partner Link",
 			);
+			setStatus("error");
+		}
+	};
+
+	const changeRole = async (user: AdminUser) => {
+		setStatus("saving");
+		setMessage(null);
+		try {
+			await updateUserRole(user.id, user.role === "admin" ? "member" : "admin");
+			setUsers(await listAdminUsers());
+			setMessage(`Updated role for ${user.username}.`);
+			setStatus("ready");
+		} catch (error) {
+			setMessage(error instanceof Error ? error.message : "Unable to update role");
 			setStatus("error");
 		}
 	};
@@ -187,6 +202,15 @@ export function AdminUserManagement() {
 						disabled={status === "saving"}
 					>
 						<Text style={styles.secondaryButtonText}>Reset password</Text>
+					</Pressable>
+					<Pressable
+						style={styles.secondaryButton}
+						onPress={() => void changeRole(user)}
+						disabled={status === "saving"}
+					>
+						<Text style={styles.secondaryButtonText}>
+							Make {user.role === "admin" ? "member" : "admin"}
+						</Text>
 					</Pressable>
 				</View>
 			))}

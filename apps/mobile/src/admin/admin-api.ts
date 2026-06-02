@@ -78,6 +78,21 @@ export async function createAdminUser(input: {
 	);
 }
 
+export async function updateUserRole(
+	userId: string,
+	role: "admin" | "member",
+): Promise<void> {
+	const response = await fetch(`${apiBaseUrl}/admin/users/${userId}/role`, {
+		method: "PATCH",
+		...authHeaders(true),
+		body: JSON.stringify({ role }),
+	});
+	await parseJson<{ user: Pick<AdminUser, "id" | "username" | "role"> }>(
+		response,
+		"Update role",
+	);
+}
+
 export async function resetUserPassword(
 	userId: string,
 	newPassword: string,

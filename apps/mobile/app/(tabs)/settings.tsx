@@ -44,10 +44,24 @@ export default function SettingsScreen() {
 			<Text style={styles.description}>
 				Signed in as {session.data.user.name}
 			</Text>
+			<View style={styles.card}>
+				<Text style={styles.cardTitle}>Account details</Text>
+				<Text style={styles.description}>User ID: {session.data.user.id}</Text>
+				<Text style={styles.description}>
+					Role: {(session.data.user as { role?: string }).role ?? "member"}
+				</Text>
+			</View>
 			<BodyWeightGoalForm userId={session.data.user.id} />
 			<GoalReminderSettings />
 			<ChangePasswordForm />
 			{role === "admin" ? <AdminUserManagement /> : null}
+			<View style={styles.card}>
+				<Text style={styles.cardTitle}>About BFitLog</Text>
+				<Text style={styles.description}>
+					Self-hosted gym and body-weight tracking for web and Android.
+				</Text>
+				<Text style={styles.description}>Version 0.1.0</Text>
+			</View>
 			<Pressable style={styles.secondaryButton} onPress={logout}>
 				<Text style={styles.secondaryButtonText}>Log out</Text>
 			</Pressable>
@@ -72,7 +86,14 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.background,
 	},
 	title: { color: colors.text, fontSize: 28, fontWeight: "800" },
-	description: { color: colors.mutedText, fontSize: 16 },
+	description: { color: colors.mutedText, fontSize: 16, lineHeight: 24 },
+	card: {
+		gap: spacing.sm,
+		padding: spacing.md,
+		borderRadius: 16,
+		backgroundColor: colors.card,
+	},
+	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
 	secondaryButton: {
 		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",

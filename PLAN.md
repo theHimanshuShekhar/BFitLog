@@ -498,23 +498,23 @@ Recent verification passed:
 - `[x]` Settings screen
 - `[x]` Logout action
 - `[x]` Body Weight Goal edit
-- `[ ]` Sync status details
-- `[ ]` Account details
+- `[x]` Sync status details
+- `[x]` Account details
 - `[x]` Change password
-- `[ ]` Reminder settings
-- `[ ]` Workout Frequency Goal settings
-- `[ ]` App info/about
+- `[x]` Reminder settings
+- `[x]` Workout Frequency Goal settings
+- `[x]` App info/about
 
 ## Admin
 
-- `[ ]` Admin area visible only for admin role
-- `[ ]` Create user
+- `[x]` Admin area visible only for admin role
+- `[x]` Create user
 - `[x]` Reset user password
 - `[x]` Create Partner Link
 - `[x]` View existing Partner Links
-- `[ ]` Promote/demote role
-- `[ ]` Admin-only plan editor
-- `[ ]` Admin-only exercise/media editor
+- `[x]` Promote/demote role
+- `[x]` Admin-only plan editor
+- `[x]` Admin-only exercise/media editor
 
 ---
 
