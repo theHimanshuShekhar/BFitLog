@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import type { auth } from "../auth/auth.js";
+import { canReadUserData } from "./visibility.js";
 import { createDb } from "../db/client.js";
 import {
 	exerciseLogs,
@@ -65,6 +66,10 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		const user = requireUser(c);
 		if (!user) return c.json({ error: "Unauthorized" }, 401);
 
+		const targetUserId = c.req.query("userId") ?? user.id;
+		if (!(await canReadUserData(user.id, targetUserId))) {
+			return c.json({ error: "Forbidden" }, 403);
+		}
 		const completed = await db
 			.select({
 				id: workoutLogs.id,
@@ -73,7 +78,7 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 			.from(workoutLogs)
 			.where(
 				and(
-					eq(workoutLogs.userId, user.id),
+					eq(workoutLogs.userId, targetUserId),
 					eq(workoutLogs.status, "completed"),
 				),
 			);
@@ -169,6 +174,10 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		const user = requireUser(c);
 		if (!user) return c.json({ error: "Unauthorized" }, 401);
 
+		const targetUserId = c.req.query("userId") ?? user.id;
+		if (!(await canReadUserData(user.id, targetUserId))) {
+			return c.json({ error: "Forbidden" }, 403);
+		}
 		const rows = await db
 			.select({
 				id: workoutLogs.id,
@@ -185,7 +194,7 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 			.innerJoin(trainingDays, eq(trainingDays.id, workoutLogs.trainingDayId))
 			.where(
 				and(
-					eq(workoutLogs.userId, user.id),
+					eq(workoutLogs.userId, targetUserId),
 					eq(workoutLogs.status, "completed"),
 				),
 			)

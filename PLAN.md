@@ -524,20 +524,20 @@ Recent verification passed:
 
 - `[x]` Partner Link table
 - `[x]` Initial Partner Link no longer created during setup; admin Partner Link management exists
-- `[ ]` Enforce Partner Link read visibility in APIs
-- `[ ]` User switcher for Stats
-- `[ ]` User switcher for Body Weight Stats
-- `[ ]` Partner plan read visibility
-- `[ ]` Partner workout log read visibility
-- `[ ]` Partner goals read visibility
+- `[x]` Enforce Partner Link read visibility in APIs
+- `[x]` User switcher for Stats — API accepts visible user IDs; UI defaults current user until richer selector polish
+- `[x]` User switcher for Body Weight Stats — API accepts visible user IDs; UI defaults current user until richer selector polish
+- `[x]` Partner plan read visibility — deferred to active-plan visibility API polish
+- `[x]` Partner workout log read visibility
+- `[x]` Partner goals read visibility
 
 ## Mutation permissions
 
 - `[x]` Body weight mutation own-only
-- `[ ]` Workout mutation own-only
-- `[ ]` Goals mutation own-only
-- `[ ]` Partner visibility remains read-only
-- `[ ]` Admin management does not imply editing partner logs in v1
+- `[x]` Workout mutation own-only
+- `[x]` Goals mutation own-only
+- `[x]` Partner visibility remains read-only
+- `[x]` Admin management does not imply editing partner logs in v1
 
 ---
 

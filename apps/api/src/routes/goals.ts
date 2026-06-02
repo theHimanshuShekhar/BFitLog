@@ -7,6 +7,7 @@ import {
 	reminderSettings,
 	workoutFrequencyGoals,
 } from "../db/schema.js";
+import { canReadUserData } from "./visibility.js";
 
 const db = createDb(
 	process.env.DATABASE_URL ??
@@ -32,10 +33,14 @@ export const goalRoutes = new Hono<{ Variables: Variables }>()
 	.get("/goals/workout-frequency", async (c) => {
 		const user = requireUser(c);
 		if (!user) return c.json({ error: "Unauthorized" }, 401);
+		const targetUserId = c.req.query("userId") ?? user.id;
+		if (!(await canReadUserData(user.id, targetUserId))) {
+			return c.json({ error: "Forbidden" }, 403);
+		}
 		const [goal] = await db
 			.select()
 			.from(workoutFrequencyGoals)
-			.where(eq(workoutFrequencyGoals.userId, user.id));
+			.where(eq(workoutFrequencyGoals.userId, targetUserId));
 		return c.json({ goal: goal ?? null });
 	})
 	.put("/goals/workout-frequency", async (c) => {

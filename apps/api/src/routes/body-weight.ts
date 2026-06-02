@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { createDb } from "../db/client.js";
 import { bodyWeightGoals, bodyWeightLogs } from "../db/schema.js";
 import type { auth } from "../auth/auth.js";
+import { canReadUserData } from "./visibility.js";
 
 const db = createDb(
 	process.env.DATABASE_URL ??
@@ -30,10 +31,14 @@ export const bodyWeightRoutes = new Hono<{ Variables: Variables }>()
 		const user = requireUser(c);
 		if (!user) return c.json({ error: "Unauthorized" }, 401);
 
+		const targetUserId = c.req.query("userId") ?? user.id;
+		if (!(await canReadUserData(user.id, targetUserId))) {
+			return c.json({ error: "Forbidden" }, 403);
+		}
 		const [goal] = await db
 			.select()
 			.from(bodyWeightGoals)
-			.where(eq(bodyWeightGoals.userId, user.id));
+			.where(eq(bodyWeightGoals.userId, targetUserId));
 		if (!goal) return c.json({ goal: null });
 
 		return c.json({
@@ -101,10 +106,14 @@ export const bodyWeightRoutes = new Hono<{ Variables: Variables }>()
 		const user = requireUser(c);
 		if (!user) return c.json({ error: "Unauthorized" }, 401);
 
+		const targetUserId = c.req.query("userId") ?? user.id;
+		if (!(await canReadUserData(user.id, targetUserId))) {
+			return c.json({ error: "Forbidden" }, 403);
+		}
 		const logs = await db
 			.select()
 			.from(bodyWeightLogs)
-			.where(eq(bodyWeightLogs.userId, user.id))
+			.where(eq(bodyWeightLogs.userId, targetUserId))
 			.orderBy(desc(bodyWeightLogs.measuredAt));
 
 		return c.json({
