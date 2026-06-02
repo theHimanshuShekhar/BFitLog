@@ -58,7 +58,13 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 		} | null;
 
 		if (typeof body?.username !== "string" || !isValidUsername(body.username)) {
-			return c.json({ error: "Username must be at least 2 characters and use letters, numbers, underscores, or hyphens" }, 400);
+			return c.json(
+				{
+					error:
+						"Username must be at least 2 characters and use letters, numbers, underscores, or hyphens",
+				},
+				400,
+			);
 		}
 		if (body.username.toLowerCase() === defaultAdminUsername) {
 			return c.json({ error: "Cannot create another default admin user" }, 400);
@@ -66,7 +72,11 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 		if (typeof body.displayName !== "string" || !body.displayName.trim()) {
 			return c.json({ error: "Display name is required" }, 400);
 		}
-		if (typeof body.password !== "string" || body.password.length < 8 || body.password.length > 128) {
+		if (
+			typeof body.password !== "string" ||
+			body.password.length < 8 ||
+			body.password.length > 128
+		) {
 			return c.json({ error: "Password must be 8-128 characters" }, 400);
 		}
 
@@ -74,7 +84,12 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 			.select({ value: count() })
 			.from(user)
 			.where(ne(user.username, defaultAdminUsername));
-		const role = (realUserCount?.value ?? 0) === 0 ? "admin" : body.role === "admin" ? "admin" : "member";
+		const role =
+			(realUserCount?.value ?? 0) === 0
+				? "admin"
+				: body.role === "admin"
+					? "admin"
+					: "member";
 
 		const created = await auth.api.signUpEmail({
 			body: {

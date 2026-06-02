@@ -102,11 +102,14 @@ describe("admin routes", () => {
 		});
 		const createdBody = await create.json();
 
-		const reset = await app.request(`/admin/users/${createdBody.user.id}/password`, {
-			method: "POST",
-			headers: { "content-type": "application/json", cookie },
-			body: JSON.stringify({ newPassword: "newpassword123" }),
-		});
+		const reset = await app.request(
+			`/admin/users/${createdBody.user.id}/password`,
+			{
+				method: "POST",
+				headers: { "content-type": "application/json", cookie },
+				body: JSON.stringify({ newPassword: "newpassword123" }),
+			},
+		);
 		expect(reset.status).toBe(200);
 
 		const login = await app.request("/api/auth/sign-in/username", {

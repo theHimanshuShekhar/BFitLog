@@ -4,7 +4,10 @@ import { ensureDefaultAdmin } from "./bootstrap.js";
 import { truncateAppTables } from "./test-utils/db.js";
 import { beforeEach, describe, expect, it } from "vitest";
 
-const db = createDb(process.env.DATABASE_URL ?? "postgres://bfitlog:bfitlog@localhost:5432/bfitlog");
+const db = createDb(
+	process.env.DATABASE_URL ??
+		"postgres://bfitlog:bfitlog@localhost:5432/bfitlog",
+);
 
 describe("default admin bootstrap", () => {
 	beforeEach(async () => {
