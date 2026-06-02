@@ -11,7 +11,8 @@
     "test": "vitest run --fileParallelism=false",
     "lint": "tsc -p tsconfig.json --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:seed:training-plan": "tsx src/db/seed-training-plan.ts"
   },
   "dependencies": {
     "@better-auth/expo": "^1.6.13",
