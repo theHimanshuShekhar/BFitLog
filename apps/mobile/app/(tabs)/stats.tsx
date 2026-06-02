@@ -15,7 +15,7 @@ import {
 	type ChartRange,
 } from "@/body-weight/BodyWeightChart";
 import { getBodyWeightRepository } from "@/body-weight/repository";
-import { colors, spacing } from "@/theme";
+import { colors, layout, spacing } from "@/theme";
 
 const ranges: ChartRange[] = ["30d", "90d", "1y", "all"];
 
@@ -110,6 +110,9 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		flexGrow: 1,
+		width: "100%",
+		maxWidth: layout.maxContentWidth,
+		alignSelf: "center",
 		gap: spacing.md,
 		padding: spacing.lg,
 		backgroundColor: colors.background,
@@ -119,7 +122,9 @@ const styles = StyleSheet.create({
 	rangeRow: { flexDirection: "row", gap: spacing.sm },
 	rangeButton: {
 		flex: 1,
+		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
+		justifyContent: "center",
 		padding: spacing.sm,
 		borderRadius: 999,
 		borderWidth: 1,
@@ -132,7 +137,9 @@ const styles = StyleSheet.create({
 	rangeText: { color: colors.mutedText, fontWeight: "700" },
 	rangeTextActive: { color: colors.background },
 	secondaryButton: {
+		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
+		justifyContent: "center",
 		padding: spacing.md,
 		borderRadius: 999,
 		borderWidth: 1,

@@ -318,8 +318,8 @@ Recent verification passed:
 - `[x]` Add Stats tab
 - `[x]` Add Settings tab
 - `[x]` Add tab icons
-- `[ ]` Polish responsive web layout
-- `[ ]` Polish Android layout
+- `[x]` Polish responsive web layout
+- `[x]` Polish Android layout
 - `[x]` Add PWA manifest/icon polish
 
 ---

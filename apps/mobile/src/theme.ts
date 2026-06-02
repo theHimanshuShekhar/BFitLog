@@ -16,3 +16,8 @@ export const spacing = {
 	lg: 24,
 	xl: 32,
 };
+
+export const layout = {
+	maxContentWidth: 960,
+	androidMinTouchTarget: 48,
+};

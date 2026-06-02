@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import {
 	ActivityIndicator,
 	Pressable,
+	ScrollView,
 	StyleSheet,
 	Text,
 	View,
@@ -11,7 +12,7 @@ import { authClient } from "@/auth/auth-client";
 import { ChangePasswordForm } from "@/auth/ChangePasswordForm";
 import { useAuth } from "@/auth/use-auth";
 import { BodyWeightGoalForm } from "@/body-weight/BodyWeightGoalForm";
-import { colors, spacing } from "@/theme";
+import { colors, layout, spacing } from "@/theme";
 
 export default function SettingsScreen() {
 	const session = useAuth();
@@ -37,7 +38,7 @@ export default function SettingsScreen() {
 	const role = (session.data.user as { role?: string }).role;
 
 	return (
-		<View style={styles.container}>
+		<ScrollView contentContainerStyle={styles.container}>
 			<Text style={styles.title}>Settings</Text>
 			<Text style={styles.description}>
 				Signed in as {session.data.user.name}
@@ -48,7 +49,7 @@ export default function SettingsScreen() {
 			<Pressable style={styles.secondaryButton} onPress={logout}>
 				<Text style={styles.secondaryButtonText}>Log out</Text>
 			</Pressable>
-		</View>
+		</ScrollView>
 	);
 }
 
@@ -60,7 +61,10 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.background,
 	},
 	container: {
-		flex: 1,
+		flexGrow: 1,
+		width: "100%",
+		maxWidth: layout.maxContentWidth,
+		alignSelf: "center",
 		gap: spacing.md,
 		padding: spacing.lg,
 		backgroundColor: colors.background,
@@ -68,7 +72,9 @@ const styles = StyleSheet.create({
 	title: { color: colors.text, fontSize: 28, fontWeight: "800" },
 	description: { color: colors.mutedText, fontSize: 16 },
 	secondaryButton: {
+		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
+		justifyContent: "center",
 		padding: spacing.md,
 		borderRadius: 999,
 		borderWidth: 1,

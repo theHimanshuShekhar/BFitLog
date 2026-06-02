@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useAuth } from "@/auth/use-auth";
 import { getBodyWeightRepository } from "@/body-weight/repository";
-import { colors, spacing } from "@/theme";
+import { colors, layout, spacing } from "@/theme";
 import {
 	listCompletedWorkouts,
 	type WorkoutHistoryItem,
@@ -244,6 +244,9 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		flexGrow: 1,
+		width: "100%",
+		maxWidth: layout.maxContentWidth,
+		alignSelf: "center",
 		gap: spacing.md,
 		padding: spacing.lg,
 		backgroundColor: colors.background,
@@ -283,14 +286,18 @@ const styles = StyleSheet.create({
 	dangerButtonText: { color: colors.danger, fontSize: 14, fontWeight: "700" },
 	dangerButtonCompact: {
 		flex: 1,
+		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
+		justifyContent: "center",
 		padding: spacing.sm,
 		borderRadius: 999,
 		borderWidth: 1,
 		borderColor: colors.danger,
 	},
 	secondaryButton: {
+		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
+		justifyContent: "center",
 		padding: spacing.md,
 		borderRadius: 999,
 		borderWidth: 1,
@@ -298,7 +305,9 @@ const styles = StyleSheet.create({
 	},
 	secondaryButtonCompact: {
 		flex: 1,
+		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
+		justifyContent: "center",
 		padding: spacing.sm,
 		borderRadius: 999,
 		borderWidth: 1,

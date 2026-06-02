@@ -13,7 +13,7 @@ import {
 import { apiBaseUrl } from "@/api/client";
 import { authClient } from "@/auth/auth-client";
 import { useAuth } from "@/auth/use-auth";
-import { colors, spacing } from "@/theme";
+import { colors, layout, spacing } from "@/theme";
 
 const planCacheKey = "bfitlog:training-plan-template";
 
@@ -119,7 +119,8 @@ export default function PlanScreen() {
 
 			const template = body.plan?.template ?? null;
 			setPlan(template);
-			if (template) await AsyncStorage.setItem(planCacheKey, JSON.stringify(template));
+			if (template)
+				await AsyncStorage.setItem(planCacheKey, JSON.stringify(template));
 			setStatus("ready");
 		} catch (err) {
 			if (cached) {
@@ -303,6 +304,9 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		flexGrow: 1,
+		width: "100%",
+		maxWidth: layout.maxContentWidth,
+		alignSelf: "center",
 		gap: spacing.md,
 		padding: spacing.lg,
 		backgroundColor: colors.background,
@@ -343,6 +347,8 @@ const styles = StyleSheet.create({
 	substituteBox: { gap: spacing.xs, marginTop: spacing.xs },
 	mediaRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
 	mediaButton: {
+		minHeight: layout.androidMinTouchTarget,
+		justifyContent: "center",
 		paddingVertical: spacing.xs,
 		paddingHorizontal: spacing.sm,
 		borderRadius: 999,
@@ -351,7 +357,9 @@ const styles = StyleSheet.create({
 	},
 	mediaText: { color: colors.primary, fontSize: 12, fontWeight: "800" },
 	secondaryButton: {
+		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
+		justifyContent: "center",
 		padding: spacing.md,
 		borderRadius: 999,
 		borderWidth: 1,
