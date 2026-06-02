@@ -109,10 +109,10 @@ Recent verification passed:
 - `[x]` Verify API Docker image builds
 - `[x]` Verify API container responds to `/health`
 - `[x]` Run API migrations at container startup
-- `[ ]` Add production Dockhand deployment notes
-- `[ ]` Add backup/restore documentation for Postgres
-- `[ ]` Add production secret-generation documentation for `BETTER_AUTH_SECRET`
-- `[ ]` Add reverse proxy/HTTPS assumptions to deployment docs
+- `[x]` Add production Dockhand deployment notes — see `docs/deployment.md`
+- `[x]` Add backup/restore documentation for Postgres — see `docs/deployment.md`
+- `[x]` Add production secret-generation documentation for `BETTER_AUTH_SECRET` — see `docs/deployment.md`
+- `[x]` Add reverse proxy/HTTPS assumptions to deployment docs — see `docs/deployment.md`
 
 ---
 
