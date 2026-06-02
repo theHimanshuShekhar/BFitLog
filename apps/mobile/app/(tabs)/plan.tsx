@@ -208,9 +208,12 @@ function ExerciseRow({ planned }: { planned: PlannedExercise }) {
 
 	return (
 		<View style={styles.exerciseCard}>
-			<Text style={styles.cardTitle}>
+			<Pressable onPress={() => openExerciseDetail(planned, target)}>
+				<Text style={styles.cardTitle}>
 				{exercise?.name ?? "Unknown exercise"}
-			</Text>
+				</Text>
+				<Text style={styles.detailLink}>View details</Text>
+			</Pressable>
 			<Text style={styles.status}>
 				{target} · Rest {planned.restSeconds}s
 			</Text>
@@ -235,6 +238,20 @@ function ExerciseRow({ planned }: { planned: PlannedExercise }) {
 			) : null}
 		</View>
 	);
+}
+
+function openExerciseDetail(planned: PlannedExercise, target: string) {
+	const exercise = planned.exercise;
+	if (!exercise) return;
+	const params = new URLSearchParams({
+		name: exercise.name,
+		target,
+		trackingType: exercise.trackingType,
+		media: JSON.stringify(exercise.media),
+	});
+	if (exercise.equipment) params.set("equipment", exercise.equipment);
+	if (planned.notes) params.set("notes", planned.notes);
+	router.push(`/exercise?${params.toString()}` as never);
 }
 
 const styles = StyleSheet.create({
@@ -277,6 +294,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.surface,
 	},
 	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+	detailLink: { color: colors.primary, fontSize: 13, fontWeight: "800", marginTop: spacing.xs },
 	mediaRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
 	mediaButton: {
 		paddingVertical: spacing.xs,
