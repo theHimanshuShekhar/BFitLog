@@ -240,7 +240,7 @@ Recent verification passed:
 ## Goals and reminders schema
 
 - `[~]` Body Weight Goal table exists
-- `[ ]` Add Workout Frequency Goal table/fields
+- `[x]` Add Workout Frequency Goal table/fields
 - `[ ]` Add reminder settings table
 - `[ ]` Add per-device notification permission/device metadata if needed
 

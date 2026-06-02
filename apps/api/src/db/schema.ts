@@ -146,6 +146,14 @@ export const bodyWeightGoals = pgTable("body_weight_goals", {
 	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
 });
 
+export const workoutFrequencyGoals = pgTable("workout_frequency_goals", {
+	userId: text("user_id")
+		.primaryKey()
+		.references(() => user.id, { onDelete: "cascade" }),
+	targetWorkoutsPerWeek: integer("target_workouts_per_week").notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
 export const exercises = pgTable("exercises", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull().unique(),
@@ -398,6 +406,7 @@ export const bodyWeightLogs = pgTable(
 export const userRelations = relations(user, ({ many, one }) => ({
 	bodyWeightLogs: many(bodyWeightLogs),
 	bodyWeightGoal: one(bodyWeightGoals),
+	workoutFrequencyGoal: one(workoutFrequencyGoals),
 	trainingPlans: many(userTrainingPlans),
 	workoutLogs: many(workoutLogs),
 }));
