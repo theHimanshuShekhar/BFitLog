@@ -154,6 +154,39 @@ export const workoutFrequencyGoals = pgTable("workout_frequency_goals", {
 	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
 });
 
+export const reminderSettings = pgTable("reminder_settings", {
+	userId: text("user_id")
+		.primaryKey()
+		.references(() => user.id, { onDelete: "cascade" }),
+	workoutReminderEnabled: boolean("workout_reminder_enabled")
+		.notNull()
+		.default(false),
+	workoutReminderTime: text("workout_reminder_time"),
+	weighInReminderEnabled: boolean("weigh_in_reminder_enabled")
+		.notNull()
+		.default(false),
+	weighInReminderTime: text("weigh_in_reminder_time"),
+	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+});
+
+export const notificationDevices = pgTable(
+	"notification_devices",
+	{
+		id: uuid("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		deviceId: text("device_id").notNull(),
+		platform: text("platform").notNull(),
+		pushToken: text("push_token"),
+		notificationsEnabled: boolean("notifications_enabled")
+			.notNull()
+			.default(false),
+		updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+	},
+	(table) => [index("notification_devices_user_idx").on(table.userId)],
+);
+
 export const exercises = pgTable("exercises", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull().unique(),
@@ -407,6 +440,8 @@ export const userRelations = relations(user, ({ many, one }) => ({
 	bodyWeightLogs: many(bodyWeightLogs),
 	bodyWeightGoal: one(bodyWeightGoals),
 	workoutFrequencyGoal: one(workoutFrequencyGoals),
+	reminderSettings: one(reminderSettings),
+	notificationDevices: many(notificationDevices),
 	trainingPlans: many(userTrainingPlans),
 	workoutLogs: many(workoutLogs),
 }));

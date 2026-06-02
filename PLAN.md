@@ -241,8 +241,8 @@ Recent verification passed:
 
 - `[~]` Body Weight Goal table exists
 - `[x]` Add Workout Frequency Goal table/fields
-- `[ ]` Add reminder settings table
-- `[ ]` Add per-device notification permission/device metadata if needed
+- `[x]` Add reminder settings table
+- `[x]` Add per-device notification permission/device metadata if needed
 
 ---
 
