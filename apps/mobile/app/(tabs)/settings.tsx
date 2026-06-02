@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { AdminUserManagement } from "@/admin/AdminUserManagement";
 import { authClient } from "@/auth/auth-client";
+import { ChangePasswordForm } from "@/auth/ChangePasswordForm";
 import { useAuth } from "@/auth/use-auth";
 import { BodyWeightGoalForm } from "@/body-weight/BodyWeightGoalForm";
 import { colors, spacing } from "@/theme";
@@ -42,6 +43,7 @@ export default function SettingsScreen() {
 				Signed in as {session.data.user.name}
 			</Text>
 			<BodyWeightGoalForm userId={session.data.user.id} />
+			<ChangePasswordForm />
 			{role === "admin" ? <AdminUserManagement /> : null}
 			<Pressable style={styles.secondaryButton} onPress={logout}>
 				<Text style={styles.secondaryButtonText}>Log out</Text>

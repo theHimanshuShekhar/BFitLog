@@ -180,7 +180,7 @@ Recent verification passed:
 - `[x]` Verify username sign-in works
 - `[x]` Harden production cookie/trusted-origin config
 - `[x]` Add admin password reset endpoint/UI
-- `[ ]` Add user self-password-change UI
+- `[x]` Add user self-password-change UI
 
 ## First-run setup
 
@@ -500,7 +500,7 @@ Recent verification passed:
 - `[x]` Body Weight Goal edit
 - `[ ]` Sync status details
 - `[ ]` Account details
-- `[ ]` Change password
+- `[x]` Change password
 - `[ ]` Reminder settings
 - `[ ]` Workout Frequency Goal settings
 - `[ ]` App info/about
