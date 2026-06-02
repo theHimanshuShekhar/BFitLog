@@ -362,7 +362,7 @@ Recent verification passed:
 - `[x]` Render warmup checklist
 - `[x]` Render cooldown checklist
 - `[x]` Render Planned Exercises and targets
-- `[ ]` Render Exercise detail screen
+- `[x]` Render Exercise detail screen
 - `[~]` Show embedded media inline where possible — current UI shows in-app media buttons/fallback links, not embedded players
 - `[x]` Add fallback source link when embed fails
 - `[ ]` Add substitute list display
@@ -629,10 +629,10 @@ Recent verification passed:
 # Immediate next tasks
 
 1. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
-2. `[ ]` Add exercise detail screen from Plan tab.
-3. `[ ]` Add workout history detail screen and edit/delete actions.
-4. `[ ]` Prototype PowerSync on a separate integration branch before expanding offline workout sync.
-5. `[ ]` Add multi-set add/remove controls in the workout draft screen.
+2. `[ ]` Add workout history detail screen and edit/delete actions.
+3. `[ ]` Prototype PowerSync on a separate integration branch before expanding offline workout sync.
+4. `[ ]` Add multi-set add/remove controls in the workout draft screen.
+5. `[ ]` Add preferred substitute seed data and display.
 
 # Verification commands
 
