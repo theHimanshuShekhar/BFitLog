@@ -46,6 +46,9 @@ export const user = pgTable("user", {
 	username: text("username").notNull().unique(),
 	displayUsername: text("display_username"),
 	role: userRole("role").notNull().default("member"),
+	banned: boolean("banned"),
+	banReason: text("ban_reason"),
+	banExpires: timestamp("ban_expires", { withTimezone: true }),
 	createdAt: timestamp("created_at", { withTimezone: true })
 		.notNull()
 		.defaultNow(),

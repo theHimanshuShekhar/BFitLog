@@ -1,54 +1,30 @@
 import { createApp } from "../app.js";
+import { ensureDefaultAdmin } from "../bootstrap.js";
 import { truncateAppTables } from "../test-utils/db.js";
 import { describe, expect, it, beforeEach } from "vitest";
-
-const setupBody = {
-	admin: {
-		username: "admin",
-		password: "password1234",
-		displayName: "Admin User",
-	},
-	partner: {
-		username: "partner",
-		password: "password1234",
-		displayName: "Partner User",
-	},
-};
 
 describe("setup routes", () => {
 	beforeEach(async () => {
 		await truncateAppTables();
 	});
 
-	it("reports setup required when no users exist", async () => {
+	it("reports setup not required because startup creates a default admin", async () => {
 		const app = createApp();
+		await ensureDefaultAdmin();
 		const response = await app.request("/setup/status");
 
 		expect(response.status).toBe(200);
-		await expect(response.json()).resolves.toEqual({ setupRequired: true });
+		await expect(response.json()).resolves.toEqual({ setupRequired: false });
 	});
 
-	it("creates admin and partner once", async () => {
+	it("rejects legacy setup user creation", async () => {
 		const app = createApp();
-		const first = await app.request("/setup", {
+		const response = await app.request("/setup", {
 			method: "POST",
 			headers: { "content-type": "application/json" },
-			body: JSON.stringify(setupBody),
+			body: JSON.stringify({}),
 		});
 
-		expect(first.status).toBe(201);
-		const body = await first.json();
-		expect(body.admin).toMatchObject({ username: "admin", role: "admin" });
-		expect(body.partner).toMatchObject({ username: "partner", role: "member" });
-
-		const status = await app.request("/setup/status");
-		await expect(status.json()).resolves.toEqual({ setupRequired: false });
-
-		const second = await app.request("/setup", {
-			method: "POST",
-			headers: { "content-type": "application/json" },
-			body: JSON.stringify(setupBody),
-		});
-		expect(second.status).toBe(409);
+		expect(response.status).toBe(410);
 	});
 });

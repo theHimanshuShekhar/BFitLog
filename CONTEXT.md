@@ -5,7 +5,7 @@ BFitLog is a self-hosted gym planning and progress tracking app for two trusted 
 ## Language
 
 **User**:
-A person with their own login, profile, workout logs, body weight logs, stats, and role. In v1, users are created by setup/admin; there is no public signup.
+A person with their own login, profile, workout logs, body weight logs, stats, and role. In v1, the API starts with a temporary default admin (`admin` / `admin`); that admin creates the first real User, the first real User becomes admin, and the default admin is deleted. Later Users are created by admins; there is no public signup.
 _Avoid_: Account when referring to the person, shared login
 
 **Role**:

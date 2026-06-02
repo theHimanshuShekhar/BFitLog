@@ -13,7 +13,7 @@ This file tracks the full BFitLog implementation roadmap and current project sta
 
 **Last updated:** 2026-06-02
 
-BFitLog currently has a working monorepo foundation, self-hosted Hono/Postgres API, Better Auth setup/login flow, local-first body weight goal/log repository, body weight UI, simple stats chart, seeded training plan schema/data, and an authenticated training plan API.
+BFitLog currently has a working monorepo foundation, self-hosted Hono/Postgres API, Better Auth login flow with a startup-created default admin, local-first body weight goal/log repository, body weight UI, simple stats chart, seeded training plan schema/data, and an authenticated training plan API.
 
 Recent verification passed:
 
@@ -72,6 +72,8 @@ Recent verification passed:
 - `[x]` ADR 0009: Use pnpm and Node.js
 - `[x]` ADR 0010: Support planned exercise substitutions
 - `[x]` ADR 0011: Use Better Auth
+- `[x]` ADR 0012: Defer PowerSync until dedicated prototype
+- `[x]` ADR 0013: Bootstrap with a temporary default admin
 
 ---
 
@@ -182,16 +184,15 @@ Recent verification passed:
 
 ## First-run setup
 
-- `[x]` Add `GET /setup/status`
-- `[x]` Add `POST /setup`
-- `[x]` Create first admin user
-- `[x]` Create partner member user
-- `[x]` Create initial Partner Link
-- `[x]` Disable setup after users exist
-- `[x]` Add setup route tests
+- `[x]` Add `GET /setup/status` compatibility endpoint
+- `[x]` Deprecate legacy `POST /setup` user creation
+- `[x]` Create startup default admin user (`admin` / `admin`)
+- `[x]` Make first user-created account an admin
+- `[x]` Delete default admin after first real admin user is created
+- `[x]` Add setup/bootstrap route tests
 - `[x]` Add richer setup validation messages in UI
-- `[ ]` Add admin user-management endpoints
-- `[ ]` Add admin create-user flow
+- `[x]` Add admin user-management endpoints
+- `[x]` Add admin create-user flow
 - `[ ]` Add admin Partner Link management
 
 ---
@@ -522,7 +523,7 @@ Recent verification passed:
 ## Visibility
 
 - `[x]` Partner Link table
-- `[x]` Initial Partner Link created during setup
+- `[ ]` Initial Partner Link no longer created during setup; add admin Partner Link management before enabling partner visibility
 - `[ ]` Enforce Partner Link read visibility in APIs
 - `[ ]` User switcher for Stats
 - `[ ]` User switcher for Body Weight Stats

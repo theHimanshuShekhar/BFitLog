@@ -1,7 +1,7 @@
 import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { username } from "better-auth/plugins";
+import { admin, username } from "better-auth/plugins";
 import { createDb } from "../db/client.js";
 import { readEnv } from "../env.js";
 import * as schema from "../db/schema.js";
@@ -23,6 +23,7 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true,
+		minPasswordLength: 4,
 	},
 	session: {
 		expiresIn: 60 * 60 * 24 * 90,
@@ -42,6 +43,7 @@ export const auth = betterAuth({
 		},
 	},
 	plugins: [
+		admin({ defaultRole: "member", adminRoles: ["admin"] }),
 		username({
 			minUsernameLength: 2,
 			usernameValidator: (value) => /^[a-zA-Z0-9_-]+$/.test(value),

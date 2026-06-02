@@ -6,6 +6,7 @@ import {
 	Text,
 	View,
 } from "react-native";
+import { AdminUserManagement } from "@/admin/AdminUserManagement";
 import { authClient } from "@/auth/auth-client";
 import { useAuth } from "@/auth/use-auth";
 import { BodyWeightGoalForm } from "@/body-weight/BodyWeightGoalForm";
@@ -32,6 +33,8 @@ export default function SettingsScreen() {
 		router.replace("/login");
 	}
 
+	const role = (session.data.user as { role?: string }).role;
+
 	return (
 		<View style={styles.container}>
 			<Text style={styles.title}>Settings</Text>
@@ -39,6 +42,7 @@ export default function SettingsScreen() {
 				Signed in as {session.data.user.name}
 			</Text>
 			<BodyWeightGoalForm userId={session.data.user.id} />
+			{role === "admin" ? <AdminUserManagement /> : null}
 			<Pressable style={styles.secondaryButton} onPress={logout}>
 				<Text style={styles.secondaryButtonText}>Log out</Text>
 			</Pressable>

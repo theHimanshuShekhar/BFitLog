@@ -1,6 +1,7 @@
 import { auth } from "./auth/auth.js";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { adminRoutes } from "./routes/admin.js";
 import { bodyWeightRoutes } from "./routes/body-weight.js";
 import { healthRoutes } from "./routes/health.js";
 import { setupRoutes } from "./routes/setup.js";
@@ -54,6 +55,7 @@ export function createApp(options: AppOptions = {}) {
 
 	app.route("/", healthRoutes);
 	app.route("/", setupRoutes);
+	app.route("/", adminRoutes);
 	app.route("/", bodyWeightRoutes);
 	app.route("/", trainingPlanRoutes);
 	app.route("/", workoutRoutes);

@@ -1,32 +1,16 @@
 import { createApp } from "../app.js";
+import { ensureDefaultAdmin } from "../bootstrap.js";
 import { seedTrainingPlan } from "../db/seed-training-plan.js";
 import { truncateAppTables } from "../test-utils/db.js";
 import { beforeEach, describe, expect, it } from "vitest";
 
-const setupBody = {
-	admin: {
-		username: "admin",
-		password: "password1234",
-		displayName: "Admin User",
-	},
-	partner: {
-		username: "partner",
-		password: "password1234",
-		displayName: "Partner User",
-	},
-};
-
 async function createSession() {
 	const app = createApp();
-	await app.request("/setup", {
-		method: "POST",
-		headers: { "content-type": "application/json" },
-		body: JSON.stringify(setupBody),
-	});
+	await ensureDefaultAdmin();
 	const login = await app.request("/api/auth/sign-in/username", {
 		method: "POST",
 		headers: { "content-type": "application/json" },
-		body: JSON.stringify({ username: "admin", password: "password1234" }),
+		body: JSON.stringify({ username: "admin", password: "admin" }),
 	});
 	return { app, cookie: login.headers.get("set-cookie") ?? "" };
 }
