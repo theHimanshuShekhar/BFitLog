@@ -271,7 +271,7 @@ Recent verification passed:
 - `[x]` Add sync client boundary
 - `[x]` Add HTTP sync client
 - `[x]` Add repository tests
-- `[ ]` Replace/validate repository with PowerSync spike
+- `[x]` Replace/validate repository with PowerSync spike — keep custom repository in mainline; see `docs/spikes/2026-06-02-powersync.md`
 
 ## Mobile UI
 
