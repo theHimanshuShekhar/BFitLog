@@ -3,6 +3,7 @@ import {
 	exerciseMedia,
 	exercises,
 	plannedExercises,
+	plannedExerciseSubstitutes,
 	trainingDayChecklistItems,
 	trainingDays,
 	trainingPlanTemplates,
@@ -465,6 +466,17 @@ const planned = [
 	],
 ] as const;
 
+const substitutes = [
+	["day-1-upper-a-smith-machine-bench-press", "chest-press-machine", "Machine chest press if the Smith machine is unavailable."],
+	["day-1-upper-a-seated-cable-row", "dumbbell-row", "Dumbbell row if cables are unavailable."],
+	["day-1-upper-a-lat-pulldown", "seated-cable-row", "Cable row if the pulldown station is unavailable."],
+	["day-2-lower-a-leg-curl", "seated-leg-curl", "Use the seated curl variation if available."],
+	["day-3-upper-b-incline-smith-machine-press", "chest-press-machine", "Use chest press machine if incline Smith setup is unavailable."],
+	["day-3-upper-b-dumbbell-row", "seated-cable-row", "Cable row if dumbbells are unavailable."],
+	["day-4-lower-b-smith-machine-front-squat", "smith-machine-squat", "Back squat variation if front squat setup is uncomfortable."],
+	["day-4-lower-b-seated-leg-curl", "leg-curl", "Use available leg curl machine variation."],
+] as const;
+
 export async function seedTrainingPlan() {
 	await db
 		.insert(trainingPlanTemplates)
@@ -559,6 +571,13 @@ for (const [
 			restSeconds: 90,
 			notes,
 		})
+		.onConflictDoNothing();
+}
+
+for (const [plannedExerciseId, exerciseId, notes] of substitutes) {
+	await db
+		.insert(plannedExerciseSubstitutes)
+		.values({ plannedExerciseId, exerciseId, notes })
 		.onConflictDoNothing();
 }
 

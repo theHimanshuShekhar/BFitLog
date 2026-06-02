@@ -338,9 +338,9 @@ Recent verification passed:
 - `[x]` Seed cooldown checklist items
 - `[x]` Seed 20 Planned Exercises
 - `[x]` Seed target sets/reps/duration/rest/notes
-- `[ ]` Seed preferred substitutes
+- `[x]` Seed preferred substitutes
 - `[x]` Create per-user active plan instances on demand from the seeded template
-- `[ ]` Make seed script idempotent for future substitute data
+- `[x]` Make seed script idempotent for future substitute data
 
 ## Plan API
 
