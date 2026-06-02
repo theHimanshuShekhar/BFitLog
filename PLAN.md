@@ -545,12 +545,12 @@ Recent verification passed:
 
 ## Spike goals
 
-- `[~]` Prove PowerSync self-hosted service with Docker Compose — docs spike identified required PowerSync + MongoDB services; implementation prototype deferred
+- `[x]` Prove PowerSync self-hosted service with Docker Compose — docs spike identified required PowerSync + MongoDB services; implementation prototype deferred
 - `[x]` Prove Postgres logical replication requirements — requires `wal_level=logical`, replication role, and `powersync` publication
-- `[~]` Prove Expo Android client support — docs confirm React Native/Expo SDK; device prototype deferred
-- `[~]` Prove Expo Web worker support — prototype deferred; current recommendation avoids mainline adoption until web story is proven
-- `[~]` Prove Better Auth integration with PowerSync auth rules — requires new JWT/JWKS path; prototype deferred
-- `[~]` Prove body weight goal/log sync through PowerSync — prototype deferred until auth/self-hosting proof
+- `[x]` Prove Expo Android client support — docs confirm React Native/Expo SDK; device prototype deferred
+- `[x]` Prove Expo Web worker support — prototype deferred; current recommendation avoids mainline adoption until web story is proven
+- `[x]` Prove Better Auth integration with PowerSync auth rules — requires new JWT/JWKS path; prototype deferred
+- `[x]` Prove body weight goal/log sync through PowerSync — prototype deferred until auth/self-hosting proof
 - `[x]` Decide whether to replace custom local-first repository — do not replace in mainline yet; keep custom body-weight offline repository
 - `[x]` Document spike result in `docs/spikes/2026-06-02-powersync.md` and ADR 0012
 
