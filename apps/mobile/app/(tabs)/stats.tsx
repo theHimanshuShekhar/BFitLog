@@ -9,13 +9,13 @@ import {
 	Text,
 	View,
 } from "react-native";
-import { useAuth } from "../src/auth/use-auth";
+import { useAuth } from "@/auth/use-auth";
 import {
 	BodyWeightChart,
 	type ChartRange,
-} from "../src/body-weight/BodyWeightChart";
-import { getBodyWeightRepository } from "../src/body-weight/repository";
-import { colors, spacing } from "../src/theme";
+} from "@/body-weight/BodyWeightChart";
+import { getBodyWeightRepository } from "@/body-weight/repository";
+import { colors, spacing } from "@/theme";
 
 const ranges: ChartRange[] = ["30d", "90d", "1y", "all"];
 

@@ -9,11 +9,11 @@ import {
 	Text,
 	View,
 } from "react-native";
-import { apiGet } from "../src/api/client";
-import { useAuth } from "../src/auth/use-auth";
-import { AddBodyWeightLogForm } from "../src/body-weight/AddBodyWeightLogForm";
-import { getBodyWeightRepository } from "../src/body-weight/repository";
-import { colors, spacing } from "../src/theme";
+import { apiGet } from "@/api/client";
+import { useAuth } from "@/auth/use-auth";
+import { AddBodyWeightLogForm } from "@/body-weight/AddBodyWeightLogForm";
+import { getBodyWeightRepository } from "@/body-weight/repository";
+import { colors, spacing } from "@/theme";
 
 type HealthResponse = { ok: boolean };
 type SetupStatusResponse = { setupRequired: boolean };

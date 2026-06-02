@@ -1,14 +1,18 @@
-import { Stack } from "expo-router";
-import { colors } from "../src/theme";
+import { Stack } from 'expo-router';
+import { colors } from '../src/theme';
 
 export default function RootLayout() {
-	return (
-		<Stack
-			screenOptions={{
-				headerStyle: { backgroundColor: colors.surface },
-				headerTintColor: colors.text,
-				contentStyle: { backgroundColor: colors.background },
-			}}
-		/>
-	);
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.text,
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ title: 'Log in' }} />
+      <Stack.Screen name="setup" options={{ title: 'Set up BFitLog' }} />
+    </Stack>
+  );
 }

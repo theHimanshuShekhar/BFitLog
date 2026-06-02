@@ -6,10 +6,10 @@ import {
 	Text,
 	View,
 } from "react-native";
-import { authClient } from "../src/auth/auth-client";
-import { useAuth } from "../src/auth/use-auth";
-import { BodyWeightGoalForm } from "../src/body-weight/BodyWeightGoalForm";
-import { colors, spacing } from "../src/theme";
+import { authClient } from "@/auth/auth-client";
+import { useAuth } from "@/auth/use-auth";
+import { BodyWeightGoalForm } from "@/body-weight/BodyWeightGoalForm";
+import { colors, spacing } from "@/theme";
 
 export default function SettingsScreen() {
 	const session = useAuth();
