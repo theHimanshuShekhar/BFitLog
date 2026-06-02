@@ -203,7 +203,9 @@ export default function HistoryScreen() {
 							</>
 						) : (
 							<>
-								<Text style={styles.cardTitle}>{log.weightKg.toFixed(1)} kg</Text>
+								<Text style={styles.cardTitle}>
+									{log.weightKg.toFixed(1)} kg
+								</Text>
 								<Text style={styles.status}>
 									{new Date(log.measuredAt).toLocaleString()}
 								</Text>
