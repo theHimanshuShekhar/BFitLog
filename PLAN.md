@@ -291,7 +291,7 @@ Recent verification passed:
 - `[x]` Add loading/error/success toasts instead of alerts — implemented as inline status/error messages
 - `[x]` Add delete body weight log UI
 - `[x]` Add edit body weight log UI
-- `[ ]` Add pull-to-refresh where appropriate
+- `[x]` Add pull-to-refresh where appropriate
 
 ---
 

@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import {
 	ActivityIndicator,
 	Pressable,
+	RefreshControl,
 	ScrollView,
 	StyleSheet,
 	Text,
@@ -23,6 +24,7 @@ export default function HistoryScreen() {
 	const [logs, setLogs] = useState<BodyWeightLog[]>([]);
 	const [workouts, setWorkouts] = useState<WorkoutHistoryItem[]>([]);
 	const [syncStatus, setSyncStatus] = useState("Loaded locally");
+	const [refreshing, setRefreshing] = useState(false);
 	const [editingLogId, setEditingLogId] = useState<string | null>(null);
 	const [editWeightKg, setEditWeightKg] = useState("");
 	const [editNote, setEditNote] = useState("");
@@ -75,6 +77,7 @@ export default function HistoryScreen() {
 
 	const load = useCallback(async () => {
 		const repository = getBodyWeightRepository();
+		setRefreshing(true);
 		setLogs(await repository.listLogs());
 		setSyncStatus("Syncing…");
 		try {
@@ -84,6 +87,8 @@ export default function HistoryScreen() {
 			setSyncStatus("Synced");
 		} catch {
 			setSyncStatus("Offline / sync pending");
+		} finally {
+			setRefreshing(false);
 		}
 	}, []);
 
@@ -107,7 +112,16 @@ export default function HistoryScreen() {
 	}
 
 	return (
-		<ScrollView contentContainerStyle={styles.container}>
+		<ScrollView
+			contentContainerStyle={styles.container}
+			refreshControl={
+				<RefreshControl
+					tintColor={colors.primary}
+					refreshing={refreshing}
+					onRefresh={() => void load()}
+				/>
+			}
+		>
 			<Text style={styles.title}>History</Text>
 			<Text style={styles.description}>
 				Body weight logs for {session.data.user.name}
