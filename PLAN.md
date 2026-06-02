@@ -390,8 +390,8 @@ Recent verification passed:
 - `[x]` Per-set tracking for `reps_weight` — first-set mobile UI + API storage
 - `[x]` Per-set tracking for `duration` — first-set mobile UI + API storage
 - `[x]` Exercise-level Good Form checkbox — API marks saved sets with good form
-- `[~]` Exercise-level notes — API field exists, mobile note UI pending
-- `[~]` Workout-level note — API completion field exists, mobile note UI pending
+- `[x]` Exercise-level notes
+- `[x]` Workout-level note
 - `[x]` Show completed workout history timeline
 - `[ ]` Edit completed workout logs
 - `[ ]` Delete own workout logs
@@ -630,9 +630,9 @@ Recent verification passed:
 
 1. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
 2. `[ ]` Add exercise detail screen from Plan tab.
-3. `[ ]` Add exercise/workout note UI in the workout draft screen.
-4. `[ ]` Add workout history detail screen and edit/delete actions.
-5. `[ ]` Prototype PowerSync on a separate integration branch before expanding offline workout sync.
+3. `[ ]` Add workout history detail screen and edit/delete actions.
+4. `[ ]` Prototype PowerSync on a separate integration branch before expanding offline workout sync.
+5. `[ ]` Add multi-set add/remove controls in the workout draft screen.
 
 # Verification commands
 
