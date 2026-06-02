@@ -616,6 +616,9 @@ export async function seedTrainingPlan() {
 	console.log(`Seeded training plan template: ${templateId}`);
 }
 
-if (process.env.NODE_ENV !== "test") {
+if (
+	process.env.NODE_ENV !== "test" &&
+	process.argv[1]?.endsWith("seed-training-plan.ts")
+) {
 	await seedTrainingPlan();
 }

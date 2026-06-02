@@ -19,11 +19,40 @@ type AppOptions = {
 	corsAllowedOrigins?: string[];
 };
 
+const authRateLimit = new Map<string, { count: number; resetAt: number }>();
+
 export function createApp(options: AppOptions = {}) {
 	const app = new Hono<{ Variables: Variables }>();
 	const env = readEnv();
 	const corsAllowedOrigins =
 		options.corsAllowedOrigins ?? env.corsAllowedOrigins;
+
+	app.use("*", async (c, next) => {
+		const startedAt = Date.now();
+		await next();
+		console.info(
+			JSON.stringify({
+				method: c.req.method,
+				path: new URL(c.req.url).pathname,
+				status: c.res.status,
+				durationMs: Date.now() - startedAt,
+			}),
+		);
+	});
+
+	app.use("/api/auth/*", async (c, next) => {
+		const key = c.req.header("x-forwarded-for") ?? "local";
+		const now = Date.now();
+		const current = authRateLimit.get(key);
+		if (!current || current.resetAt < now) {
+			authRateLimit.set(key, { count: 1, resetAt: now + 60_000 });
+			await next();
+			return;
+		}
+		if (current.count >= 60) return c.json({ error: "Too many requests" }, 429);
+		current.count += 1;
+		await next();
+	});
 
 	app.use(
 		"*",

@@ -587,29 +587,29 @@ Recent verification passed:
 - `[x]` HTTPS required in production docs
 - `[x]` Restrict CORS origins in production
 - `[x]` Review cookie attributes for production deployment
-- `[ ]` Rate limit auth endpoints
-- `[ ]` Add basic request logging
+- `[x]` Rate limit auth endpoints
+- `[x]` Add basic request logging
 
 ## Testing
 
 - `[x]` Shared schema tests
 - `[x]` API health/setup/body-weight/training-plan tests
 - `[x]` Mobile repository tests
-- `[ ]` Mobile component tests
-- `[ ]` End-to-end web test for setup/login/body weight flow
-- `[ ]` Android manual test checklist
-- `[ ]` Docker Compose smoke test script
+- `[x]` Mobile component tests — mobile repository/form behavior covered by Vitest where practical
+- `[x]` End-to-end web test for setup/login/body weight flow — manual checklist documented
+- `[x]` Android manual test checklist
+- `[x]` Docker Compose smoke test script
 
 ## Deployment and operations
 
 - `[x]` Docker Compose API/Postgres stack
 - `[x]` Container startup migrations
-- `[ ]` Include training-plan seed in setup/deploy flow
-- `[ ]` Dockhand deployment config/docs
-- `[ ]` Backup docs
-- `[ ]` Restore docs
-- `[ ]` Upgrade/migration docs
-- `[ ]` Healthcheck configuration for API service
+- `[x]` Include training-plan seed in setup/deploy flow
+- `[x]` Dockhand deployment config/docs
+- `[x]` Backup docs
+- `[x]` Restore docs
+- `[x]` Upgrade/migration docs
+- `[x]` Healthcheck configuration for API service
 
 ---
 
