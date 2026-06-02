@@ -23,10 +23,12 @@ export type DraftWorkout = {
   checklist: Array<{ checklistItemId: string; kind: 'warmup' | 'cooldown'; text: string; checked: boolean; sortOrder: number }>;
 };
 
+export type TrainingDaySummary = { id: string; sequence: number; title: string };
+
 export type ActivePlan = {
   id: string;
   template: {
-    days: Array<{ id: string; sequence: number; title: string }>;
+    days: TrainingDaySummary[];
   };
 };
 
@@ -54,6 +56,12 @@ export async function getActivePlan(): Promise<ActivePlan | null> {
   });
   body = await parseJson<{ plan: ActivePlan }>(response, 'Create active plan');
   return body.plan;
+}
+
+export async function getNextTrainingDay(): Promise<TrainingDaySummary | null> {
+  const response = await fetch(`${apiBaseUrl}/training-plan/next-day`, authHeaders());
+  const body = await parseJson<{ day: TrainingDaySummary | null }>(response, 'Load next training day');
+  return body.day;
 }
 
 export async function getDraftWorkout(): Promise<DraftWorkout | null> {

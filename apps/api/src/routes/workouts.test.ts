@@ -92,6 +92,34 @@ describe("workout routes", () => {
 		expect(resumed.workout.id).toBe(started.workout.id);
 	});
 
+	it("suggests the next training day after completed workouts", async () => {
+		const { app, cookie, plan } = await createSessionWithActivePlan();
+		const day1 = plan.template.days[0];
+		const day2 = plan.template.days[1];
+
+		const initial = await app.request("/training-plan/next-day", { headers: { cookie } });
+		expect(initial.status).toBe(200);
+		const initialBody = await initial.json();
+		expect(initialBody.day.id).toBe(day1.id);
+
+		const start = await app.request("/workouts/draft", {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({ trainingDayId: day1.id, startedAt: "2026-06-02T10:00:00.000Z" }),
+		});
+		const started = await start.json();
+		await app.request(`/workouts/${started.workout.id}/complete`, {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({ completedAt: "2026-06-02T11:00:00.000Z" }),
+		});
+
+		const next = await app.request("/training-plan/next-day", { headers: { cookie } });
+		expect(next.status).toBe(200);
+		const nextBody = await next.json();
+		expect(nextBody.day.id).toBe(day2.id);
+	});
+
 	it("updates exercise logs, set logs, and completes a draft workout", async () => {
 		const { app, cookie, plan } = await createSessionWithActivePlan();
 		const trainingDayId = plan.template.days[0].id as string;

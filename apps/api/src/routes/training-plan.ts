@@ -1,4 +1,4 @@
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import type { auth } from "../auth/auth.js";
 import { createDb } from "../db/client.js";
@@ -10,6 +10,7 @@ import {
 	trainingDays,
 	trainingPlanTemplates,
 	userTrainingPlans,
+	workoutLogs,
 } from "../db/schema.js";
 
 const db = createDb(
@@ -32,6 +33,50 @@ export const trainingPlanRoutes = new Hono<{ Variables: Variables }>()
 			return c.json({ error: "Training plan template not seeded" }, 404);
 
 		return c.json({ template });
+	})
+	.get("/training-plan/next-day", async (c) => {
+		const user = c.get("user");
+		if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+		const [activePlan] = await db
+			.select()
+			.from(userTrainingPlans)
+			.where(eq(userTrainingPlans.userId, user.id))
+			.orderBy(desc(userTrainingPlans.activeAt))
+			.limit(1);
+		if (!activePlan?.templateId) return c.json({ day: null });
+
+		const days = await db
+			.select()
+			.from(trainingDays)
+			.where(eq(trainingDays.templateId, activePlan.templateId))
+			.orderBy(asc(trainingDays.sequence));
+		if (!days.length) return c.json({ day: null });
+
+		const [latestCompleted] = await db
+			.select()
+			.from(workoutLogs)
+			.where(
+				and(
+					eq(workoutLogs.userId, user.id),
+					eq(workoutLogs.status, "completed"),
+				),
+			)
+			.orderBy(desc(workoutLogs.completedAt), desc(workoutLogs.startedAt))
+			.limit(1);
+
+		const currentIndex = latestCompleted
+			? days.findIndex((day) => day.id === latestCompleted.trainingDayId)
+			: -1;
+		const nextDay = days[(currentIndex + 1) % days.length];
+		if (!nextDay) return c.json({ day: null });
+		return c.json({
+			day: {
+				id: nextDay.id,
+				sequence: nextDay.sequence,
+				title: nextDay.title,
+			},
+		});
 	})
 	.get("/training-plan/active", async (c) => {
 		const user = c.get("user");

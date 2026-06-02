@@ -14,7 +14,7 @@ import { useAuth } from "@/auth/use-auth";
 import { AddBodyWeightLogForm } from "@/body-weight/AddBodyWeightLogForm";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { colors, spacing } from "@/theme";
-import { getActivePlan, getDraftWorkout, startDraftWorkout } from "@/workouts/workout-api";
+import { getDraftWorkout, getNextTrainingDay, startDraftWorkout } from "@/workouts/workout-api";
 
 type HealthResponse = { ok: boolean };
 type SetupStatusResponse = { setupRequired: boolean };
@@ -28,6 +28,7 @@ export default function HomeScreen() {
 	const [latestLog, setLatestLog] = useState<BodyWeightLog | null>(null);
 	const [workoutStatus, setWorkoutStatus] = useState<"idle" | "loading" | "error">("idle");
 	const [workoutCta, setWorkoutCta] = useState("Start next workout");
+	const [nextWorkoutLabel, setNextWorkoutLabel] = useState<string | null>(null);
 
 	useEffect(() => {
 		let active = true;
@@ -56,9 +57,13 @@ export default function HomeScreen() {
 			});
 
 		getDraftWorkout()
-			.then((draft) => {
+			.then(async (draft) => {
 				if (!active) return;
 				setWorkoutCta(draft ? "Resume draft workout" : "Start next workout");
+				if (!draft) {
+					const nextDay = await getNextTrainingDay();
+					if (active && nextDay) setNextWorkoutLabel(`Next: Day ${nextDay.sequence} · ${nextDay.title}`);
+				}
 			})
 			.catch(() => {
 				if (active) setWorkoutCta("Start next workout");
@@ -89,8 +94,7 @@ export default function HomeScreen() {
 		try {
 			const draft = await getDraftWorkout();
 			if (!draft) {
-				const plan = await getActivePlan();
-				const nextDay = plan?.template.days[0];
+				const nextDay = await getNextTrainingDay();
 				if (!nextDay) throw new Error("No active training day found");
 				await startDraftWorkout(nextDay.id);
 			}
@@ -136,7 +140,7 @@ export default function HomeScreen() {
 
 			<View style={styles.card}>
 				<Text style={styles.cardTitle}>Workout</Text>
-				<Text style={styles.status}>Start or resume today's draft workout.</Text>
+				<Text style={styles.status}>{nextWorkoutLabel ?? "Start or resume today's draft workout."}</Text>
 				{workoutStatus === "error" ? (
 					<Text style={styles.error}>Could not start workout. Check API connectivity and active plan.</Text>
 				) : null}
