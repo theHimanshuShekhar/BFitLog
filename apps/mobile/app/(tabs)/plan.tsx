@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -13,6 +14,8 @@ import { apiBaseUrl } from "@/api/client";
 import { authClient } from "@/auth/auth-client";
 import { useAuth } from "@/auth/use-auth";
 import { colors, spacing } from "@/theme";
+
+const planCacheKey = "bfitlog:training-plan-template";
 
 type TrainingPlanTemplate = {
 	id: string;
@@ -87,6 +90,10 @@ export default function PlanScreen() {
 	const loadPlan = useCallback(async () => {
 		setStatus("loading");
 		setError(null);
+		const cached = await AsyncStorage.getItem(planCacheKey);
+		if (cached) {
+			setPlan(JSON.parse(cached) as TrainingPlanTemplate);
+		}
 		try {
 			const cookie = authClient.getCookie();
 			const headers = new Headers();
@@ -110,9 +117,15 @@ export default function PlanScreen() {
 				body = (await response.json()) as ActivePlanResponse;
 			}
 
-			setPlan(body.plan?.template ?? null);
+			const template = body.plan?.template ?? null;
+			setPlan(template);
+			if (template) await AsyncStorage.setItem(planCacheKey, JSON.stringify(template));
 			setStatus("ready");
 		} catch (err) {
+			if (cached) {
+				setStatus("ready");
+				return;
+			}
 			setError(
 				err instanceof Error ? err.message : "Unable to load training plan",
 			);

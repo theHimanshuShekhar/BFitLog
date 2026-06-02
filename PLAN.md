@@ -367,7 +367,7 @@ Recent verification passed:
 - `[~]` Show embedded media inline where possible — current UI shows in-app media buttons/fallback links, not embedded players
 - `[x]` Add fallback source link when embed fails
 - `[x]` Add substitute list display
-- `[ ]` Cache plan text for offline use
+- `[x]` Cache plan text for offline use
 
 ---
 
