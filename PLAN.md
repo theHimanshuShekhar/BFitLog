@@ -179,7 +179,7 @@ Recent verification passed:
 - `[x]` Mount Better Auth handler at `/api/auth/*`
 - `[x]` Verify username sign-in works
 - `[x]` Harden production cookie/trusted-origin config
-- `[ ]` Add admin password reset endpoint/UI
+- `[x]` Add admin password reset endpoint/UI
 - `[ ]` Add user self-password-change UI
 
 ## First-run setup
@@ -509,7 +509,7 @@ Recent verification passed:
 
 - `[ ]` Admin area visible only for admin role
 - `[ ]` Create user
-- `[ ]` Reset user password
+- `[x]` Reset user password
 - `[ ]` Create Partner Link
 - `[ ]` View existing Partner Links
 - `[ ]` Promote/demote role

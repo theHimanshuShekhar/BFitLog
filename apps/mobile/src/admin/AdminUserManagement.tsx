@@ -9,13 +9,19 @@ import {
 	View,
 } from "react-native";
 import { colors, spacing } from "@/theme";
-import { createAdminUser, listAdminUsers, type AdminUser } from "./admin-api";
+import {
+	createAdminUser,
+	listAdminUsers,
+	resetUserPassword,
+	type AdminUser,
+} from "./admin-api";
 
 export function AdminUserManagement() {
 	const [users, setUsers] = useState<AdminUser[]>([]);
 	const [username, setUsername] = useState("");
 	const [displayName, setDisplayName] = useState("");
 	const [password, setPassword] = useState("");
+	const [resetPasswords, setResetPasswords] = useState<Record<string, string>>({});
 	const [status, setStatus] = useState<
 		"loading" | "ready" | "saving" | "error"
 	>("loading");
@@ -38,6 +44,27 @@ export function AdminUserManagement() {
 	useEffect(() => {
 		void load();
 	}, [load]);
+
+	const resetPassword = async (user: AdminUser) => {
+		const nextPassword = resetPasswords[user.id] ?? "";
+		if (nextPassword.length < 8) {
+			setMessage("Reset password must be at least 8 characters.");
+			return;
+		}
+		setStatus("saving");
+		setMessage(null);
+		try {
+			await resetUserPassword(user.id, nextPassword);
+			setResetPasswords((current) => ({ ...current, [user.id]: "" }));
+			setMessage(`Password reset for ${user.username}.`);
+			setStatus("ready");
+		} catch (error) {
+			setMessage(
+				error instanceof Error ? error.message : "Unable to reset password",
+			);
+			setStatus("error");
+		}
+	};
 
 	const createUser = async () => {
 		if (!username.trim() || !displayName.trim() || password.length < 8) {
@@ -91,9 +118,31 @@ export function AdminUserManagement() {
 			) : null}
 
 			{users.map((user) => (
-				<Text key={user.id} style={styles.status}>
-					{user.username} · {user.role}
-				</Text>
+				<View key={user.id} style={styles.userCard}>
+					<Text style={styles.status}>
+						{user.username} · {user.role}
+					</Text>
+					<TextInput
+						style={styles.input}
+						placeholder="New password"
+						placeholderTextColor={colors.mutedText}
+						value={resetPasswords[user.id] ?? ""}
+						onChangeText={(value) =>
+							setResetPasswords((current) => ({
+								...current,
+								[user.id]: value,
+							}))
+						}
+						secureTextEntry
+					/>
+					<Pressable
+						style={styles.secondaryButton}
+						onPress={() => void resetPassword(user)}
+						disabled={status === "saving"}
+					>
+						<Text style={styles.secondaryButtonText}>Reset password</Text>
+					</Pressable>
+				</View>
 			))}
 
 			<TextInput
@@ -145,6 +194,12 @@ const styles = StyleSheet.create({
 	description: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
 	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
 	error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
+	userCard: {
+		gap: spacing.sm,
+		padding: spacing.sm,
+		borderRadius: 12,
+		backgroundColor: colors.surface,
+	},
 	input: {
 		color: colors.text,
 		borderColor: colors.border,
@@ -164,4 +219,12 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontWeight: "800",
 	},
+	secondaryButton: {
+		alignItems: "center",
+		padding: spacing.sm,
+		borderRadius: 999,
+		borderWidth: 1,
+		borderColor: colors.border,
+	},
+	secondaryButtonText: { color: colors.text, fontSize: 14, fontWeight: "700" },
 });
