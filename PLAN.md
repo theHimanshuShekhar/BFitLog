@@ -338,7 +338,7 @@ Recent verification passed:
 - `[x]` Seed 20 Planned Exercises
 - `[x]` Seed target sets/reps/duration/rest/notes
 - `[ ]` Seed preferred substitutes
-- `[ ]` Create per-user active plan instances after setup
+- `[x]` Create per-user active plan instances on demand from the seeded template
 - `[ ]` Make seed script idempotent for future substitute data
 
 ## Plan API
@@ -351,8 +351,8 @@ Recent verification passed:
 - `[x]` Return Exercise details
 - `[x]` Return media links
 - `[x]` Add plan API test
-- `[ ]` Add endpoint for current user's active plan
-- `[ ]` Add endpoint to create active plan from template
+- `[x]` Add endpoint for current user's active plan
+- `[x]` Add endpoint to create active plan from template
 - `[ ]` Add admin-only plan editing endpoints
 
 ## Plan UI
@@ -627,11 +627,11 @@ Recent verification passed:
 
 # Immediate next tasks
 
-1. `[ ]` Add current-user active plan creation from seeded template.
-2. `[ ]` Start workout logging schema: Workout Log, Exercise Log, Set Log.
-3. `[ ]` Build draft workout flow.
-4. `[ ]` Run PowerSync spike before deepening custom sync.
-5. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
+1. `[ ]` Start workout logging schema: Workout Log, Exercise Log, Set Log.
+2. `[ ]` Build draft workout flow.
+3. `[ ]` Run PowerSync spike before deepening custom sync.
+4. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
+5. `[ ]` Add exercise detail screen from Plan tab.
 
 # Verification commands
 
