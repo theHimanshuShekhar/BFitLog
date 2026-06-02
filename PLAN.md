@@ -375,10 +375,10 @@ Recent verification passed:
 ## Workout flow
 
 - `[ ]` Add Start Workout from Home suggested next Training Day
-- `[ ]` Create draft Workout Log immediately on start
-- `[ ]` Resume draft workout
-- `[ ]` Discard draft workout
-- `[ ]` Complete workout
+- `[x]` Create draft Workout Log immediately on start — API endpoint exists
+- `[x]` Resume draft workout — API endpoint exists
+- `[x]` Discard draft workout — API endpoint exists
+- `[x]` Complete workout — API endpoint exists
 - `[ ]` Completed workout advances soft sequence
 - `[ ]` Completed workout with skips advances sequence
 - `[ ]` Manual Training Day override
@@ -386,12 +386,12 @@ Recent verification passed:
 
 ## Exercise logging
 
-- `[ ]` Prepopulate planned exercise slots
-- `[ ]` Per-set tracking for `reps_weight`
-- `[ ]` Per-set tracking for `duration`
-- `[ ]` Exercise-level Good Form checkbox
-- `[ ]` Exercise-level notes
-- `[ ]` Workout-level note
+- `[x]` Prepopulate planned exercise slots — API creates draft slots from active plan day
+- `[x]` Per-set tracking for `reps_weight` — API stores weight/reps sets
+- `[x]` Per-set tracking for `duration` — API stores duration sets
+- `[x]` Exercise-level Good Form checkbox — API field/update exists
+- `[x]` Exercise-level notes — API field/update exists
+- `[x]` Workout-level note — API completion field exists
 - `[ ]` Edit completed workout logs
 - `[ ]` Delete own workout logs
 - `[ ]` Own-log mutation only
@@ -627,11 +627,11 @@ Recent verification passed:
 
 # Immediate next tasks
 
-1. `[ ]` Build draft workout flow.
+1. `[ ]` Build mobile draft workout flow against the workout API.
 2. `[ ]` Run PowerSync spike before deepening custom sync.
 3. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
 4. `[ ]` Add exercise detail screen from Plan tab.
-5. `[ ]` Add workout log API endpoints.
+5. `[ ]` Add next-day rotation from latest completed workout.
 
 # Verification commands
 
