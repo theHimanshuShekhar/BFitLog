@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
 	boolean,
+	integer,
 	index,
 	pgEnum,
 	pgTable,
@@ -16,6 +17,15 @@ export const bodyWeightDirection = pgEnum("body_weight_direction", [
 	"gain",
 	"maintain",
 ]);
+export const exerciseTrackingType = pgEnum("exercise_tracking_type", [
+	"reps_weight",
+	"duration",
+]);
+export const exerciseMediaKind = pgEnum("exercise_media_kind", [
+	"gif",
+	"video",
+]);
+export const checklistKind = pgEnum("checklist_kind", ["warmup", "cooldown"]);
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -123,6 +133,136 @@ export const bodyWeightGoals = pgTable("body_weight_goals", {
 	updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
 });
 
+export const exercises = pgTable("exercises", {
+	id: text("id").primaryKey(),
+	name: text("name").notNull().unique(),
+	description: text("description"),
+	equipment: text("equipment"),
+	trackingType: exerciseTrackingType("tracking_type").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true })
+		.notNull()
+		.defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true })
+		.notNull()
+		.defaultNow(),
+});
+
+export const exerciseMedia = pgTable(
+	"exercise_media",
+	{
+		id: text("id").primaryKey(),
+		exerciseId: text("exercise_id")
+			.notNull()
+			.references(() => exercises.id, { onDelete: "cascade" }),
+		kind: exerciseMediaKind("kind").notNull(),
+		url: text("url").notNull(),
+		sortOrder: integer("sort_order").notNull().default(0),
+	},
+	(table) => [index("exercise_media_exercise_idx").on(table.exerciseId)],
+);
+
+export const trainingPlanTemplates = pgTable("training_plan_templates", {
+	id: text("id").primaryKey(),
+	name: text("name").notNull(),
+	goal: text("goal"),
+	notes: text("notes"),
+	createdAt: timestamp("created_at", { withTimezone: true })
+		.notNull()
+		.defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true })
+		.notNull()
+		.defaultNow(),
+});
+
+export const userTrainingPlans = pgTable(
+	"user_training_plans",
+	{
+		id: text("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		templateId: text("template_id").references(() => trainingPlanTemplates.id, {
+			onDelete: "set null",
+		}),
+		name: text("name").notNull(),
+		activeAt: timestamp("active_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => [index("user_training_plans_user_idx").on(table.userId)],
+);
+
+export const trainingDays = pgTable(
+	"training_days",
+	{
+		id: text("id").primaryKey(),
+		templateId: text("template_id")
+			.notNull()
+			.references(() => trainingPlanTemplates.id, { onDelete: "cascade" }),
+		sequence: integer("sequence").notNull(),
+		title: text("title").notNull(),
+	},
+	(table) => [index("training_days_template_idx").on(table.templateId)],
+);
+
+export const trainingDayChecklistItems = pgTable(
+	"training_day_checklist_items",
+	{
+		id: text("id").primaryKey(),
+		trainingDayId: text("training_day_id")
+			.notNull()
+			.references(() => trainingDays.id, { onDelete: "cascade" }),
+		kind: checklistKind("kind").notNull(),
+		text: text("text").notNull(),
+		sortOrder: integer("sort_order").notNull(),
+	},
+	(table) => [index("training_day_checklist_day_idx").on(table.trainingDayId)],
+);
+
+export const plannedExercises = pgTable(
+	"planned_exercises",
+	{
+		id: text("id").primaryKey(),
+		trainingDayId: text("training_day_id")
+			.notNull()
+			.references(() => trainingDays.id, { onDelete: "cascade" }),
+		exerciseId: text("exercise_id")
+			.notNull()
+			.references(() => exercises.id, { onDelete: "restrict" }),
+		sortOrder: integer("sort_order").notNull(),
+		targetSets: integer("target_sets").notNull(),
+		targetMinReps: integer("target_min_reps"),
+		targetMaxReps: integer("target_max_reps"),
+		targetDurationSeconds: integer("target_duration_seconds"),
+		restSeconds: integer("rest_seconds").notNull().default(90),
+		notes: text("notes"),
+	},
+	(table) => [index("planned_exercises_day_idx").on(table.trainingDayId)],
+);
+
+export const plannedExerciseSubstitutes = pgTable(
+	"planned_exercise_substitutes",
+	{
+		plannedExerciseId: text("planned_exercise_id")
+			.notNull()
+			.references(() => plannedExercises.id, { onDelete: "cascade" }),
+		exerciseId: text("exercise_id")
+			.notNull()
+			.references(() => exercises.id, { onDelete: "restrict" }),
+		targetSets: integer("target_sets"),
+		targetMinReps: integer("target_min_reps"),
+		targetMaxReps: integer("target_max_reps"),
+		targetDurationSeconds: integer("target_duration_seconds"),
+		notes: text("notes"),
+	},
+	(table) => [
+		primaryKey({ columns: [table.plannedExerciseId, table.exerciseId] }),
+	],
+);
+
 export const bodyWeightLogs = pgTable(
 	"body_weight_logs",
 	{
@@ -148,6 +288,7 @@ export const bodyWeightLogs = pgTable(
 export const userRelations = relations(user, ({ many, one }) => ({
 	bodyWeightLogs: many(bodyWeightLogs),
 	bodyWeightGoal: one(bodyWeightGoals),
+	trainingPlans: many(userTrainingPlans),
 }));
 
 export const bodyWeightLogsRelations = relations(bodyWeightLogs, ({ one }) => ({
