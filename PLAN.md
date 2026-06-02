@@ -225,15 +225,15 @@ Recent verification passed:
 
 ## Workout logging schema
 
-- `[ ]` Add `workout_logs`
-- `[ ]` Add `exercise_logs`
-- `[ ]` Add `set_logs`
-- `[ ]` Add `workout_checklist_logs`
-- `[ ]` Add skipped exercise fields/reason
-- `[ ]` Add substituted exercise fields
-- `[ ]` Add exercise-level Good Form field
-- `[ ]` Add workout/exercise notes
-- `[ ]` Add draft/completed/discarded workout status
+- `[x]` Add `workout_logs`
+- `[x]` Add `exercise_logs`
+- `[x]` Add `set_logs`
+- `[x]` Add `workout_checklist_logs`
+- `[x]` Add skipped exercise fields/reason
+- `[x]` Add substituted exercise fields
+- `[x]` Add exercise-level Good Form field
+- `[x]` Add workout/exercise notes
+- `[x]` Add draft/completed/discarded workout status
 - `[ ]` Add client sync metadata/dirty tracking if PowerSync not adopted
 
 ## Goals and reminders schema
@@ -627,11 +627,11 @@ Recent verification passed:
 
 # Immediate next tasks
 
-1. `[ ]` Start workout logging schema: Workout Log, Exercise Log, Set Log.
-2. `[ ]` Build draft workout flow.
-3. `[ ]` Run PowerSync spike before deepening custom sync.
-4. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
-5. `[ ]` Add exercise detail screen from Plan tab.
+1. `[ ]` Build draft workout flow.
+2. `[ ]` Run PowerSync spike before deepening custom sync.
+3. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
+4. `[ ]` Add exercise detail screen from Plan tab.
+5. `[ ]` Add workout log API endpoints.
 
 # Verification commands
 
