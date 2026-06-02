@@ -56,7 +56,9 @@ describe("training plan routes", () => {
 		await seedTrainingPlan();
 		const { app, cookie } = await createSession();
 
-		const empty = await app.request("/training-plan/active", { headers: { cookie } });
+		const empty = await app.request("/training-plan/active", {
+			headers: { cookie },
+		});
 		expect(empty.status).toBe(200);
 		await expect(empty.json()).resolves.toEqual({ plan: null });
 
@@ -69,7 +71,9 @@ describe("training plan routes", () => {
 		expect(createdBody.plan.name).toBe("4-Day Beginner Upper/Lower Split");
 		expect(createdBody.plan.template.days).toHaveLength(4);
 
-		const active = await app.request("/training-plan/active", { headers: { cookie } });
+		const active = await app.request("/training-plan/active", {
+			headers: { cookie },
+		});
 		expect(active.status).toBe(200);
 		const activeBody = await active.json();
 		expect(activeBody.plan.id).toBe(createdBody.plan.id);

@@ -314,9 +314,12 @@ export const exerciseLogs = pgTable(
 		),
 		plannedExerciseName: text("planned_exercise_name").notNull(),
 		plannedExerciseTarget: text("planned_exercise_target").notNull(),
-		originalExerciseId: text("original_exercise_id").references(() => exercises.id, {
-			onDelete: "set null",
-		}),
+		originalExerciseId: text("original_exercise_id").references(
+			() => exercises.id,
+			{
+				onDelete: "set null",
+			},
+		),
 		performedExerciseId: text("performed_exercise_id").references(
 			() => exercises.id,
 			{ onDelete: "set null" },
