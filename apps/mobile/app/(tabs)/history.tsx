@@ -7,6 +7,7 @@ import {
 	ScrollView,
 	StyleSheet,
 	Text,
+	TextInput,
 	View,
 } from "react-native";
 import { useAuth } from "@/auth/use-auth";
@@ -22,6 +23,40 @@ export default function HistoryScreen() {
 	const [logs, setLogs] = useState<BodyWeightLog[]>([]);
 	const [workouts, setWorkouts] = useState<WorkoutHistoryItem[]>([]);
 	const [syncStatus, setSyncStatus] = useState("Loaded locally");
+	const [editingLogId, setEditingLogId] = useState<string | null>(null);
+	const [editWeightKg, setEditWeightKg] = useState("");
+	const [editNote, setEditNote] = useState("");
+
+	const startEdit = (log: BodyWeightLog) => {
+		setEditingLogId(log.id);
+		setEditWeightKg(String(log.weightKg));
+		setEditNote(log.note ?? "");
+	};
+
+	const saveBodyWeightLog = async (log: BodyWeightLog) => {
+		const weightKg = Number(editWeightKg);
+		if (!Number.isFinite(weightKg) || weightKg <= 0) {
+			setSyncStatus("Enter a valid body weight in kg.");
+			return;
+		}
+		const repository = getBodyWeightRepository();
+		await repository.saveLog({
+			...log,
+			weightKg: Math.round(weightKg * 10) / 10,
+			note: editNote.trim() || undefined,
+			updatedAt: new Date().toISOString(),
+		});
+		setEditingLogId(null);
+		setLogs(await repository.listLogs());
+		setSyncStatus("Syncing…");
+		try {
+			await repository.sync();
+			setLogs(await repository.listLogs());
+			setSyncStatus("Synced");
+		} catch {
+			setSyncStatus("Offline / sync pending");
+		}
+	};
 
 	const deleteBodyWeightLog = async (logId: string) => {
 		const now = new Date().toISOString();
@@ -120,19 +155,63 @@ export default function HistoryScreen() {
 			) : (
 				logs.map((log) => (
 					<View key={log.id} style={styles.card}>
-						<Text style={styles.cardTitle}>{log.weightKg.toFixed(1)} kg</Text>
-						<Text style={styles.status}>
-							{new Date(log.measuredAt).toLocaleString()}
-						</Text>
-						{log.note ? (
-							<Text style={styles.description}>{log.note}</Text>
-						) : null}
-						<Pressable
-							style={styles.dangerButton}
-							onPress={() => void deleteBodyWeightLog(log.id)}
-						>
-							<Text style={styles.dangerButtonText}>Delete</Text>
-						</Pressable>
+						{editingLogId === log.id ? (
+							<>
+								<TextInput
+									style={styles.input}
+									keyboardType="decimal-pad"
+									placeholder="kg"
+									placeholderTextColor={colors.mutedText}
+									value={editWeightKg}
+									onChangeText={setEditWeightKg}
+								/>
+								<TextInput
+									style={styles.input}
+									placeholder="Note"
+									placeholderTextColor={colors.mutedText}
+									value={editNote}
+									onChangeText={setEditNote}
+								/>
+								<View style={styles.buttonRow}>
+									<Pressable
+										style={styles.secondaryButtonCompact}
+										onPress={() => void saveBodyWeightLog(log)}
+									>
+										<Text style={styles.secondaryButtonText}>Save</Text>
+									</Pressable>
+									<Pressable
+										style={styles.secondaryButtonCompact}
+										onPress={() => setEditingLogId(null)}
+									>
+										<Text style={styles.secondaryButtonText}>Cancel</Text>
+									</Pressable>
+								</View>
+							</>
+						) : (
+							<>
+								<Text style={styles.cardTitle}>{log.weightKg.toFixed(1)} kg</Text>
+								<Text style={styles.status}>
+									{new Date(log.measuredAt).toLocaleString()}
+								</Text>
+								{log.note ? (
+									<Text style={styles.description}>{log.note}</Text>
+								) : null}
+								<View style={styles.buttonRow}>
+									<Pressable
+										style={styles.secondaryButtonCompact}
+										onPress={() => startEdit(log)}
+									>
+										<Text style={styles.secondaryButtonText}>Edit</Text>
+									</Pressable>
+									<Pressable
+										style={styles.dangerButtonCompact}
+										onPress={() => void deleteBodyWeightLog(log.id)}
+									>
+										<Text style={styles.dangerButtonText}>Delete</Text>
+									</Pressable>
+								</View>
+							</>
+						)}
 					</View>
 				))
 			)}
@@ -169,6 +248,15 @@ const styles = StyleSheet.create({
 		marginTop: spacing.sm,
 	},
 	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+	input: {
+		color: colors.text,
+		borderColor: colors.border,
+		borderWidth: 1,
+		borderRadius: 12,
+		padding: spacing.md,
+		backgroundColor: colors.surface,
+	},
+	buttonRow: { flexDirection: "row", gap: spacing.sm },
 	dangerButton: {
 		alignItems: "center",
 		padding: spacing.sm,
@@ -177,9 +265,25 @@ const styles = StyleSheet.create({
 		borderColor: colors.danger,
 	},
 	dangerButtonText: { color: colors.danger, fontSize: 14, fontWeight: "700" },
+	dangerButtonCompact: {
+		flex: 1,
+		alignItems: "center",
+		padding: spacing.sm,
+		borderRadius: 999,
+		borderWidth: 1,
+		borderColor: colors.danger,
+	},
 	secondaryButton: {
 		alignItems: "center",
 		padding: spacing.md,
+		borderRadius: 999,
+		borderWidth: 1,
+		borderColor: colors.border,
+	},
+	secondaryButtonCompact: {
+		flex: 1,
+		alignItems: "center",
+		padding: spacing.sm,
 		borderRadius: 999,
 		borderWidth: 1,
 		borderColor: colors.border,
