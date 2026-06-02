@@ -467,119 +467,151 @@ const planned = [
 ] as const;
 
 const substitutes = [
-	["day-1-upper-a-smith-machine-bench-press", "chest-press-machine", "Machine chest press if the Smith machine is unavailable."],
-	["day-1-upper-a-seated-cable-row", "dumbbell-row", "Dumbbell row if cables are unavailable."],
-	["day-1-upper-a-lat-pulldown", "seated-cable-row", "Cable row if the pulldown station is unavailable."],
-	["day-2-lower-a-leg-curl", "seated-leg-curl", "Use the seated curl variation if available."],
-	["day-3-upper-b-incline-smith-machine-press", "chest-press-machine", "Use chest press machine if incline Smith setup is unavailable."],
-	["day-3-upper-b-dumbbell-row", "seated-cable-row", "Cable row if dumbbells are unavailable."],
-	["day-4-lower-b-smith-machine-front-squat", "smith-machine-squat", "Back squat variation if front squat setup is uncomfortable."],
-	["day-4-lower-b-seated-leg-curl", "leg-curl", "Use available leg curl machine variation."],
+	[
+		"day-1-upper-a-smith-machine-bench-press",
+		"chest-press-machine",
+		"Machine chest press if the Smith machine is unavailable.",
+	],
+	[
+		"day-1-upper-a-seated-cable-row",
+		"dumbbell-row",
+		"Dumbbell row if cables are unavailable.",
+	],
+	[
+		"day-1-upper-a-lat-pulldown",
+		"seated-cable-row",
+		"Cable row if the pulldown station is unavailable.",
+	],
+	[
+		"day-2-lower-a-leg-curl",
+		"seated-leg-curl",
+		"Use the seated curl variation if available.",
+	],
+	[
+		"day-3-upper-b-incline-smith-machine-press",
+		"chest-press-machine",
+		"Use chest press machine if incline Smith setup is unavailable.",
+	],
+	[
+		"day-3-upper-b-dumbbell-row",
+		"seated-cable-row",
+		"Cable row if dumbbells are unavailable.",
+	],
+	[
+		"day-4-lower-b-smith-machine-front-squat",
+		"smith-machine-squat",
+		"Back squat variation if front squat setup is uncomfortable.",
+	],
+	[
+		"day-4-lower-b-seated-leg-curl",
+		"leg-curl",
+		"Use available leg curl machine variation.",
+	],
 ] as const;
 
 export async function seedTrainingPlan() {
 	await db
 		.insert(trainingPlanTemplates)
-	.values({
-		id: templateId,
-		name: "4-Day Beginner Upper/Lower Split",
-		goal: "Weight loss and muscle building",
-		notes:
-			"Use a rotating Day 1–4 sequence. Rest 60–90 seconds between sets. Increase weight after hitting top reps with good form for two sessions.",
-		createdAt: now,
-		updatedAt: now,
-	})
-	.onConflictDoNothing();
-
-for (const [id, name, equipment, trackingType] of exerciseRows) {
-	await db
-		.insert(exercises)
 		.values({
-			id,
-			name,
-			equipment,
-			trackingType,
+			id: templateId,
+			name: "4-Day Beginner Upper/Lower Split",
+			goal: "Weight loss and muscle building",
+			notes:
+				"Use a rotating Day 1–4 sequence. Rest 60–90 seconds between sets. Increase weight after hitting top reps with good form for two sessions.",
 			createdAt: now,
 			updatedAt: now,
 		})
 		.onConflictDoNothing();
-}
 
-for (const [exerciseId, kind, url] of mediaRows) {
-	await db
-		.insert(exerciseMedia)
-		.values({
-			id: `${exerciseId}-${kind}`,
-			exerciseId,
-			kind,
-			url,
-			sortOrder: kind === "gif" ? 0 : 1,
-		})
-		.onConflictDoNothing();
-}
-
-for (const [id, sequence, title] of dayRows) {
-	await db
-		.insert(trainingDays)
-		.values({ id, templateId, sequence, title })
-		.onConflictDoNothing();
-	for (const [index, text] of warmups.entries()) {
+	for (const [id, name, equipment, trackingType] of exerciseRows) {
 		await db
-			.insert(trainingDayChecklistItems)
+			.insert(exercises)
 			.values({
-				id: `${id}-warmup-${index + 1}`,
-				trainingDayId: id,
-				kind: "warmup",
-				text,
-				sortOrder: index + 1,
+				id,
+				name,
+				equipment,
+				trackingType,
+				createdAt: now,
+				updatedAt: now,
 			})
 			.onConflictDoNothing();
 	}
-	await db
-		.insert(trainingDayChecklistItems)
-		.values({
-			id: `${id}-cooldown-1`,
-			trainingDayId: id,
-			kind: "cooldown",
-			text: "Cool down with easy walking and gentle stretches for worked muscle groups.",
-			sortOrder: 1,
-		})
-		.onConflictDoNothing();
-}
 
-for (const [
-	dayId,
-	exerciseId,
-	sortOrder,
-	targetSets,
-	minReps,
-	maxReps,
-	durationSeconds,
-	notes,
-] of planned) {
-	await db
-		.insert(plannedExercises)
-		.values({
-			id: `${dayId}-${exerciseId}`,
-			trainingDayId: dayId,
-			exerciseId,
-			sortOrder,
-			targetSets,
-			targetMinReps: minReps,
-			targetMaxReps: maxReps,
-			targetDurationSeconds: durationSeconds,
-			restSeconds: 90,
-			notes,
-		})
-		.onConflictDoNothing();
-}
+	for (const [exerciseId, kind, url] of mediaRows) {
+		await db
+			.insert(exerciseMedia)
+			.values({
+				id: `${exerciseId}-${kind}`,
+				exerciseId,
+				kind,
+				url,
+				sortOrder: kind === "gif" ? 0 : 1,
+			})
+			.onConflictDoNothing();
+	}
 
-for (const [plannedExerciseId, exerciseId, notes] of substitutes) {
-	await db
-		.insert(plannedExerciseSubstitutes)
-		.values({ plannedExerciseId, exerciseId, notes })
-		.onConflictDoNothing();
-}
+	for (const [id, sequence, title] of dayRows) {
+		await db
+			.insert(trainingDays)
+			.values({ id, templateId, sequence, title })
+			.onConflictDoNothing();
+		for (const [index, text] of warmups.entries()) {
+			await db
+				.insert(trainingDayChecklistItems)
+				.values({
+					id: `${id}-warmup-${index + 1}`,
+					trainingDayId: id,
+					kind: "warmup",
+					text,
+					sortOrder: index + 1,
+				})
+				.onConflictDoNothing();
+		}
+		await db
+			.insert(trainingDayChecklistItems)
+			.values({
+				id: `${id}-cooldown-1`,
+				trainingDayId: id,
+				kind: "cooldown",
+				text: "Cool down with easy walking and gentle stretches for worked muscle groups.",
+				sortOrder: 1,
+			})
+			.onConflictDoNothing();
+	}
+
+	for (const [
+		dayId,
+		exerciseId,
+		sortOrder,
+		targetSets,
+		minReps,
+		maxReps,
+		durationSeconds,
+		notes,
+	] of planned) {
+		await db
+			.insert(plannedExercises)
+			.values({
+				id: `${dayId}-${exerciseId}`,
+				trainingDayId: dayId,
+				exerciseId,
+				sortOrder,
+				targetSets,
+				targetMinReps: minReps,
+				targetMaxReps: maxReps,
+				targetDurationSeconds: durationSeconds,
+				restSeconds: 90,
+				notes,
+			})
+			.onConflictDoNothing();
+	}
+
+	for (const [plannedExerciseId, exerciseId, notes] of substitutes) {
+		await db
+			.insert(plannedExerciseSubstitutes)
+			.values({ plannedExerciseId, exerciseId, notes })
+			.onConflictDoNothing();
+	}
 
 	console.log(`Seeded training plan template: ${templateId}`);
 }

@@ -1,13 +1,15 @@
+import { createElement } from "react";
 import { useLocalSearchParams } from "expo-router";
 import {
 	Linking,
+	Platform,
 	Pressable,
 	ScrollView,
 	StyleSheet,
 	Text,
 	View,
 } from "react-native";
-import { colors, spacing } from "@/theme";
+import { colors, layout, spacing } from "@/theme";
 
 type MediaLink = { id: string; kind: "gif" | "video"; url: string };
 
@@ -50,22 +52,39 @@ export default function ExerciseDetailScreen() {
 				{media.length === 0 ? (
 					<Text style={styles.status}>No media links available.</Text>
 				) : (
-					media.map((item) => (
-						<Pressable
-							key={item.id}
-							style={styles.mediaButton}
-							onPress={() => void Linking.openURL(item.url)}
-						>
-							<Text style={styles.mediaText}>
-								Open {item.kind.toUpperCase()}
-							</Text>
-							<Text style={styles.mediaUrl}>{item.url}</Text>
-						</Pressable>
-					))
+					media.map((item) => <MediaItem key={item.id} item={item} />)
 				)}
 			</View>
 		</ScrollView>
 	);
+}
+
+function MediaItem({ item }: { item: MediaLink }) {
+	const embedUrl = getYouTubeEmbedUrl(item.url);
+	return (
+		<View style={styles.mediaItem}>
+			{Platform.OS === "web" && embedUrl
+				? createElement("iframe", {
+						src: embedUrl,
+						style: styles.webEmbed,
+						title: item.id,
+						allowFullScreen: true,
+					})
+				: null}
+			<Pressable
+				style={styles.mediaButton}
+				onPress={() => void Linking.openURL(item.url)}
+			>
+				<Text style={styles.mediaText}>Open {item.kind.toUpperCase()}</Text>
+				<Text style={styles.mediaUrl}>{item.url}</Text>
+			</Pressable>
+		</View>
+	);
+}
+
+function getYouTubeEmbedUrl(url: string) {
+	const match = url.match(/youtube\.com\/(?:shorts\/|watch\?v=)([a-zA-Z0-9_-]+)/);
+	return match?.[1] ? `https://www.youtube.com/embed/${match[1]}` : null;
 }
 
 function parseMedia(value: string | undefined): MediaLink[] {
@@ -91,6 +110,9 @@ function formatTrackingType(value: string) {
 const styles = StyleSheet.create({
 	container: {
 		flexGrow: 1,
+		width: "100%",
+		maxWidth: layout.maxContentWidth,
+		alignSelf: "center",
 		gap: spacing.md,
 		padding: spacing.lg,
 		backgroundColor: colors.background,
@@ -114,8 +136,17 @@ const styles = StyleSheet.create({
 	},
 	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
 	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
+	mediaItem: { gap: spacing.sm },
+	webEmbed: {
+		width: "100%",
+		height: 315,
+		borderWidth: 0,
+		borderRadius: 14,
+	},
 	mediaButton: {
+		minHeight: layout.androidMinTouchTarget,
 		gap: spacing.xs,
+		justifyContent: "center",
 		padding: spacing.md,
 		borderRadius: 14,
 		borderWidth: 1,

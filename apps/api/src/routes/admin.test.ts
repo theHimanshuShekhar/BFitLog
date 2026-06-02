@@ -1,5 +1,6 @@
 import { createApp } from "../app.js";
 import { ensureDefaultAdmin } from "../bootstrap.js";
+import { seedTrainingPlan } from "../db/seed-training-plan.js";
 import { truncateAppTables } from "../test-utils/db.js";
 import { beforeEach, describe, expect, it } from "vitest";
 
@@ -134,6 +135,49 @@ describe("admin routes", () => {
 				linksBody.partnerLinks[0].userB.username,
 			].sort(),
 		).toEqual(["membera", "memberb"]);
+	});
+
+	it("lets admins edit the seeded training plan", async () => {
+		await seedTrainingPlan();
+		const { app, cookie } = await createRealAdminSession();
+
+		const updateTemplate = await app.request(
+			"/admin/training-plan/templates/beginner-upper-lower-4-day",
+			{
+				method: "PATCH",
+				headers: { "content-type": "application/json", cookie },
+				body: JSON.stringify({ name: "Updated Beginner Split" }),
+			},
+		);
+		expect(updateTemplate.status).toBe(200);
+
+		const updateDay = await app.request("/admin/training-plan/days/day-1-upper-a", {
+			method: "PATCH",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({ title: "Updated Upper A" }),
+		});
+		expect(updateDay.status).toBe(200);
+
+		const updateExercise = await app.request(
+			"/admin/training-plan/planned-exercises/day-1-upper-a-smith-machine-bench-press",
+			{
+				method: "PATCH",
+				headers: { "content-type": "application/json", cookie },
+				body: JSON.stringify({ targetSets: 4, restSeconds: 120 }),
+			},
+		);
+		expect(updateExercise.status).toBe(200);
+
+		const plan = await app.request("/training-plan/template", {
+			headers: { cookie },
+		});
+		const planBody = await plan.json();
+		expect(planBody.template.name).toBe("Updated Beginner Split");
+		expect(planBody.template.days[0].title).toBe("Updated Upper A");
+		expect(planBody.template.days[0].exercises[0]).toMatchObject({
+			targetSets: 4,
+			restSeconds: 120,
+		});
 	});
 
 	it("lets admins reset another user's password", async () => {

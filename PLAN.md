@@ -354,7 +354,7 @@ Recent verification passed:
 - `[x]` Add plan API test
 - `[x]` Add endpoint for current user's active plan
 - `[x]` Add endpoint to create active plan from template
-- `[ ]` Add admin-only plan editing endpoints
+- `[x]` Add admin-only plan editing endpoints
 
 ## Plan UI
 
@@ -364,7 +364,7 @@ Recent verification passed:
 - `[x]` Render cooldown checklist
 - `[x]` Render Planned Exercises and targets
 - `[x]` Render Exercise detail screen
-- `[~]` Show embedded media inline where possible — current UI shows in-app media buttons/fallback links, not embedded players
+- `[x]` Show embedded media inline where possible — web embeds YouTube media inline and keeps fallback links for Android/GIF pages
 - `[x]` Add fallback source link when embed fails
 - `[x]` Add substitute list display
 - `[x]` Cache plan text for offline use

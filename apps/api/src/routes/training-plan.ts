@@ -262,26 +262,28 @@ async function loadTemplate(templateId: string) {
 								),
 							}
 						: null,
-				substitutes: (substitutesByPlannedExercise.get(item.id) ?? []).map(
-					(substitute) => {
-						const substituteExercise = exercisesById.get(substitute.exerciseId);
-						return {
-							exercise: substituteExercise
-								? {
-									id: substituteExercise.id,
-									name: substituteExercise.name,
-									equipment: substituteExercise.equipment,
-									trackingType: substituteExercise.trackingType,
-								}
-								: null,
-							targetSets: substitute.targetSets,
-							targetMinReps: substitute.targetMinReps,
-							targetMaxReps: substitute.targetMaxReps,
-							targetDurationSeconds: substitute.targetDurationSeconds,
-							notes: substitute.notes,
-						};
-					},
-				),
+					substitutes: (substitutesByPlannedExercise.get(item.id) ?? []).map(
+						(substitute) => {
+							const substituteExercise = exercisesById.get(
+								substitute.exerciseId,
+							);
+							return {
+								exercise: substituteExercise
+									? {
+											id: substituteExercise.id,
+											name: substituteExercise.name,
+											equipment: substituteExercise.equipment,
+											trackingType: substituteExercise.trackingType,
+										}
+									: null,
+								targetSets: substitute.targetSets,
+								targetMinReps: substitute.targetMinReps,
+								targetMaxReps: substitute.targetMaxReps,
+								targetDurationSeconds: substitute.targetDurationSeconds,
+								notes: substitute.notes,
+							};
+						},
+					),
 				};
 			}),
 		})),

@@ -7,7 +7,13 @@ import {
 	internalEmailForUsername,
 } from "../bootstrap.js";
 import { createDb } from "../db/client.js";
-import { partnerLinks, user } from "../db/schema.js";
+import {
+	partnerLinks,
+	plannedExercises,
+	trainingDays,
+	trainingPlanTemplates,
+	user,
+} from "../db/schema.js";
 
 const db = createDb(
 	process.env.DATABASE_URL ??
@@ -178,6 +184,91 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 
 		return c.json({ ok: true }, 201);
 	})
+	.patch("/admin/training-plan/templates/:templateId", async (c) => {
+		const templateId = c.req.param("templateId");
+		const body = (await c.req.json().catch(() => null)) as {
+			name?: unknown;
+			goal?: unknown;
+			notes?: unknown;
+		} | null;
+		const update: Partial<typeof trainingPlanTemplates.$inferInsert> = {
+			updatedAt: new Date(),
+		};
+		if (typeof body?.name === "string") update.name = body.name.trim();
+		if (typeof body?.goal === "string" || body?.goal === null)
+			update.goal = body.goal?.trim() || null;
+		if (typeof body?.notes === "string" || body?.notes === null)
+			update.notes = body.notes?.trim() || null;
+		if ("name" in update && !update.name)
+			return c.json({ error: "Template name cannot be empty" }, 400);
+
+		const [updated] = await db
+			.update(trainingPlanTemplates)
+			.set(update)
+			.where(eq(trainingPlanTemplates.id, templateId))
+			.returning();
+		if (!updated) return c.json({ error: "Template not found" }, 404);
+		return c.json({ template: updated });
+	})
+	.patch("/admin/training-plan/days/:dayId", async (c) => {
+		const dayId = c.req.param("dayId");
+		const body = (await c.req.json().catch(() => null)) as {
+			title?: unknown;
+		} | null;
+		if (typeof body?.title !== "string" || !body.title.trim()) {
+			return c.json({ error: "Title is required" }, 400);
+		}
+		const [updated] = await db
+			.update(trainingDays)
+			.set({ title: body.title.trim() })
+			.where(eq(trainingDays.id, dayId))
+			.returning();
+		if (!updated) return c.json({ error: "Training day not found" }, 404);
+		return c.json({ day: updated });
+	})
+	.patch(
+		"/admin/training-plan/planned-exercises/:plannedExerciseId",
+		async (c) => {
+			const plannedExerciseId = c.req.param("plannedExerciseId");
+			const body = (await c.req.json().catch(() => null)) as {
+				targetSets?: unknown;
+				targetMinReps?: unknown;
+				targetMaxReps?: unknown;
+				targetDurationSeconds?: unknown;
+				restSeconds?: unknown;
+				notes?: unknown;
+			} | null;
+			const update: Partial<typeof plannedExercises.$inferInsert> = {};
+			if (typeof body?.targetSets === "number")
+				update.targetSets = body.targetSets;
+			if (typeof body?.targetMinReps === "number")
+				update.targetMinReps = body.targetMinReps;
+			if (typeof body?.targetMaxReps === "number")
+				update.targetMaxReps = body.targetMaxReps;
+			if (typeof body?.targetDurationSeconds === "number")
+				update.targetDurationSeconds = body.targetDurationSeconds;
+			if (typeof body?.restSeconds === "number")
+				update.restSeconds = body.restSeconds;
+			if (typeof body?.notes === "string" || body?.notes === null)
+				update.notes = body.notes?.trim() || null;
+			if (
+				("targetSets" in update &&
+					(!update.targetSets || update.targetSets < 1)) ||
+				("restSeconds" in update &&
+					(!update.restSeconds || update.restSeconds < 1))
+			) {
+				return c.json({ error: "Targets must be positive numbers" }, 400);
+			}
+
+			const [updated] = await db
+				.update(plannedExercises)
+				.set(update)
+				.where(eq(plannedExercises.id, plannedExerciseId))
+				.returning();
+			if (!updated) return c.json({ error: "Planned exercise not found" }, 404);
+			return c.json({ plannedExercise: updated });
+		},
+	)
 	.post("/admin/users/:userId/password", async (c) => {
 		const body = (await c.req.json().catch(() => null)) as {
 			newPassword?: unknown;
