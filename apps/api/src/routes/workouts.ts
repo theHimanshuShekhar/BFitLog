@@ -110,7 +110,9 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		const [draft] = await db
 			.select()
 			.from(workoutLogs)
-			.where(and(eq(workoutLogs.userId, user.id), eq(workoutLogs.status, "draft")))
+			.where(
+				and(eq(workoutLogs.userId, user.id), eq(workoutLogs.status, "draft")),
+			)
 			.orderBy(desc(workoutLogs.startedAt))
 			.limit(1);
 
@@ -121,9 +123,10 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		const user = requireUser(c);
 		if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-		const body = (await c.req.json().catch(() => null)) as
-			| { trainingDayId?: unknown; startedAt?: unknown }
-			| null;
+		const body = (await c.req.json().catch(() => null)) as {
+			trainingDayId?: unknown;
+			startedAt?: unknown;
+		} | null;
 		if (!body || typeof body.trainingDayId !== "string") {
 			return c.json({ error: "trainingDayId is required" }, 400);
 		}
@@ -134,7 +137,8 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 			.where(eq(userTrainingPlans.userId, user.id))
 			.orderBy(desc(userTrainingPlans.activeAt))
 			.limit(1);
-		if (!activePlan?.templateId) return c.json({ error: "No active training plan" }, 409);
+		if (!activePlan?.templateId)
+			return c.json({ error: "No active training plan" }, 409);
 
 		const [trainingDay] = await db
 			.select()
@@ -220,21 +224,22 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		const [workout] = await db
 			.select()
 			.from(workoutLogs)
-			.where(and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)));
+			.where(
+				and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)),
+			);
 		if (!workout) return c.json({ error: "Workout not found" }, 404);
-		if (workout.status !== "draft") return c.json({ error: "Workout is not editable" }, 409);
+		if (workout.status !== "draft")
+			return c.json({ error: "Workout is not editable" }, 409);
 
-		const body = (await c.req.json().catch(() => null)) as
-			| {
-					status?: unknown;
-					goodForm?: unknown;
-					note?: unknown;
-					skipReason?: unknown;
-					substitutionNote?: unknown;
-					performedExerciseId?: unknown;
-					sets?: SetInput[];
-			  }
-			| null;
+		const body = (await c.req.json().catch(() => null)) as {
+			status?: unknown;
+			goodForm?: unknown;
+			note?: unknown;
+			skipReason?: unknown;
+			substitutionNote?: unknown;
+			performedExerciseId?: unknown;
+			sets?: SetInput[];
+		} | null;
 		if (!body || !isExerciseLogStatus(body.status)) {
 			return c.json({ error: "Valid exercise status is required" }, 400);
 		}
@@ -249,9 +254,12 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 				status: body.status,
 				goodForm: typeof body.goodForm === "boolean" ? body.goodForm : null,
 				note: typeof body.note === "string" ? body.note : null,
-				skipReason: typeof body.skipReason === "string" ? body.skipReason : null,
+				skipReason:
+					typeof body.skipReason === "string" ? body.skipReason : null,
 				substitutionNote:
-					typeof body.substitutionNote === "string" ? body.substitutionNote : null,
+					typeof body.substitutionNote === "string"
+						? body.substitutionNote
+						: null,
 				performedExerciseId:
 					typeof body.performedExerciseId === "string"
 						? body.performedExerciseId
@@ -277,7 +285,9 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 						typeof set.weightKg === "number" ? set.weightKg.toString() : null,
 					reps: typeof set.reps === "number" ? set.reps : null,
 					durationSeconds:
-						typeof set.durationSeconds === "number" ? set.durationSeconds : null,
+						typeof set.durationSeconds === "number"
+							? set.durationSeconds
+							: null,
 					createdAt: now,
 					updatedAt: now,
 				})),
@@ -305,7 +315,9 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 				note: typeof body.note === "string" ? body.note : null,
 				updatedAt: now,
 			})
-			.where(and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)));
+			.where(
+				and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)),
+			);
 
 		return c.json({ workout: await loadWorkout(workoutId, user.id) });
 	})
@@ -318,7 +330,9 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		await db
 			.update(workoutLogs)
 			.set({ status: "discarded", updatedAt: now, deletedAt: now })
-			.where(and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)));
+			.where(
+				and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)),
+			);
 
 		return c.json({ workout: await loadWorkout(workoutId, user.id) });
 	});
@@ -376,7 +390,9 @@ async function loadWorkout(workoutId: string, userId: string) {
 		startedAt: workout.startedAt.toISOString(),
 		completedAt: workout.completedAt?.toISOString() ?? null,
 		note: workout.note,
-		exercises: exerciseRows.map((exercise) => serializeExerciseLog(exercise, setsByExercise.get(exercise.id) ?? [])),
+		exercises: exerciseRows.map((exercise) =>
+			serializeExerciseLog(exercise, setsByExercise.get(exercise.id) ?? []),
+		),
 		checklist: checklistRows.map((item) => ({
 			checklistItemId: item.checklistItemId,
 			kind: item.kind,

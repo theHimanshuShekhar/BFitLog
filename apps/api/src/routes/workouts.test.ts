@@ -97,7 +97,9 @@ describe("workout routes", () => {
 		const day1 = plan.template.days[0];
 		const day2 = plan.template.days[1];
 
-		const initial = await app.request("/training-plan/next-day", { headers: { cookie } });
+		const initial = await app.request("/training-plan/next-day", {
+			headers: { cookie },
+		});
 		expect(initial.status).toBe(200);
 		const initialBody = await initial.json();
 		expect(initialBody.day.id).toBe(day1.id);
@@ -105,7 +107,10 @@ describe("workout routes", () => {
 		const start = await app.request("/workouts/draft", {
 			method: "POST",
 			headers: { "content-type": "application/json", cookie },
-			body: JSON.stringify({ trainingDayId: day1.id, startedAt: "2026-06-02T10:00:00.000Z" }),
+			body: JSON.stringify({
+				trainingDayId: day1.id,
+				startedAt: "2026-06-02T10:00:00.000Z",
+			}),
 		});
 		const started = await start.json();
 		await app.request(`/workouts/${started.workout.id}/complete`, {
@@ -114,7 +119,9 @@ describe("workout routes", () => {
 			body: JSON.stringify({ completedAt: "2026-06-02T11:00:00.000Z" }),
 		});
 
-		const next = await app.request("/training-plan/next-day", { headers: { cookie } });
+		const next = await app.request("/training-plan/next-day", {
+			headers: { cookie },
+		});
 		expect(next.status).toBe(200);
 		const nextBody = await next.json();
 		expect(nextBody.day.id).toBe(day2.id);
@@ -127,13 +134,19 @@ describe("workout routes", () => {
 		const start = await app.request("/workouts/draft", {
 			method: "POST",
 			headers: { "content-type": "application/json", cookie },
-			body: JSON.stringify({ trainingDayId: day1.id, startedAt: "2026-06-02T10:00:00.000Z" }),
+			body: JSON.stringify({
+				trainingDayId: day1.id,
+				startedAt: "2026-06-02T10:00:00.000Z",
+			}),
 		});
 		const started = await start.json();
 		await app.request(`/workouts/${started.workout.id}/complete`, {
 			method: "POST",
 			headers: { "content-type": "application/json", cookie },
-			body: JSON.stringify({ completedAt: "2026-06-02T11:00:00.000Z", note: "Good session" }),
+			body: JSON.stringify({
+				completedAt: "2026-06-02T11:00:00.000Z",
+				note: "Good session",
+			}),
 		});
 
 		const response = await app.request("/workouts", { headers: { cookie } });

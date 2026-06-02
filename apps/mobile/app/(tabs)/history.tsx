@@ -12,7 +12,10 @@ import {
 import { useAuth } from "@/auth/use-auth";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { colors, spacing } from "@/theme";
-import { listCompletedWorkouts, type WorkoutHistoryItem } from "@/workouts/workout-api";
+import {
+	listCompletedWorkouts,
+	type WorkoutHistoryItem,
+} from "@/workouts/workout-api";
 
 export default function HistoryScreen() {
 	const session = useAuth();
@@ -69,16 +72,24 @@ export default function HistoryScreen() {
 			{workouts.length === 0 ? (
 				<View style={styles.card}>
 					<Text style={styles.cardTitle}>No completed workouts yet</Text>
-					<Text style={styles.description}>Complete a workout draft to see it here.</Text>
+					<Text style={styles.description}>
+						Complete a workout draft to see it here.
+					</Text>
 				</View>
 			) : (
 				workouts.map((workout) => (
 					<View key={workout.id} style={styles.card}>
-						<Text style={styles.cardTitle}>Day {workout.trainingDay.sequence}: {workout.trainingDay.title}</Text>
-						<Text style={styles.status}>
-							{workout.completedAt ? new Date(workout.completedAt).toLocaleString() : new Date(workout.startedAt).toLocaleString()}
+						<Text style={styles.cardTitle}>
+							Day {workout.trainingDay.sequence}: {workout.trainingDay.title}
 						</Text>
-						{workout.note ? <Text style={styles.description}>{workout.note}</Text> : null}
+						<Text style={styles.status}>
+							{workout.completedAt
+								? new Date(workout.completedAt).toLocaleString()
+								: new Date(workout.startedAt).toLocaleString()}
+						</Text>
+						{workout.note ? (
+							<Text style={styles.description}>{workout.note}</Text>
+						) : null}
 					</View>
 				))
 			)}
@@ -130,7 +141,12 @@ const styles = StyleSheet.create({
 		borderRadius: 16,
 		backgroundColor: colors.card,
 	},
-	sectionTitle: { color: colors.primary, fontSize: 18, fontWeight: "800", marginTop: spacing.sm },
+	sectionTitle: {
+		color: colors.primary,
+		fontSize: 18,
+		fontWeight: "800",
+		marginTop: spacing.sm,
+	},
 	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
 	secondaryButton: {
 		alignItems: "center",

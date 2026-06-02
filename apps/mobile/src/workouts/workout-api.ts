@@ -1,139 +1,212 @@
-import { apiBaseUrl } from '@/api/client';
-import { authClient } from '@/auth/auth-client';
+import { apiBaseUrl } from "@/api/client";
+import { authClient } from "@/auth/auth-client";
 
 export type WorkoutExercise = {
-  id: string;
-  plannedExerciseName: string;
-  plannedExerciseTarget: string;
-  status: 'planned' | 'completed' | 'skipped';
-  goodForm: boolean | null;
-  note: string | null;
-  sets: Array<{ id: string; setIndex: number; weightKg: number | null; reps: number | null; durationSeconds: number | null }>;
+	id: string;
+	plannedExerciseName: string;
+	plannedExerciseTarget: string;
+	status: "planned" | "completed" | "skipped";
+	goodForm: boolean | null;
+	note: string | null;
+	sets: Array<{
+		id: string;
+		setIndex: number;
+		weightKg: number | null;
+		reps: number | null;
+		durationSeconds: number | null;
+	}>;
 };
 
 export type WorkoutHistoryItem = {
-  id: string;
-  status: 'completed';
-  startedAt: string;
-  completedAt: string | null;
-  note: string | null;
-  trainingDay: { sequence: number; title: string };
+	id: string;
+	status: "completed";
+	startedAt: string;
+	completedAt: string | null;
+	note: string | null;
+	trainingDay: { sequence: number; title: string };
 };
 
 export type DraftWorkout = {
-  id: string;
-  userId: string;
-  trainingDayId: string;
-  status: 'draft' | 'completed' | 'discarded';
-  startedAt: string;
-  completedAt: string | null;
-  note: string | null;
-  exercises: WorkoutExercise[];
-  checklist: Array<{ checklistItemId: string; kind: 'warmup' | 'cooldown'; text: string; checked: boolean; sortOrder: number }>;
+	id: string;
+	userId: string;
+	trainingDayId: string;
+	status: "draft" | "completed" | "discarded";
+	startedAt: string;
+	completedAt: string | null;
+	note: string | null;
+	exercises: WorkoutExercise[];
+	checklist: Array<{
+		checklistItemId: string;
+		kind: "warmup" | "cooldown";
+		text: string;
+		checked: boolean;
+		sortOrder: number;
+	}>;
 };
 
-export type TrainingDaySummary = { id: string; sequence: number; title: string };
+export type TrainingDaySummary = {
+	id: string;
+	sequence: number;
+	title: string;
+};
 
 export type ActivePlan = {
-  id: string;
-  template: {
-    days: TrainingDaySummary[];
-  };
+	id: string;
+	template: {
+		days: TrainingDaySummary[];
+	};
 };
 
 function authHeaders(json = false) {
-  const headers = new Headers();
-  const cookie = authClient.getCookie();
-  if (cookie) headers.set('Cookie', cookie);
-  if (json) headers.set('Content-Type', 'application/json');
-  return { headers, credentials: cookie ? 'omit' : 'include' as RequestCredentials };
+	const headers = new Headers();
+	const cookie = authClient.getCookie();
+	if (cookie) headers.set("Cookie", cookie);
+	if (json) headers.set("Content-Type", "application/json");
+	return {
+		headers,
+		credentials: cookie ? "omit" : ("include" as RequestCredentials),
+	};
 }
 
 async function parseJson<T>(response: Response, label: string): Promise<T> {
-  if (!response.ok) throw new Error(`${label} failed with ${response.status}`);
-  return (await response.json()) as T;
+	if (!response.ok) throw new Error(`${label} failed with ${response.status}`);
+	return (await response.json()) as T;
 }
 
 export async function getActivePlan(): Promise<ActivePlan | null> {
-  let response = await fetch(`${apiBaseUrl}/training-plan/active`, authHeaders());
-  let body = await parseJson<{ plan: ActivePlan | null }>(response, 'Load active plan');
-  if (body.plan) return body.plan;
+	let response = await fetch(
+		`${apiBaseUrl}/training-plan/active`,
+		authHeaders(),
+	);
+	let body = await parseJson<{ plan: ActivePlan | null }>(
+		response,
+		"Load active plan",
+	);
+	if (body.plan) return body.plan;
 
-  response = await fetch(`${apiBaseUrl}/training-plan/active/default`, {
-    method: 'POST',
-    ...authHeaders(),
-  });
-  body = await parseJson<{ plan: ActivePlan }>(response, 'Create active plan');
-  return body.plan;
+	response = await fetch(`${apiBaseUrl}/training-plan/active/default`, {
+		method: "POST",
+		...authHeaders(),
+	});
+	body = await parseJson<{ plan: ActivePlan }>(response, "Create active plan");
+	return body.plan;
 }
 
 export async function listCompletedWorkouts(): Promise<WorkoutHistoryItem[]> {
-  const response = await fetch(`${apiBaseUrl}/workouts`, authHeaders());
-  const body = await parseJson<{ workouts: WorkoutHistoryItem[] }>(response, 'Load workout history');
-  return body.workouts;
+	const response = await fetch(`${apiBaseUrl}/workouts`, authHeaders());
+	const body = await parseJson<{ workouts: WorkoutHistoryItem[] }>(
+		response,
+		"Load workout history",
+	);
+	return body.workouts;
 }
 
 export async function getNextTrainingDay(): Promise<TrainingDaySummary | null> {
-  const response = await fetch(`${apiBaseUrl}/training-plan/next-day`, authHeaders());
-  const body = await parseJson<{ day: TrainingDaySummary | null }>(response, 'Load next training day');
-  return body.day;
+	const response = await fetch(
+		`${apiBaseUrl}/training-plan/next-day`,
+		authHeaders(),
+	);
+	const body = await parseJson<{ day: TrainingDaySummary | null }>(
+		response,
+		"Load next training day",
+	);
+	return body.day;
 }
 
 export async function getDraftWorkout(): Promise<DraftWorkout | null> {
-  const response = await fetch(`${apiBaseUrl}/workouts/draft`, authHeaders());
-  const body = await parseJson<{ workout: DraftWorkout | null }>(response, 'Load draft workout');
-  return body.workout;
+	const response = await fetch(`${apiBaseUrl}/workouts/draft`, authHeaders());
+	const body = await parseJson<{ workout: DraftWorkout | null }>(
+		response,
+		"Load draft workout",
+	);
+	return body.workout;
 }
 
-export async function startDraftWorkout(trainingDayId: string): Promise<DraftWorkout> {
-  const response = await fetch(`${apiBaseUrl}/workouts/draft`, {
-    method: 'POST',
-    ...authHeaders(true),
-    body: JSON.stringify({ trainingDayId, startedAt: new Date().toISOString() }),
-  });
-  const body = await parseJson<{ workout: DraftWorkout }>(response, 'Start workout');
-  return body.workout;
+export async function startDraftWorkout(
+	trainingDayId: string,
+): Promise<DraftWorkout> {
+	const response = await fetch(`${apiBaseUrl}/workouts/draft`, {
+		method: "POST",
+		...authHeaders(true),
+		body: JSON.stringify({
+			trainingDayId,
+			startedAt: new Date().toISOString(),
+		}),
+	});
+	const body = await parseJson<{ workout: DraftWorkout }>(
+		response,
+		"Start workout",
+	);
+	return body.workout;
 }
 
-export async function saveExerciseSet(workoutId: string, exercise: WorkoutExercise, set: { weightKg?: number; reps?: number; durationSeconds?: number }): Promise<WorkoutExercise> {
-  const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}/exercises/${exercise.id}`, {
-    method: 'PUT',
-    ...authHeaders(true),
-    body: JSON.stringify({
-      status: 'completed',
-      goodForm: true,
-      sets: [{ setIndex: 1, ...set }],
-    }),
-  });
-  const body = await parseJson<{ exercise: WorkoutExercise }>(response, 'Save exercise');
-  return body.exercise;
+export async function saveExerciseSet(
+	workoutId: string,
+	exercise: WorkoutExercise,
+	set: { weightKg?: number; reps?: number; durationSeconds?: number },
+): Promise<WorkoutExercise> {
+	const response = await fetch(
+		`${apiBaseUrl}/workouts/${workoutId}/exercises/${exercise.id}`,
+		{
+			method: "PUT",
+			...authHeaders(true),
+			body: JSON.stringify({
+				status: "completed",
+				goodForm: true,
+				sets: [{ setIndex: 1, ...set }],
+			}),
+		},
+	);
+	const body = await parseJson<{ exercise: WorkoutExercise }>(
+		response,
+		"Save exercise",
+	);
+	return body.exercise;
 }
 
-export async function skipExercise(workoutId: string, exercise: WorkoutExercise, reason: string): Promise<WorkoutExercise> {
-  const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}/exercises/${exercise.id}`, {
-    method: 'PUT',
-    ...authHeaders(true),
-    body: JSON.stringify({ status: 'skipped', skipReason: reason }),
-  });
-  const body = await parseJson<{ exercise: WorkoutExercise }>(response, 'Skip exercise');
-  return body.exercise;
+export async function skipExercise(
+	workoutId: string,
+	exercise: WorkoutExercise,
+	reason: string,
+): Promise<WorkoutExercise> {
+	const response = await fetch(
+		`${apiBaseUrl}/workouts/${workoutId}/exercises/${exercise.id}`,
+		{
+			method: "PUT",
+			...authHeaders(true),
+			body: JSON.stringify({ status: "skipped", skipReason: reason }),
+		},
+	);
+	const body = await parseJson<{ exercise: WorkoutExercise }>(
+		response,
+		"Skip exercise",
+	);
+	return body.exercise;
 }
 
-export async function completeWorkout(workoutId: string): Promise<DraftWorkout> {
-  const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}/complete`, {
-    method: 'POST',
-    ...authHeaders(true),
-    body: JSON.stringify({ completedAt: new Date().toISOString() }),
-  });
-  const body = await parseJson<{ workout: DraftWorkout }>(response, 'Complete workout');
-  return body.workout;
+export async function completeWorkout(
+	workoutId: string,
+): Promise<DraftWorkout> {
+	const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}/complete`, {
+		method: "POST",
+		...authHeaders(true),
+		body: JSON.stringify({ completedAt: new Date().toISOString() }),
+	});
+	const body = await parseJson<{ workout: DraftWorkout }>(
+		response,
+		"Complete workout",
+	);
+	return body.workout;
 }
 
 export async function discardWorkout(workoutId: string): Promise<DraftWorkout> {
-  const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}/discard`, {
-    method: 'POST',
-    ...authHeaders(),
-  });
-  const body = await parseJson<{ workout: DraftWorkout }>(response, 'Discard workout');
-  return body.workout;
+	const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}/discard`, {
+		method: "POST",
+		...authHeaders(),
+	});
+	const body = await parseJson<{ workout: DraftWorkout }>(
+		response,
+		"Discard workout",
+	);
+	return body.workout;
 }

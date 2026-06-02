@@ -14,7 +14,11 @@ import { useAuth } from "@/auth/use-auth";
 import { AddBodyWeightLogForm } from "@/body-weight/AddBodyWeightLogForm";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { colors, spacing } from "@/theme";
-import { getDraftWorkout, getNextTrainingDay, startDraftWorkout } from "@/workouts/workout-api";
+import {
+	getDraftWorkout,
+	getNextTrainingDay,
+	startDraftWorkout,
+} from "@/workouts/workout-api";
 
 type HealthResponse = { ok: boolean };
 type SetupStatusResponse = { setupRequired: boolean };
@@ -26,7 +30,9 @@ export default function HomeScreen() {
 	);
 	const [setupChecked, setSetupChecked] = useState(false);
 	const [latestLog, setLatestLog] = useState<BodyWeightLog | null>(null);
-	const [workoutStatus, setWorkoutStatus] = useState<"idle" | "loading" | "error">("idle");
+	const [workoutStatus, setWorkoutStatus] = useState<
+		"idle" | "loading" | "error"
+	>("idle");
 	const [workoutCta, setWorkoutCta] = useState("Start next workout");
 	const [nextWorkoutLabel, setNextWorkoutLabel] = useState<string | null>(null);
 
@@ -62,7 +68,10 @@ export default function HomeScreen() {
 				setWorkoutCta(draft ? "Resume draft workout" : "Start next workout");
 				if (!draft) {
 					const nextDay = await getNextTrainingDay();
-					if (active && nextDay) setNextWorkoutLabel(`Next: Day ${nextDay.sequence} · ${nextDay.title}`);
+					if (active && nextDay)
+						setNextWorkoutLabel(
+							`Next: Day ${nextDay.sequence} · ${nextDay.title}`,
+						);
 				}
 			})
 			.catch(() => {
@@ -140,12 +149,22 @@ export default function HomeScreen() {
 
 			<View style={styles.card}>
 				<Text style={styles.cardTitle}>Workout</Text>
-				<Text style={styles.status}>{nextWorkoutLabel ?? "Start or resume today's draft workout."}</Text>
+				<Text style={styles.status}>
+					{nextWorkoutLabel ?? "Start or resume today's draft workout."}
+				</Text>
 				{workoutStatus === "error" ? (
-					<Text style={styles.error}>Could not start workout. Check API connectivity and active plan.</Text>
+					<Text style={styles.error}>
+						Could not start workout. Check API connectivity and active plan.
+					</Text>
 				) : null}
-				<Pressable style={styles.primaryButton} onPress={() => void openWorkout()} disabled={workoutStatus === "loading"}>
-					<Text style={styles.primaryButtonText}>{workoutStatus === "loading" ? "Opening…" : workoutCta}</Text>
+				<Pressable
+					style={styles.primaryButton}
+					onPress={() => void openWorkout()}
+					disabled={workoutStatus === "loading"}
+				>
+					<Text style={styles.primaryButtonText}>
+						{workoutStatus === "loading" ? "Opening…" : workoutCta}
+					</Text>
 				</Pressable>
 			</View>
 
