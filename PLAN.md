@@ -392,6 +392,7 @@ Recent verification passed:
 - `[x]` Exercise-level Good Form checkbox — API marks saved sets with good form
 - `[~]` Exercise-level notes — API field exists, mobile note UI pending
 - `[~]` Workout-level note — API completion field exists, mobile note UI pending
+- `[x]` Show completed workout history timeline
 - `[ ]` Edit completed workout logs
 - `[ ]` Delete own workout logs
 - `[ ]` Own-log mutation only
@@ -631,7 +632,7 @@ Recent verification passed:
 2. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
 3. `[ ]` Add exercise detail screen from Plan tab.
 4. `[ ]` Add exercise/workout note UI in the workout draft screen.
-5. `[ ]` Add workout history timeline for completed workouts.
+5. `[ ]` Add workout history detail screen and edit/delete actions.
 
 # Verification commands
 
