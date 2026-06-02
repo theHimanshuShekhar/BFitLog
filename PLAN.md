@@ -235,11 +235,11 @@ Recent verification passed:
 - `[x]` Add exercise-level Good Form field
 - `[x]` Add workout/exercise notes
 - `[x]` Add draft/completed/discarded workout status
-- `[ ]` Add client sync metadata/dirty tracking if PowerSync not adopted
+- `[x]` Add client sync metadata/dirty tracking if PowerSync not adopted — body weight repository tracks dirty goal/log IDs; workout offline sync deferred until prototype
 
 ## Goals and reminders schema
 
-- `[~]` Body Weight Goal table exists
+- `[x]` Body Weight Goal table exists
 - `[x]` Add Workout Frequency Goal table/fields
 - `[x]` Add reminder settings table
 - `[x]` Add per-device notification permission/device metadata if needed
