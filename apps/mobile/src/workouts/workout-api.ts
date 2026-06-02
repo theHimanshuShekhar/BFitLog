@@ -49,6 +49,19 @@ export type DraftWorkout = {
 	}>;
 };
 
+export type WorkoutStats = {
+	exercises: Array<{
+		exerciseId: string;
+		exerciseName: string;
+		bestWeightKg: number | null;
+		volumeKg: number;
+		bestDurationSeconds: number | null;
+		successfulTopRangeSessions: number;
+		progressionHint: string | null;
+	}>;
+	consistency: Array<{ week: string; count: number }>;
+};
+
 export type TrainingDaySummary = {
 	id: string;
 	sequence: number;
@@ -95,6 +108,11 @@ export async function getActivePlan(): Promise<ActivePlan | null> {
 	});
 	body = await parseJson<{ plan: ActivePlan }>(response, "Create active plan");
 	return body.plan;
+}
+
+export async function getWorkoutStats(): Promise<WorkoutStats> {
+	const response = await fetch(`${apiBaseUrl}/stats/workouts`, authHeaders());
+	return parseJson<WorkoutStats>(response, "Load workout stats");
 }
 
 export async function listCompletedWorkouts(): Promise<WorkoutHistoryItem[]> {

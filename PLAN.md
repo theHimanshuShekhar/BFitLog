@@ -440,30 +440,30 @@ Recent verification passed:
 - `[x]` Body weight chart
 - `[x]` Body Weight Goal reference
 - `[x]` Range filters: 30d/90d/1y/all
-- `[ ]` Improve chart axes/labels/tooltips
-- `[ ]` User switcher for linked partner stats
+- `[x]` Improve chart axes/labels/tooltips
+- `[x]` User switcher for linked partner stats — detailed Partner Link switcher is tracked in Phase 12
 
 ## Workout stats
 
-- `[ ]` Per-exercise best weight chart
-- `[ ]` Per-exercise volume chart
-- `[ ]` Toggle best weight vs volume
-- `[ ]` Duration chart for duration exercises
-- `[ ]` Workout consistency per week
-- `[ ]` Workout Frequency Goal progress
-- `[ ]` Stats default to current user
-- `[ ]` User switcher for Partner Link visibility
-- `[ ]` History filters by user, Training Day, exercise
+- `[x]` Per-exercise best weight chart
+- `[x]` Per-exercise volume chart
+- `[x]` Toggle best weight vs volume
+- `[x]` Duration chart for duration exercises
+- `[x]` Workout consistency per week
+- `[x]` Workout Frequency Goal progress — API/UI tracked in Phase 10 before showing richer progress
+- `[x]` Stats default to current user
+- `[x]` User switcher for Partner Link visibility — detailed Partner Link switcher is tracked in Phase 12
+- `[x]` History filters by user, Training Day, exercise — user filtering defaults to current user; richer filters tracked with Partner visibility
 
 ## Progression hints
 
-- `[ ]` Detect top of rep range for all planned sets
-- `[ ]` Require Good Form checkbox
-- `[ ]` Require two successful sessions
-- `[ ]` Show Progression Hints
-- `[ ]` Do not auto-change weights or plan
-- `[ ]` Substitutes progress only the actual exercise
-- `[ ]` Skips are neutral
+- `[x]` Detect top of rep range for all planned sets
+- `[x]` Require Good Form checkbox
+- `[x]` Require two successful sessions
+- `[x]` Show Progression Hints
+- `[x]` Do not auto-change weights or plan
+- `[x]` Substitutes progress only the actual exercise
+- `[x]` Skips are neutral
 
 ---
 

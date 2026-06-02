@@ -111,6 +111,49 @@ describe("workout routes", () => {
 		expect(nextBody.day.id).toBe(day2.id);
 	});
 
+	it("returns workout stats and progression hints for completed sets", async () => {
+		const { app, cookie, plan } = await createSessionWithActivePlan();
+		const day1 = plan.template.days[0];
+
+		for (const startedAt of ["2026-06-02T10:00:00.000Z", "2026-06-05T10:00:00.000Z"]) {
+			const start = await app.request("/workouts/draft", {
+				method: "POST",
+				headers: { "content-type": "application/json", cookie },
+				body: JSON.stringify({ trainingDayId: day1.id, startedAt }),
+			});
+			const started = await start.json();
+			await app.request(
+				`/workouts/${started.workout.id}/exercises/${started.workout.exercises[0].id}`,
+				{
+					method: "PUT",
+					headers: { "content-type": "application/json", cookie },
+					body: JSON.stringify({
+						status: "completed",
+						goodForm: true,
+						sets: [{ setIndex: 1, weightKg: 20, reps: 10 }],
+					}),
+				},
+			);
+			await app.request(`/workouts/${started.workout.id}/complete`, {
+				method: "POST",
+				headers: { "content-type": "application/json", cookie },
+				body: JSON.stringify({ completedAt: startedAt }),
+			});
+		}
+
+		const response = await app.request("/stats/workouts", { headers: { cookie } });
+		expect(response.status).toBe(200);
+		const body = await response.json();
+		expect(body.exercises[0]).toMatchObject({
+			exerciseName: "Smith Machine Bench Press",
+			bestWeightKg: 20,
+			volumeKg: 400,
+			successfulTopRangeSessions: 2,
+		});
+		expect(body.exercises[0].progressionHint).toContain("Consider increasing");
+		expect(body.consistency[0]).toMatchObject({ count: 2 });
+	});
+
 	it("lists completed workout history for the current user", async () => {
 		const { app, cookie, plan } = await createSessionWithActivePlan();
 		const day1 = plan.template.days[0];

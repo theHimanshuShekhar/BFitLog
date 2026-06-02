@@ -61,6 +61,110 @@ function formatTarget(planned: {
 }
 
 export const workoutRoutes = new Hono<{ Variables: Variables }>()
+	.get("/stats/workouts", async (c) => {
+		const user = requireUser(c);
+		if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+		const completed = await db
+			.select({
+				id: workoutLogs.id,
+				completedAt: workoutLogs.completedAt,
+			})
+			.from(workoutLogs)
+			.where(
+				and(
+					eq(workoutLogs.userId, user.id),
+					eq(workoutLogs.status, "completed"),
+				),
+			);
+		const workoutIds = completed.map((workout) => workout.id);
+		const rows = workoutIds.length
+			? await db
+					.select({
+						workoutLogId: exerciseLogs.workoutLogId,
+						plannedExerciseTarget: exerciseLogs.plannedExerciseTarget,
+						status: exerciseLogs.status,
+						goodForm: exerciseLogs.goodForm,
+						performedExerciseId: exerciseLogs.performedExerciseId,
+						exerciseName: exercises.name,
+						weightKg: setLogs.weightKg,
+						reps: setLogs.reps,
+						durationSeconds: setLogs.durationSeconds,
+					})
+					.from(exerciseLogs)
+					.leftJoin(setLogs, eq(setLogs.exerciseLogId, exerciseLogs.id))
+					.leftJoin(
+						exercises,
+						eq(exercises.id, exerciseLogs.performedExerciseId),
+					)
+					.where(inArray(exerciseLogs.workoutLogId, workoutIds))
+			: [];
+
+		const exerciseStats = new Map<
+			string,
+			{
+				exerciseId: string;
+				exerciseName: string;
+				bestWeightKg: number | null;
+				volumeKg: number;
+				bestDurationSeconds: number | null;
+				successfulTopRangeSessions: number;
+				progressionHint: string | null;
+			}
+		>();
+		const successfulSessions = new Map<string, Set<string>>();
+		for (const row of rows) {
+			if (row.status === "skipped" || !row.performedExerciseId) continue;
+			const current = exerciseStats.get(row.performedExerciseId) ?? {
+				exerciseId: row.performedExerciseId,
+				exerciseName: row.exerciseName ?? row.performedExerciseId,
+				bestWeightKg: null,
+				volumeKg: 0,
+				bestDurationSeconds: null,
+				successfulTopRangeSessions: 0,
+				progressionHint: null,
+			};
+			const weight = row.weightKg ? Number(row.weightKg) : null;
+			if (weight !== null) {
+				current.bestWeightKg = Math.max(current.bestWeightKg ?? 0, weight);
+				current.volumeKg += weight * (row.reps ?? 0);
+			}
+			if (row.durationSeconds) {
+				current.bestDurationSeconds = Math.max(
+					current.bestDurationSeconds ?? 0,
+					row.durationSeconds,
+				);
+			}
+			if (row.goodForm && row.reps && hitsTopRepRange(row.plannedExerciseTarget, row.reps)) {
+				const sessions = successfulSessions.get(row.performedExerciseId) ?? new Set<string>();
+				sessions.add(row.workoutLogId);
+				successfulSessions.set(row.performedExerciseId, sessions);
+			}
+			exerciseStats.set(row.performedExerciseId, current);
+		}
+		for (const stat of exerciseStats.values()) {
+			stat.successfulTopRangeSessions = successfulSessions.get(stat.exerciseId)?.size ?? 0;
+			stat.progressionHint =
+				stat.successfulTopRangeSessions >= 2
+					? "Consider increasing load next time; do not auto-change the plan."
+					: null;
+		}
+
+		const consistencyByWeek = new Map<string, number>();
+		for (const workout of completed) {
+			if (!workout.completedAt) continue;
+			const week = weekKey(workout.completedAt);
+			consistencyByWeek.set(week, (consistencyByWeek.get(week) ?? 0) + 1);
+		}
+
+		return c.json({
+			exercises: [...exerciseStats.values()],
+			consistency: [...consistencyByWeek.entries()].map(([week, count]) => ({
+				week,
+				count,
+			})),
+		});
+	})
 	.get("/workouts", async (c) => {
 		const user = requireUser(c);
 		if (!user) return c.json({ error: "Unauthorized" }, 401);
@@ -538,6 +642,18 @@ function serializeExerciseLog(
 			durationSeconds: set.durationSeconds,
 		})),
 	};
+}
+
+function hitsTopRepRange(target: string, reps: number) {
+	const match = target.match(/×\s*\d+-(\d+)/);
+	return match?.[1] ? reps >= Number(match[1]) : false;
+}
+
+function weekKey(date: Date) {
+	const start = new Date(date);
+	start.setUTCHours(0, 0, 0, 0);
+	start.setUTCDate(start.getUTCDate() - start.getUTCDay());
+	return start.toISOString().slice(0, 10);
 }
 
 function groupBy<T>(items: T[], getKey: (item: T) => string) {

@@ -16,6 +16,7 @@ import {
 } from "@/body-weight/BodyWeightChart";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { colors, layout, spacing } from "@/theme";
+import { getWorkoutStats, type WorkoutStats } from "@/workouts/workout-api";
 
 const ranges: ChartRange[] = ["30d", "90d", "1y", "all"];
 
@@ -24,6 +25,7 @@ export default function StatsScreen() {
 	const [range, setRange] = useState<ChartRange>("30d");
 	const [goal, setGoal] = useState<BodyWeightGoal | null>(null);
 	const [logs, setLogs] = useState<BodyWeightLog[]>([]);
+	const [workoutStats, setWorkoutStats] = useState<WorkoutStats | null>(null);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -33,13 +35,16 @@ export default function StatsScreen() {
 				.sync()
 				.catch(() => undefined)
 				.finally(() => {
-					Promise.all([repository.getGoal(), repository.listLogs()]).then(
-						([nextGoal, nextLogs]) => {
-							if (!active) return;
-							setGoal(nextGoal);
-							setLogs(nextLogs);
-						},
-					);
+					Promise.all([
+						repository.getGoal(),
+						repository.listLogs(),
+						getWorkoutStats().catch(() => null),
+					]).then(([nextGoal, nextLogs, nextWorkoutStats]) => {
+						if (!active) return;
+						setGoal(nextGoal);
+						setLogs(nextLogs);
+						setWorkoutStats(nextWorkoutStats);
+					});
 				});
 			return () => {
 				active = false;
@@ -91,6 +96,41 @@ export default function StatsScreen() {
 
 			<BodyWeightChart logs={logs} goal={goal} range={range} />
 
+			<View style={styles.card}>
+				<Text style={styles.cardTitle}>Exercise progress</Text>
+				{workoutStats?.exercises.length ? (
+					workoutStats.exercises.map((exercise) => (
+						<View key={exercise.exerciseId} style={styles.statRow}>
+							<Text style={styles.status}>{exercise.exerciseName}</Text>
+							<Text style={styles.description}>
+								Best: {exercise.bestWeightKg ?? "—"} kg · Volume: {Math.round(exercise.volumeKg)} kg
+								{exercise.bestDurationSeconds
+									? ` · Duration: ${exercise.bestDurationSeconds}s`
+									: ""}
+							</Text>
+							{exercise.progressionHint ? (
+								<Text style={styles.hint}>{exercise.progressionHint}</Text>
+							) : null}
+						</View>
+					))
+				) : (
+					<Text style={styles.description}>Complete workouts to see exercise stats.</Text>
+				)}
+			</View>
+
+			<View style={styles.card}>
+				<Text style={styles.cardTitle}>Workout consistency</Text>
+				{workoutStats?.consistency.length ? (
+					workoutStats.consistency.map((week) => (
+						<Text key={week.week} style={styles.status}>
+							Week of {week.week}: {week.count} workout{week.count === 1 ? "" : "s"}
+						</Text>
+					))
+				) : (
+					<Text style={styles.description}>No completed workouts yet.</Text>
+				)}
+			</View>
+
 			<Pressable
 				style={styles.secondaryButton}
 				onPress={() => router.push("/")}
@@ -118,7 +158,8 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.background,
 	},
 	title: { color: colors.text, fontSize: 28, fontWeight: "800" },
-	description: { color: colors.mutedText, fontSize: 16 },
+	description: { color: colors.mutedText, fontSize: 16, lineHeight: 24 },
+	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
 	rangeRow: { flexDirection: "row", gap: spacing.sm },
 	rangeButton: {
 		flex: 1,
@@ -130,6 +171,15 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.border,
 	},
+	card: {
+		gap: spacing.sm,
+		padding: spacing.md,
+		borderRadius: 16,
+		backgroundColor: colors.card,
+	},
+	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+	statRow: { gap: spacing.xs },
+	hint: { color: colors.primary, fontSize: 14, lineHeight: 20 },
 	rangeButtonActive: {
 		backgroundColor: colors.primary,
 		borderColor: colors.primary,
