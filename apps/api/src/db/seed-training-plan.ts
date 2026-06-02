@@ -8,7 +8,7 @@ import {
   trainingPlanTemplates,
 } from './schema.js';
 
-const db = createDb();
+const db = createDb(process.env.DATABASE_URL ?? 'postgres://bfitlog:bfitlog@localhost:5432/bfitlog');
 
 const templateId = 'beginner-upper-lower-4-day';
 const now = new Date();

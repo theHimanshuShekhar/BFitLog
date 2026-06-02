@@ -9,7 +9,7 @@ export async function truncateAppTables() {
 	await client.connect();
 	try {
 		await client.query(
-			'TRUNCATE TABLE "partner_links", "body_weight_logs", "body_weight_goals", "account", "session", "verification", "user" CASCADE',
+			'TRUNCATE TABLE "planned_exercise_substitutes", "planned_exercises", "training_day_checklist_items", "training_days", "user_training_plans", "training_plan_templates", "exercise_media", "exercises", "partner_links", "body_weight_logs", "body_weight_goals", "account", "session", "verification", "user" CASCADE',
 		);
 	} finally {
 		await client.end();
