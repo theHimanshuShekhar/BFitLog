@@ -139,16 +139,16 @@ Recent verification passed:
 
 ## Training/workout schemas
 
-- `[ ]` Add shared Exercise schema
-- `[ ]` Add shared Training Plan Template schema
-- `[ ]` Add shared Training Day schema
-- `[ ]` Add shared Planned Exercise schema
-- `[ ]` Add shared Checklist Item schema
-- `[ ]` Add shared Exercise Media schema
-- `[ ]` Add shared Exercise Substitute schema
-- `[ ]` Add shared Workout Log schema
-- `[ ]` Add shared Set Log schema
-- `[ ]` Add shared Progression Hint schema
+- `[x]` Add shared Exercise schema
+- `[x]` Add shared Training Plan Template schema
+- `[x]` Add shared Training Day schema
+- `[x]` Add shared Planned Exercise schema
+- `[x]` Add shared Checklist Item schema
+- `[x]` Add shared Exercise Media schema
+- `[x]` Add shared Exercise Substitute schema
+- `[x]` Add shared Workout Log schema
+- `[x]` Add shared Set Log schema
+- `[x]` Add shared Progression Hint schema
 
 ---
 
