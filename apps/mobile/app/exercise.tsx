@@ -1,78 +1,126 @@
-import { useLocalSearchParams } from 'expo-router';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { colors, spacing } from '@/theme';
+import { useLocalSearchParams } from "expo-router";
+import {
+	Linking,
+	Pressable,
+	ScrollView,
+	StyleSheet,
+	Text,
+	View,
+} from "react-native";
+import { colors, spacing } from "@/theme";
 
-type MediaLink = { id: string; kind: 'gif' | 'video'; url: string };
+type MediaLink = { id: string; kind: "gif" | "video"; url: string };
 
 export default function ExerciseDetailScreen() {
-  const params = useLocalSearchParams<{
-    name?: string;
-    target?: string;
-    equipment?: string;
-    trackingType?: string;
-    notes?: string;
-    media?: string;
-  }>();
-  const media = parseMedia(params.media);
+	const params = useLocalSearchParams<{
+		name?: string;
+		target?: string;
+		equipment?: string;
+		trackingType?: string;
+		notes?: string;
+		media?: string;
+	}>();
+	const media = parseMedia(params.media);
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.eyebrow}>Exercise</Text>
-      <Text style={styles.title}>{params.name ?? 'Exercise detail'}</Text>
-      {params.target ? <Text style={styles.description}>{params.target}</Text> : null}
+	return (
+		<ScrollView contentContainerStyle={styles.container}>
+			<Text style={styles.eyebrow}>Exercise</Text>
+			<Text style={styles.title}>{params.name ?? "Exercise detail"}</Text>
+			{params.target ? (
+				<Text style={styles.description}>{params.target}</Text>
+			) : null}
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Details</Text>
-        {params.equipment ? <Text style={styles.status}>Equipment: {params.equipment}</Text> : null}
-        {params.trackingType ? <Text style={styles.status}>Tracking: {formatTrackingType(params.trackingType)}</Text> : null}
-        {params.notes ? <Text style={styles.description}>{params.notes}</Text> : null}
-      </View>
+			<View style={styles.card}>
+				<Text style={styles.cardTitle}>Details</Text>
+				{params.equipment ? (
+					<Text style={styles.status}>Equipment: {params.equipment}</Text>
+				) : null}
+				{params.trackingType ? (
+					<Text style={styles.status}>
+						Tracking: {formatTrackingType(params.trackingType)}
+					</Text>
+				) : null}
+				{params.notes ? (
+					<Text style={styles.description}>{params.notes}</Text>
+				) : null}
+			</View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Media</Text>
-        {media.length === 0 ? (
-          <Text style={styles.status}>No media links available.</Text>
-        ) : (
-          media.map((item) => (
-            <Pressable key={item.id} style={styles.mediaButton} onPress={() => void Linking.openURL(item.url)}>
-              <Text style={styles.mediaText}>Open {item.kind.toUpperCase()}</Text>
-              <Text style={styles.mediaUrl}>{item.url}</Text>
-            </Pressable>
-          ))
-        )}
-      </View>
-    </ScrollView>
-  );
+			<View style={styles.card}>
+				<Text style={styles.cardTitle}>Media</Text>
+				{media.length === 0 ? (
+					<Text style={styles.status}>No media links available.</Text>
+				) : (
+					media.map((item) => (
+						<Pressable
+							key={item.id}
+							style={styles.mediaButton}
+							onPress={() => void Linking.openURL(item.url)}
+						>
+							<Text style={styles.mediaText}>
+								Open {item.kind.toUpperCase()}
+							</Text>
+							<Text style={styles.mediaUrl}>{item.url}</Text>
+						</Pressable>
+					))
+				)}
+			</View>
+		</ScrollView>
+	);
 }
 
 function parseMedia(value: string | undefined): MediaLink[] {
-  if (!value) return [];
-  try {
-    const parsed = JSON.parse(value);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item): item is MediaLink =>
-      typeof item?.id === 'string' &&
-      (item.kind === 'gif' || item.kind === 'video') &&
-      typeof item.url === 'string',
-    );
-  } catch {
-    return [];
-  }
+	if (!value) return [];
+	try {
+		const parsed = JSON.parse(value);
+		if (!Array.isArray(parsed)) return [];
+		return parsed.filter(
+			(item): item is MediaLink =>
+				typeof item?.id === "string" &&
+				(item.kind === "gif" || item.kind === "video") &&
+				typeof item.url === "string",
+		);
+	} catch {
+		return [];
+	}
 }
 
 function formatTrackingType(value: string) {
-  return value === 'duration' ? 'Duration' : 'Reps + kg';
+	return value === "duration" ? "Duration" : "Reps + kg";
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, gap: spacing.md, padding: spacing.lg, backgroundColor: colors.background },
-  eyebrow: { color: colors.primary, fontSize: 14, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
-  title: { color: colors.text, fontSize: 32, fontWeight: '800' },
-  description: { color: colors.mutedText, fontSize: 16, lineHeight: 24 },
-  card: { gap: spacing.sm, padding: spacing.md, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },
-  cardTitle: { color: colors.text, fontSize: 18, fontWeight: '800' },
-  status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
-  mediaButton: { gap: spacing.xs, padding: spacing.md, borderRadius: 14, borderWidth: 1, borderColor: colors.primary },
-  mediaText: { color: colors.primary, fontSize: 14, fontWeight: '800' },
-  mediaUrl: { color: colors.mutedText, fontSize: 12, lineHeight: 18 },
+	container: {
+		flexGrow: 1,
+		gap: spacing.md,
+		padding: spacing.lg,
+		backgroundColor: colors.background,
+	},
+	eyebrow: {
+		color: colors.primary,
+		fontSize: 14,
+		fontWeight: "800",
+		letterSpacing: 1,
+		textTransform: "uppercase",
+	},
+	title: { color: colors.text, fontSize: 32, fontWeight: "800" },
+	description: { color: colors.mutedText, fontSize: 16, lineHeight: 24 },
+	card: {
+		gap: spacing.sm,
+		padding: spacing.md,
+		borderRadius: 16,
+		borderWidth: 1,
+		borderColor: colors.border,
+		backgroundColor: colors.card,
+	},
+	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
+	mediaButton: {
+		gap: spacing.xs,
+		padding: spacing.md,
+		borderRadius: 14,
+		borderWidth: 1,
+		borderColor: colors.primary,
+	},
+	mediaText: { color: colors.primary, fontSize: 14, fontWeight: "800" },
+	mediaUrl: { color: colors.mutedText, fontSize: 12, lineHeight: 18 },
 });

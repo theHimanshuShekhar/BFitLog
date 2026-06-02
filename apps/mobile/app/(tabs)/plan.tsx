@@ -210,7 +210,7 @@ function ExerciseRow({ planned }: { planned: PlannedExercise }) {
 		<View style={styles.exerciseCard}>
 			<Pressable onPress={() => openExerciseDetail(planned, target)}>
 				<Text style={styles.cardTitle}>
-				{exercise?.name ?? "Unknown exercise"}
+					{exercise?.name ?? "Unknown exercise"}
 				</Text>
 				<Text style={styles.detailLink}>View details</Text>
 			</Pressable>
@@ -294,7 +294,12 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.surface,
 	},
 	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
-	detailLink: { color: colors.primary, fontSize: 13, fontWeight: "800", marginTop: spacing.xs },
+	detailLink: {
+		color: colors.primary,
+		fontSize: 13,
+		fontWeight: "800",
+		marginTop: spacing.xs,
+	},
 	mediaRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
 	mediaButton: {
 		paddingVertical: spacing.xs,

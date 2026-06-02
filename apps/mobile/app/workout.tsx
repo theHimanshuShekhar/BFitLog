@@ -253,7 +253,9 @@ export default function WorkoutScreen() {
 
 						<TextInput
 							value={input.note}
-							onChangeText={(value) => updateInput(exercise.id, { note: value })}
+							onChangeText={(value) =>
+								updateInput(exercise.id, { note: value })
+							}
 							placeholder="Exercise note"
 							placeholderTextColor={colors.mutedText}
 							style={styles.fullInput}
@@ -348,7 +350,8 @@ function inputFromExercise(exercise: WorkoutExercise): ExerciseInput {
 			? String(firstSet.durationSeconds)
 			: "",
 		note: exercise.note ?? "",
-		skipReason: exercise.status === "skipped" ? (exercise.skipReason ?? "") : "",
+		skipReason:
+			exercise.status === "skipped" ? (exercise.skipReason ?? "") : "",
 	};
 }
 
