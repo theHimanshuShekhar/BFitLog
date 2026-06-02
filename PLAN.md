@@ -379,10 +379,10 @@ Recent verification passed:
 - `[x]` Resume draft workout
 - `[x]` Discard draft workout
 - `[x]` Complete workout
-- `[ ]` Completed workout advances soft sequence
-- `[ ]` Completed workout with skips advances sequence
+- `[x]` Completed workout advances soft sequence
+- `[x]` Completed workout with skips advances sequence
 - `[ ]` Manual Training Day override
-- `[ ]` Determine next Training Day from latest completed Workout Log
+- `[x]` Determine next Training Day from latest completed Workout Log
 
 ## Exercise logging
 
@@ -627,11 +627,11 @@ Recent verification passed:
 
 # Immediate next tasks
 
-1. `[ ]` Add next-day rotation from latest completed workout.
-2. `[ ]` Run PowerSync spike before deepening custom sync.
-3. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
-4. `[ ]` Add exercise detail screen from Plan tab.
-5. `[ ]` Add exercise/workout note UI in the workout draft screen.
+1. `[ ]` Run PowerSync spike before deepening custom sync.
+2. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
+3. `[ ]` Add exercise detail screen from Plan tab.
+4. `[ ]` Add exercise/workout note UI in the workout draft screen.
+5. `[ ]` Add workout history timeline for completed workouts.
 
 # Verification commands
 
