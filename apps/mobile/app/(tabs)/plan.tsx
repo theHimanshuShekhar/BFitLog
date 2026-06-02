@@ -61,6 +61,19 @@ type PlannedExercise = {
 		trackingType: "reps_weight" | "duration";
 		media: Array<{ id: string; kind: "gif" | "video"; url: string }>;
 	} | null;
+	substitutes: Array<{
+		exercise: {
+			id: string;
+			name: string;
+			equipment: string | null;
+			trackingType: "reps_weight" | "duration";
+		} | null;
+		targetSets: number | null;
+		targetMinReps: number | null;
+		targetMaxReps: number | null;
+		targetDurationSeconds: number | null;
+		notes: string | null;
+	}>;
 };
 
 export default function PlanScreen() {
@@ -223,6 +236,20 @@ function ExerciseRow({ planned }: { planned: PlannedExercise }) {
 			{planned.notes ? (
 				<Text style={styles.description}>{planned.notes}</Text>
 			) : null}
+			{planned.substitutes.length ? (
+				<View style={styles.substituteBox}>
+					<Text style={styles.status}>Preferred substitutes</Text>
+					{planned.substitutes.map((substitute) => (
+						<Text
+							key={substitute.exercise?.id ?? substitute.notes ?? "substitute"}
+							style={styles.bullet}
+						>
+							• {substitute.exercise?.name ?? "Unknown exercise"}
+							{substitute.notes ? ` — ${substitute.notes}` : ""}
+						</Text>
+					))}
+				</View>
+			) : null}
 			{exercise?.media.length ? (
 				<View style={styles.mediaRow}>
 					{exercise.media.map((media) => (
@@ -300,6 +327,7 @@ const styles = StyleSheet.create({
 		fontWeight: "800",
 		marginTop: spacing.xs,
 	},
+	substituteBox: { gap: spacing.xs, marginTop: spacing.xs },
 	mediaRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
 	mediaButton: {
 		paddingVertical: spacing.xs,

@@ -6,6 +6,7 @@ import {
 	exerciseMedia,
 	exercises,
 	plannedExercises,
+	plannedExerciseSubstitutes,
 	trainingDayChecklistItems,
 	trainingDays,
 	trainingPlanTemplates,
@@ -178,7 +179,24 @@ async function loadTemplate(templateId: string) {
 			: [],
 	]);
 
-	const exerciseIds = [...new Set(planned.map((item) => item.exerciseId))];
+	const plannedExerciseIds = planned.map((item) => item.id);
+	const substituteRows = plannedExerciseIds.length
+		? await db
+				.select()
+				.from(plannedExerciseSubstitutes)
+				.where(
+					inArray(
+						plannedExerciseSubstitutes.plannedExerciseId,
+						plannedExerciseIds,
+					),
+				)
+		: [];
+	const exerciseIds = [
+		...new Set([
+			...planned.map((item) => item.exerciseId),
+			...substituteRows.map((item) => item.exerciseId),
+		]),
+	];
 	const [exerciseRows, mediaRows] = await Promise.all([
 		exerciseIds.length
 			? db.select().from(exercises).where(inArray(exercises.id, exerciseIds))
@@ -198,6 +216,10 @@ async function loadTemplate(templateId: string) {
 	const mediaByExercise = groupBy(mediaRows, (media) => media.exerciseId);
 	const checklistByDay = groupBy(checklists, (item) => item.trainingDayId);
 	const plannedByDay = groupBy(planned, (item) => item.trainingDayId);
+	const substitutesByPlannedExercise = groupBy(
+		substituteRows,
+		(item) => item.plannedExerciseId,
+	);
 
 	return {
 		id: template.id,
@@ -240,6 +262,26 @@ async function loadTemplate(templateId: string) {
 								),
 							}
 						: null,
+				substitutes: (substitutesByPlannedExercise.get(item.id) ?? []).map(
+					(substitute) => {
+						const substituteExercise = exercisesById.get(substitute.exerciseId);
+						return {
+							exercise: substituteExercise
+								? {
+									id: substituteExercise.id,
+									name: substituteExercise.name,
+									equipment: substituteExercise.equipment,
+									trackingType: substituteExercise.trackingType,
+								}
+								: null,
+							targetSets: substitute.targetSets,
+							targetMinReps: substitute.targetMinReps,
+							targetMaxReps: substitute.targetMaxReps,
+							targetDurationSeconds: substitute.targetDurationSeconds,
+							notes: substitute.notes,
+						};
+					},
+				),
 				};
 			}),
 		})),

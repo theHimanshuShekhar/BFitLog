@@ -366,7 +366,7 @@ Recent verification passed:
 - `[x]` Render Exercise detail screen
 - `[~]` Show embedded media inline where possible — current UI shows in-app media buttons/fallback links, not embedded players
 - `[x]` Add fallback source link when embed fails
-- `[ ]` Add substitute list display
+- `[x]` Add substitute list display
 - `[ ]` Cache plan text for offline use
 
 ---
