@@ -25,6 +25,7 @@ type ExerciseInput = {
 	weightKg: string;
 	reps: string;
 	durationSeconds: string;
+	note: string;
 	skipReason: string;
 };
 
@@ -32,6 +33,7 @@ export default function WorkoutScreen() {
 	const session = useAuth();
 	const [workout, setWorkout] = useState<DraftWorkout | null>(null);
 	const [inputs, setInputs] = useState<Record<string, ExerciseInput>>({});
+	const [workoutNote, setWorkoutNote] = useState("");
 	const [status, setStatus] = useState<
 		"loading" | "ready" | "saving" | "error"
 	>("loading");
@@ -51,6 +53,7 @@ export default function WorkoutScreen() {
 					]),
 				),
 			);
+			setWorkoutNote(draft?.note ?? "");
 			setStatus("ready");
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Unable to load workout");
@@ -123,7 +126,12 @@ export default function WorkoutScreen() {
 			if (input.reps) set.reps = Number(input.reps);
 			if (input.durationSeconds)
 				set.durationSeconds = Number(input.durationSeconds);
-			const updated = await saveExerciseSet(workout.id, exercise, set);
+			const updated = await saveExerciseSet(
+				workout.id,
+				exercise,
+				set,
+				input.note,
+			);
 			setWorkout(replaceExercise(workout, updated));
 			setStatus("ready");
 		} catch (err) {
@@ -149,7 +157,7 @@ export default function WorkoutScreen() {
 	const complete = async () => {
 		setStatus("saving");
 		try {
-			const completed = await completeWorkout(workout.id);
+			const completed = await completeWorkout(workout.id, workoutNote);
 			setWorkout(completed);
 			setStatus("ready");
 			router.replace("/history" as never);
@@ -182,6 +190,14 @@ export default function WorkoutScreen() {
 			<Text style={styles.description}>
 				Started {new Date(workout.startedAt).toLocaleString()}
 			</Text>
+			<TextInput
+				value={workoutNote}
+				onChangeText={setWorkoutNote}
+				placeholder="Workout note"
+				placeholderTextColor={colors.mutedText}
+				style={styles.fullInput}
+				multiline
+			/>
 			{status === "saving" ? (
 				<ActivityIndicator color={colors.primary} />
 			) : null}
@@ -234,6 +250,15 @@ export default function WorkoutScreen() {
 								style={styles.input}
 							/>
 						</View>
+
+						<TextInput
+							value={input.note}
+							onChangeText={(value) => updateInput(exercise.id, { note: value })}
+							placeholder="Exercise note"
+							placeholderTextColor={colors.mutedText}
+							style={styles.fullInput}
+							multiline
+						/>
 
 						<TextInput
 							value={input.skipReason}
@@ -310,6 +335,7 @@ const emptyInput: ExerciseInput = {
 	weightKg: "",
 	reps: "",
 	durationSeconds: "",
+	note: "",
 	skipReason: "",
 };
 
@@ -321,7 +347,8 @@ function inputFromExercise(exercise: WorkoutExercise): ExerciseInput {
 		durationSeconds: firstSet?.durationSeconds
 			? String(firstSet.durationSeconds)
 			: "",
-		skipReason: exercise.status === "skipped" ? (exercise.note ?? "") : "",
+		note: exercise.note ?? "",
+		skipReason: exercise.status === "skipped" ? (exercise.skipReason ?? "") : "",
 	};
 }
 

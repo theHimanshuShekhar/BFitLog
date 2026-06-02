@@ -8,6 +8,7 @@ export type WorkoutExercise = {
 	status: "planned" | "completed" | "skipped";
 	goodForm: boolean | null;
 	note: string | null;
+	skipReason: string | null;
 	sets: Array<{
 		id: string;
 		setIndex: number;
@@ -144,6 +145,7 @@ export async function saveExerciseSet(
 	workoutId: string,
 	exercise: WorkoutExercise,
 	set: { weightKg?: number; reps?: number; durationSeconds?: number },
+	note?: string,
 ): Promise<WorkoutExercise> {
 	const response = await fetch(
 		`${apiBaseUrl}/workouts/${workoutId}/exercises/${exercise.id}`,
@@ -153,6 +155,7 @@ export async function saveExerciseSet(
 			body: JSON.stringify({
 				status: "completed",
 				goodForm: true,
+				note: note?.trim() || undefined,
 				sets: [{ setIndex: 1, ...set }],
 			}),
 		},
@@ -186,11 +189,15 @@ export async function skipExercise(
 
 export async function completeWorkout(
 	workoutId: string,
+	note?: string,
 ): Promise<DraftWorkout> {
 	const response = await fetch(`${apiBaseUrl}/workouts/${workoutId}/complete`, {
 		method: "POST",
 		...authHeaders(true),
-		body: JSON.stringify({ completedAt: new Date().toISOString() }),
+		body: JSON.stringify({
+			completedAt: new Date().toISOString(),
+			note: note?.trim() || undefined,
+		}),
 	});
 	const body = await parseJson<{ workout: DraftWorkout }>(
 		response,
