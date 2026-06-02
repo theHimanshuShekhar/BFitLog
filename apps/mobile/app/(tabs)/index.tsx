@@ -14,6 +14,7 @@ import { useAuth } from "@/auth/use-auth";
 import { AddBodyWeightLogForm } from "@/body-weight/AddBodyWeightLogForm";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { colors, spacing } from "@/theme";
+import { getActivePlan, getDraftWorkout, startDraftWorkout } from "@/workouts/workout-api";
 
 type HealthResponse = { ok: boolean };
 type SetupStatusResponse = { setupRequired: boolean };
@@ -25,6 +26,8 @@ export default function HomeScreen() {
 	);
 	const [setupChecked, setSetupChecked] = useState(false);
 	const [latestLog, setLatestLog] = useState<BodyWeightLog | null>(null);
+	const [workoutStatus, setWorkoutStatus] = useState<"idle" | "loading" | "error">("idle");
+	const [workoutCta, setWorkoutCta] = useState("Start next workout");
 
 	useEffect(() => {
 		let active = true;
@@ -52,6 +55,15 @@ export default function HomeScreen() {
 				if (active) setLatestLog(logs[0] ?? null);
 			});
 
+		getDraftWorkout()
+			.then((draft) => {
+				if (!active) return;
+				setWorkoutCta(draft ? "Resume draft workout" : "Start next workout");
+			})
+			.catch(() => {
+				if (active) setWorkoutCta("Start next workout");
+			});
+
 		return () => {
 			active = false;
 		};
@@ -71,6 +83,23 @@ export default function HomeScreen() {
 	}
 
 	const user = session.data?.user;
+
+	const openWorkout = async () => {
+		setWorkoutStatus("loading");
+		try {
+			const draft = await getDraftWorkout();
+			if (!draft) {
+				const plan = await getActivePlan();
+				const nextDay = plan?.template.days[0];
+				if (!nextDay) throw new Error("No active training day found");
+				await startDraftWorkout(nextDay.id);
+			}
+			setWorkoutStatus("idle");
+			router.push("/workout" as never);
+		} catch {
+			setWorkoutStatus("error");
+		}
+	};
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
@@ -103,6 +132,17 @@ export default function HomeScreen() {
 						? `${latestLog.weightKg.toFixed(1)} kg`
 						: "No body weight logged yet"}
 				</Text>
+			</View>
+
+			<View style={styles.card}>
+				<Text style={styles.cardTitle}>Workout</Text>
+				<Text style={styles.status}>Start or resume today's draft workout.</Text>
+				{workoutStatus === "error" ? (
+					<Text style={styles.error}>Could not start workout. Check API connectivity and active plan.</Text>
+				) : null}
+				<Pressable style={styles.primaryButton} onPress={() => void openWorkout()} disabled={workoutStatus === "loading"}>
+					<Text style={styles.primaryButtonText}>{workoutStatus === "loading" ? "Opening…" : workoutCta}</Text>
+				</Pressable>
 			</View>
 
 			{user ? (
@@ -172,6 +212,22 @@ const styles = StyleSheet.create({
 	status: {
 		color: colors.mutedText,
 		fontSize: 16,
+	},
+	error: {
+		color: colors.danger,
+		fontSize: 14,
+		lineHeight: 20,
+	},
+	primaryButton: {
+		alignItems: "center",
+		padding: spacing.md,
+		borderRadius: 999,
+		backgroundColor: colors.primary,
+	},
+	primaryButtonText: {
+		color: colors.background,
+		fontSize: 16,
+		fontWeight: "800",
 	},
 	secondaryButton: {
 		alignItems: "center",
