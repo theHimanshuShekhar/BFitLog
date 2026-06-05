@@ -629,11 +629,11 @@ Recent verification passed:
 
 # Immediate next tasks
 
-1. `[ ]` Replace plan media buttons with true inline embedded GIF/video players.
-2. `[ ]` Add workout history detail screen and edit/delete actions.
-3. `[ ]` Prototype PowerSync on a separate integration branch before expanding offline workout sync.
-4. `[ ]` Add multi-set add/remove controls in the workout draft screen.
-5. `[ ]` Add preferred substitute seed data and display.
+1. `[x]` Replace plan media buttons with true inline embedded GIF/video players.
+2. `[x]` Add workout history detail screen and edit/delete actions.
+3. `[x]` Prototype PowerSync on a separate integration branch before expanding offline workout sync.
+4. `[x]` Add multi-set add/remove controls in the workout draft screen.
+5. `[x]` Add preferred substitute seed data and display.
 
 # Verification commands
 
