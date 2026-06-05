@@ -12,6 +12,10 @@ import {
 } from "react-native";
 import { useAuth } from "@/auth/use-auth";
 import { formatDateTime, formatKg, formatSeconds } from "@/format";
+import {
+	getWorkoutDetailActions,
+	getWorkoutDetailTitle,
+} from "@/workouts/workout-actions";
 import { colors, spacing } from "@/theme";
 import {
 	completeWorkout,
@@ -128,6 +132,7 @@ export default function WorkoutScreen() {
 		);
 	}
 
+	const actions = getWorkoutDetailActions(workout.status);
 	const updateInput = (exerciseId: string, patch: Partial<ExerciseInput>) => {
 		setInputs((current) => ({
 			...current,
@@ -260,12 +265,15 @@ export default function WorkoutScreen() {
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
-			<Text style={styles.title}>
-				{workout.status === "completed" ? "Completed workout" : "Workout draft"}
-			</Text>
+			<Text style={styles.title}>{getWorkoutDetailTitle(workout.status)}</Text>
 			<Text style={styles.description}>
 				Started {formatDateTime(workout.startedAt)}
 			</Text>
+			{workout.completedAt ? (
+				<Text style={styles.description}>
+					Completed {formatDateTime(workout.completedAt)}
+				</Text>
+			) : null}
 			<TextInput
 				accessibilityLabel="Workout note"
 				value={workoutNote}
@@ -320,8 +328,14 @@ export default function WorkoutScreen() {
 						{exercise.substitutionNote ? (
 							<Text style={styles.status}>{exercise.substitutionNote}</Text>
 						) : null}
-						{exercise.sets[0] ? (
-							<Text style={styles.status}>{formatSet(exercise.sets[0])}</Text>
+						{exercise.sets.length ? (
+							<View>
+								{exercise.sets.map((set) => (
+									<Text key={set.id} style={styles.status}>
+										{formatSet(set)}
+									</Text>
+								))}
+							</View>
 						) : null}
 
 						<View style={styles.inputRow}>
@@ -437,28 +451,34 @@ export default function WorkoutScreen() {
 				}
 			/>
 
-			<Pressable
-				accessibilityRole="button"
-				style={styles.secondaryButton}
-				onPress={() => void saveWorkoutNote()}
-			>
-				<Text style={styles.secondaryButtonText}>Save workout note</Text>
-			</Pressable>
-			<Pressable
-				accessibilityRole="button"
-				style={styles.primaryButton}
-				onPress={() => void complete()}
-			>
-				<Text style={styles.primaryButtonText}>Complete workout</Text>
-			</Pressable>
-			<Pressable
-				accessibilityRole="button"
-				style={styles.secondaryButton}
-				onPress={() => void discard()}
-			>
-				<Text style={styles.secondaryButtonText}>Discard draft</Text>
-			</Pressable>
-			{workout.status === "completed" ? (
+			{actions.includes("save-note") ? (
+				<Pressable
+					accessibilityRole="button"
+					style={styles.secondaryButton}
+					onPress={() => void saveWorkoutNote()}
+				>
+					<Text style={styles.secondaryButtonText}>Save workout note</Text>
+				</Pressable>
+			) : null}
+			{actions.includes("complete") ? (
+				<Pressable
+					accessibilityRole="button"
+					style={styles.primaryButton}
+					onPress={() => void complete()}
+				>
+					<Text style={styles.primaryButtonText}>Complete workout</Text>
+				</Pressable>
+			) : null}
+			{actions.includes("discard") ? (
+				<Pressable
+					accessibilityRole="button"
+					style={styles.secondaryButton}
+					onPress={() => void discard()}
+				>
+					<Text style={styles.secondaryButtonText}>Discard draft</Text>
+				</Pressable>
+			) : null}
+			{actions.includes("delete") ? (
 				<Pressable
 					accessibilityRole="button"
 					style={styles.secondaryButton}

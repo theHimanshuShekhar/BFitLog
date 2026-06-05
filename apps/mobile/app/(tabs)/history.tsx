@@ -175,7 +175,7 @@ export default function HistoryScreen() {
 								accessibilityRole="link"
 								style={styles.secondaryButtonCompact}
 							>
-								<Text style={styles.secondaryButtonText}>View / edit</Text>
+								<Text style={styles.secondaryButtonText}>View details</Text>
 							</Pressable>
 						</Link>
 					</View>
