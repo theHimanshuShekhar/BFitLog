@@ -1,10 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { createElement, useCallback, useState } from "react";
 import {
 	ActivityIndicator,
+	Image,
 	Linking,
 	Pressable,
+	Platform,
 	ScrollView,
 	StyleSheet,
 	Text,
@@ -15,6 +17,7 @@ import { authClient } from "@/auth/auth-client";
 import { useAuth } from "@/auth/use-auth";
 import { formatSeconds } from "@/format";
 import { colors, layout, spacing } from "@/theme";
+import { getInlineMediaEmbed } from "@/training-media";
 
 const planCacheKey = "bfitlog:training-plan-template";
 
@@ -270,19 +273,46 @@ function ExerciseRow({ planned }: { planned: PlannedExercise }) {
 				</View>
 			) : null}
 			{exercise?.media.length ? (
-				<View style={styles.mediaRow}>
+				<View style={styles.mediaList}>
 					{exercise.media.map((media) => (
-						<Pressable
-							accessibilityRole="link"
-							key={media.id}
-							style={styles.mediaButton}
-							onPress={() => void Linking.openURL(media.url)}
-						>
-							<Text style={styles.mediaText}>{media.kind.toUpperCase()}</Text>
-						</Pressable>
+						<MediaPreview key={media.id} media={media} />
 					))}
 				</View>
 			) : null}
+		</View>
+	);
+}
+
+function MediaPreview({
+	media,
+}: {
+	media: { id: string; kind: "gif" | "video"; url: string };
+}) {
+	const embed = getInlineMediaEmbed(media);
+	return (
+		<View style={styles.mediaItem}>
+			{Platform.OS === "web" && embed?.type === "iframe"
+				? createElement("iframe", {
+						src: embed.url,
+						style: styles.webEmbed,
+						title: `${media.kind} demonstration`,
+						allowFullScreen: true,
+					})
+				: null}
+			{embed?.type === "image" ? (
+				<Image
+					source={{ uri: embed.url }}
+					style={styles.mediaImage}
+					accessibilityLabel={`${media.kind} demonstration`}
+				/>
+			) : null}
+			<Pressable
+				accessibilityRole="link"
+				style={styles.mediaButton}
+				onPress={() => void Linking.openURL(media.url)}
+			>
+				<Text style={styles.mediaText}>Open {media.kind.toUpperCase()}</Text>
+			</Pressable>
 		</View>
 	);
 }
@@ -351,7 +381,20 @@ const styles = StyleSheet.create({
 		marginTop: spacing.xs,
 	},
 	substituteBox: { gap: spacing.xs, marginTop: spacing.xs },
-	mediaRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.xs },
+	mediaList: { gap: spacing.sm, marginTop: spacing.xs },
+	mediaItem: { gap: spacing.xs },
+	webEmbed: {
+		width: "100%",
+		aspectRatio: 16 / 9,
+		borderWidth: 0,
+		borderRadius: 12,
+	},
+	mediaImage: {
+		width: "100%",
+		aspectRatio: 16 / 9,
+		borderRadius: 12,
+		backgroundColor: colors.card,
+	},
 	mediaButton: {
 		minHeight: layout.androidMinTouchTarget,
 		justifyContent: "center",
