@@ -12,3 +12,4 @@ coverage
 .drizzle
 *.log
 .pi-run/
+.playwright-mcp/
