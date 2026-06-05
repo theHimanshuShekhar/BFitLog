@@ -15,6 +15,7 @@ import { AddBodyWeightLogForm } from "@/body-weight/AddBodyWeightLogForm";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { formatKg } from "@/format";
 import { colors, layout, spacing } from "@/theme";
+import { blurActiveElement } from "@/web-focus";
 import {
 	getActivePlan,
 	getDraftWorkout,
@@ -231,13 +232,21 @@ export default function HomeScreen() {
 			) : null}
 
 			<Link href="/stats" asChild>
-				<Pressable accessibilityRole="link" style={styles.secondaryButton}>
+				<Pressable
+					accessibilityRole="link"
+					style={styles.secondaryButton}
+					onPress={blurActiveElement}
+				>
 					<Text style={styles.secondaryButtonText}>View stats</Text>
 				</Pressable>
 			</Link>
 
 			<Link href="/settings" asChild>
-				<Pressable accessibilityRole="link" style={styles.secondaryButton}>
+				<Pressable
+					accessibilityRole="link"
+					style={styles.secondaryButton}
+					onPress={blurActiveElement}
+				>
 					<Text style={styles.secondaryButtonText}>Open settings</Text>
 				</Pressable>
 			</Link>

@@ -18,6 +18,7 @@ import {
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { formatKg, integerFormatter } from "@/format";
 import { colors, layout, spacing } from "@/theme";
+import { blurActiveElement } from "@/web-focus";
 import { getWorkoutStats, type WorkoutStats } from "@/workouts/workout-api";
 
 const ranges: ChartRange[] = ["30d", "90d", "1y", "all"];
@@ -146,7 +147,11 @@ export default function StatsScreen() {
 			</View>
 
 			<Link href="/" asChild>
-				<Pressable accessibilityRole="link" style={styles.secondaryButton}>
+				<Pressable
+					accessibilityRole="link"
+					style={styles.secondaryButton}
+					onPress={blurActiveElement}
+				>
 					<Text style={styles.secondaryButtonText}>Back home</Text>
 				</Pressable>
 			</Link>
