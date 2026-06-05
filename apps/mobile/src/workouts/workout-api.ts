@@ -178,7 +178,7 @@ export async function startDraftWorkout(
 export async function saveExerciseSet(
 	workoutId: string,
 	exercise: WorkoutExercise,
-	set: { weightKg?: number; reps?: number; durationSeconds?: number },
+	sets: Array<{ setIndex: number; weightKg?: number; reps?: number; durationSeconds?: number }>,
 	options: {
 		note?: string;
 		performedExerciseId?: string;
@@ -196,7 +196,7 @@ export async function saveExerciseSet(
 				note: options.note?.trim() || undefined,
 				performedExerciseId: options.performedExerciseId?.trim() || undefined,
 				substitutionNote: options.substitutionNote?.trim() || undefined,
-				sets: [{ setIndex: 1, ...set }],
+				sets,
 			}),
 		},
 	);

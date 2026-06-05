@@ -16,6 +16,14 @@ import {
 	getWorkoutDetailActions,
 	getWorkoutDetailTitle,
 } from "@/workouts/workout-actions";
+import {
+	addWorkoutSetInput,
+	buildWorkoutSetPayload,
+	emptyWorkoutSetInput,
+	removeWorkoutSetInput,
+	workoutSetInputsFromSavedSets,
+	type WorkoutSetInput,
+} from "@/workouts/workout-set-inputs";
 import { colors, spacing } from "@/theme";
 import {
 	completeWorkout,
@@ -32,9 +40,7 @@ import {
 } from "@/workouts/workout-api";
 
 type ExerciseInput = {
-	weightKg: string;
-	reps: string;
-	durationSeconds: string;
+	sets: WorkoutSetInput[];
 	note: string;
 	skipReason: string;
 	performedExerciseId: string;
@@ -140,21 +146,55 @@ export default function WorkoutScreen() {
 		}));
 	};
 
+	const updateSetInput = (
+		exerciseId: string,
+		setIndex: number,
+		patch: Partial<WorkoutSetInput>,
+	) => {
+		setInputs((current) => {
+			const input = { ...emptyInput, ...current[exerciseId] };
+			return {
+				...current,
+				[exerciseId]: {
+					...input,
+					sets: input.sets.map((set, index) =>
+						index === setIndex ? { ...set, ...patch } : set,
+					),
+				},
+			};
+		});
+	};
+
+	const addSetInput = (exerciseId: string) => {
+		setInputs((current) => {
+			const input = { ...emptyInput, ...current[exerciseId] };
+			return {
+				...current,
+				[exerciseId]: { ...input, sets: addWorkoutSetInput(input.sets) },
+			};
+		});
+	};
+
+	const removeSetInput = (exerciseId: string, setIndex: number) => {
+		setInputs((current) => {
+			const input = { ...emptyInput, ...current[exerciseId] };
+			return {
+				...current,
+				[exerciseId]: {
+					...input,
+					sets: removeWorkoutSetInput(input.sets, setIndex),
+				},
+			};
+		});
+	};
+
 	const saveExercise = async (exercise: WorkoutExercise) => {
 		const input = inputs[exercise.id];
 		if (!input) return;
 		setStatus("saving");
 		try {
-			const set: {
-				weightKg?: number;
-				reps?: number;
-				durationSeconds?: number;
-			} = {};
-			if (input.weightKg) set.weightKg = Number(input.weightKg);
-			if (input.reps) set.reps = Number(input.reps);
-			if (input.durationSeconds)
-				set.durationSeconds = Number(input.durationSeconds);
-			const updated = await saveExerciseSet(workout.id, exercise, set, {
+			const sets = buildWorkoutSetPayload(input.sets);
+			const updated = await saveExerciseSet(workout.id, exercise, sets, {
 				note: input.note,
 				performedExerciseId: input.performedExerciseId,
 				substitutionNote: input.substitutionNote,
@@ -328,54 +368,68 @@ export default function WorkoutScreen() {
 						{exercise.substitutionNote ? (
 							<Text style={styles.status}>{exercise.substitutionNote}</Text>
 						) : null}
-						{exercise.sets.length ? (
-							<View>
-								{exercise.sets.map((set) => (
-									<Text key={set.id} style={styles.status}>
-										{formatSet(set)}
-									</Text>
-								))}
+						{input.sets.map((setInput, setInputIndex) => (
+							<View key={setInput.setIndex} style={styles.setCard}>
+								<Text style={styles.status}>Set {setInputIndex + 1}</Text>
+								<View style={styles.inputRow}>
+									<TextInput
+										accessibilityLabel={`Set ${setInputIndex + 1} weight in kilograms`}
+										value={setInput.weightKg}
+										onChangeText={(value) =>
+											updateSetInput(exercise.id, setInputIndex, {
+												weightKg: value,
+											})
+										}
+										placeholder="e.g. 80.0…"
+										placeholderTextColor={colors.mutedText}
+										inputMode="decimal"
+										keyboardType="decimal-pad"
+										style={styles.input}
+									/>
+									<TextInput
+										accessibilityLabel={`Set ${setInputIndex + 1} reps`}
+										value={setInput.reps}
+										onChangeText={(value) =>
+											updateSetInput(exercise.id, setInputIndex, { reps: value })
+										}
+										placeholder="e.g. 8…"
+										placeholderTextColor={colors.mutedText}
+										inputMode="numeric"
+										keyboardType="number-pad"
+										style={styles.input}
+									/>
+									<TextInput
+										accessibilityLabel={`Set ${setInputIndex + 1} duration in seconds`}
+										value={setInput.durationSeconds}
+										onChangeText={(value) =>
+											updateSetInput(exercise.id, setInputIndex, {
+												durationSeconds: value,
+											})
+										}
+										placeholder="e.g. 60…"
+										placeholderTextColor={colors.mutedText}
+										inputMode="numeric"
+										keyboardType="number-pad"
+										style={styles.input}
+									/>
+								</View>
+								<Pressable
+									accessibilityRole="button"
+									style={styles.secondaryButtonCompact}
+									onPress={() => removeSetInput(exercise.id, setInputIndex)}
+								>
+									<Text style={styles.secondaryButtonText}>Remove set</Text>
+								</Pressable>
 							</View>
-						) : null}
+						))}
 
-						<View style={styles.inputRow}>
-							<TextInput
-								accessibilityLabel="Weight in kilograms"
-								value={input.weightKg}
-								onChangeText={(value) =>
-									updateInput(exercise.id, { weightKg: value })
-								}
-								placeholder="e.g. 80.0…"
-								placeholderTextColor={colors.mutedText}
-								inputMode="decimal"
-								keyboardType="decimal-pad"
-								style={styles.input}
-							/>
-							<TextInput
-								accessibilityLabel="Reps"
-								value={input.reps}
-								onChangeText={(value) =>
-									updateInput(exercise.id, { reps: value })
-								}
-								placeholder="e.g. 8…"
-								placeholderTextColor={colors.mutedText}
-								inputMode="numeric"
-								keyboardType="number-pad"
-								style={styles.input}
-							/>
-							<TextInput
-								accessibilityLabel="Duration in seconds"
-								value={input.durationSeconds}
-								onChangeText={(value) =>
-									updateInput(exercise.id, { durationSeconds: value })
-								}
-								placeholder="e.g. 60…"
-								placeholderTextColor={colors.mutedText}
-								inputMode="numeric"
-								keyboardType="number-pad"
-								style={styles.input}
-							/>
-						</View>
+						<Pressable
+							accessibilityRole="button"
+							style={styles.secondaryButtonCompact}
+							onPress={() => addSetInput(exercise.id)}
+						>
+							<Text style={styles.secondaryButtonText}>Add set</Text>
+						</Pressable>
 
 						<TextInput
 							accessibilityLabel="Exercise note"
@@ -529,9 +583,7 @@ function Checklist({
 }
 
 const emptyInput: ExerciseInput = {
-	weightKg: "",
-	reps: "",
-	durationSeconds: "",
+	sets: [{ ...emptyWorkoutSetInput }],
 	note: "",
 	skipReason: "",
 	performedExerciseId: "",
@@ -539,13 +591,8 @@ const emptyInput: ExerciseInput = {
 };
 
 function inputFromExercise(exercise: WorkoutExercise): ExerciseInput {
-	const firstSet = exercise.sets[0];
 	return {
-		weightKg: firstSet?.weightKg ? String(firstSet.weightKg) : "",
-		reps: firstSet?.reps ? String(firstSet.reps) : "",
-		durationSeconds: firstSet?.durationSeconds
-			? String(firstSet.durationSeconds)
-			: "",
+		sets: workoutSetInputsFromSavedSets(exercise.sets),
 		note: exercise.note ?? "",
 		skipReason:
 			exercise.status === "skipped" ? (exercise.skipReason ?? "") : "",
@@ -601,6 +648,7 @@ const styles = StyleSheet.create({
 	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
 	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
 	checklistRow: { paddingVertical: spacing.xs },
+	setCard: { gap: spacing.xs },
 	inputRow: { flexDirection: "row", gap: spacing.sm },
 	input: {
 		flex: 1,
