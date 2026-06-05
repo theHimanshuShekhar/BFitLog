@@ -24,6 +24,7 @@ import {
 	workoutSetInputsFromSavedSets,
 	type WorkoutSetInput,
 } from "@/workouts/workout-set-inputs";
+import { formatWorkoutSubstituteLabel } from "@/workouts/workout-substitutes";
 import { colors, spacing } from "@/theme";
 import {
 	completeWorkout,
@@ -368,6 +369,28 @@ export default function WorkoutScreen() {
 						{exercise.substitutionNote ? (
 							<Text style={styles.status}>{exercise.substitutionNote}</Text>
 						) : null}
+						{exercise.substitutes.length ? (
+							<View style={styles.substituteBox}>
+								<Text style={styles.status}>Preferred substitutes</Text>
+								{exercise.substitutes.map((substitute) => (
+									<Pressable
+										key={substitute.exercise?.id ?? substitute.notes ?? "substitute"}
+										accessibilityRole="button"
+										style={styles.secondaryButtonCompact}
+										onPress={() =>
+											updateInput(exercise.id, {
+												performedExerciseId: substitute.exercise?.id ?? "",
+												substitutionNote: substitute.notes ?? "",
+											})
+										}
+									>
+										<Text style={styles.secondaryButtonText}>
+											{formatWorkoutSubstituteLabel(substitute)}
+										</Text>
+									</Pressable>
+								))}
+							</View>
+						) : null}
 						{input.sets.map((setInput, setInputIndex) => (
 							<View key={setInput.setIndex} style={styles.setCard}>
 								<Text style={styles.status}>Set {setInputIndex + 1}</Text>
@@ -649,6 +672,7 @@ const styles = StyleSheet.create({
 	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
 	checklistRow: { paddingVertical: spacing.xs },
 	setCard: { gap: spacing.xs },
+	substituteBox: { gap: spacing.xs },
 	inputRow: { flexDirection: "row", gap: spacing.sm },
 	input: {
 		flex: 1,

@@ -83,6 +83,15 @@ describe("workout routes", () => {
 			plannedExerciseTarget: "3 × 8-10",
 			sets: [],
 		});
+		expect(started.workout.exercises[0].substitutes).toEqual([
+			expect.objectContaining({
+				exercise: expect.objectContaining({
+					id: "chest-press-machine",
+					name: "Chest Press Machine",
+				}),
+				notes: "Machine chest press if the Smith machine is unavailable.",
+			}),
+		]);
 		expect(started.workout.checklist).toHaveLength(3);
 
 		const draft = await app.request("/workouts/draft", { headers: { cookie } });

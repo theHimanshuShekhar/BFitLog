@@ -20,6 +20,19 @@ export type WorkoutExercise = {
 		reps: number | null;
 		durationSeconds: number | null;
 	}>;
+	substitutes: Array<{
+		exercise: {
+			id: string;
+			name: string;
+			equipment: string | null;
+			trackingType: "reps_weight" | "duration";
+		} | null;
+		targetSets: number | null;
+		targetMinReps: number | null;
+		targetMaxReps: number | null;
+		targetDurationSeconds: number | null;
+		notes: string | null;
+	}>;
 };
 
 export type WorkoutHistoryItem = {

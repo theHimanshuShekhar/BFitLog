@@ -507,6 +507,66 @@ const substitutes = [
 		"leg-curl",
 		"Use available leg curl machine variation.",
 	],
+	[
+		"day-1-upper-a-dumbbell-shoulder-press",
+		"incline-smith-machine-press",
+		"Use incline Smith press if dumbbells are unavailable.",
+	],
+	[
+		"day-1-upper-a-chest-press-machine",
+		"smith-machine-bench-press",
+		"Smith machine bench press if the chest press machine is unavailable.",
+	],
+	[
+		"day-2-lower-a-smith-machine-squat",
+		"smith-machine-front-squat",
+		"Use front squat variation if back squat setup is uncomfortable.",
+	],
+	[
+		"day-2-lower-a-leg-extension",
+		"bulgarian-split-squat",
+		"Use split squats if the leg extension machine is unavailable.",
+	],
+	[
+		"day-2-lower-a-calf-raises",
+		"bulgarian-split-squat",
+		"Use split squats as a lower-body alternative if calf raises are unavailable.",
+	],
+	[
+		"day-2-lower-a-plank",
+		"kneeling-cable-crunch",
+		"Use cable crunches if planks are uncomfortable.",
+	],
+	[
+		"day-3-upper-b-cable-face-pull",
+		"seated-cable-row",
+		"Use cable rows if the rope attachment is unavailable.",
+	],
+	[
+		"day-3-upper-b-cable-curl",
+		"dumbbell-row",
+		"Use dumbbell rows if the cable station is unavailable.",
+	],
+	[
+		"day-3-upper-b-triceps-pushdown",
+		"chest-press-machine",
+		"Use chest press machine if the cable station is unavailable.",
+	],
+	[
+		"day-4-lower-b-smith-machine-deadlift",
+		"smith-machine-squat",
+		"Use Smith squats if deadlifts are unavailable.",
+	],
+	[
+		"day-4-lower-b-bulgarian-split-squat",
+		"leg-extension",
+		"Use leg extensions if split squats are painful or unstable.",
+	],
+	[
+		"day-4-lower-b-kneeling-cable-crunch",
+		"plank",
+		"Use planks if the cable station is unavailable.",
+	],
 ] as const;
 
 export async function seedTrainingPlan() {

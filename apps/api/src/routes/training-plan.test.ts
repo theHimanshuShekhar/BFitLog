@@ -49,6 +49,12 @@ describe("training plan routes", () => {
 		expect(body.template.days).toHaveLength(4);
 		expect(body.template.days[0].exercises).toHaveLength(5);
 		expect(body.template.days[0].exercises[0].exercise.media).toHaveLength(2);
+		expect(
+			body.template.days[0].exercises.every(
+				(exercise: { substitutes: unknown[] }) =>
+					exercise.substitutes.length > 0,
+			),
+		).toBe(true);
 	});
 
 	it("creates and returns the current user's active default plan", async () => {

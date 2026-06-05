@@ -7,6 +7,7 @@ import {
 	exerciseLogs,
 	exercises,
 	plannedExercises,
+	plannedExerciseSubstitutes,
 	setLogs,
 	trainingDayChecklistItems,
 	trainingDays,
@@ -588,14 +589,24 @@ async function loadWorkout(workoutId: string, userId: string) {
 	]);
 
 	const exerciseIds = exerciseRows.map((row) => row.id);
-	const sets = exerciseIds.length
-		? await db
-				.select()
-				.from(setLogs)
-				.where(inArray(setLogs.exerciseLogId, exerciseIds))
-				.orderBy(asc(setLogs.setIndex))
-		: [];
+	const plannedExerciseIds = exerciseRows.flatMap((row) =>
+		row.plannedExerciseId ? [row.plannedExerciseId] : [],
+	);
+	const [sets, substituteRows] = await Promise.all([
+		exerciseIds.length
+			? db
+					.select()
+					.from(setLogs)
+					.where(inArray(setLogs.exerciseLogId, exerciseIds))
+					.orderBy(asc(setLogs.setIndex))
+			: [],
+		loadSubstitutes(plannedExerciseIds),
+	]);
 	const setsByExercise = groupBy(sets, (set) => set.exerciseLogId);
+	const substitutesByPlannedExercise = groupBy(
+		substituteRows,
+		(row) => row.plannedExerciseId,
+	);
 
 	return {
 		id: workout.id,
@@ -607,7 +618,13 @@ async function loadWorkout(workoutId: string, userId: string) {
 		completedAt: workout.completedAt?.toISOString() ?? null,
 		note: workout.note,
 		exercises: exerciseRows.map((exercise) =>
-			serializeExerciseLog(exercise, setsByExercise.get(exercise.id) ?? []),
+			serializeExerciseLog(
+				exercise,
+				setsByExercise.get(exercise.id) ?? [],
+				exercise.plannedExerciseId
+					? (substitutesByPlannedExercise.get(exercise.plannedExerciseId) ?? [])
+					: [],
+			),
 		),
 		checklist: checklistRows.map((item) => ({
 			checklistItemId: item.checklistItemId,
@@ -625,17 +642,21 @@ async function loadExerciseLog(exerciseLogId: string) {
 		.from(exerciseLogs)
 		.where(eq(exerciseLogs.id, exerciseLogId));
 	if (!exercise) return null;
-	const sets = await db
-		.select()
-		.from(setLogs)
-		.where(eq(setLogs.exerciseLogId, exerciseLogId))
-		.orderBy(asc(setLogs.setIndex));
-	return serializeExerciseLog(exercise, sets);
+	const [sets, substituteRows] = await Promise.all([
+		db
+			.select()
+			.from(setLogs)
+			.where(eq(setLogs.exerciseLogId, exerciseLogId))
+			.orderBy(asc(setLogs.setIndex)),
+		loadSubstitutes(exercise.plannedExerciseId ? [exercise.plannedExerciseId] : []),
+	]);
+	return serializeExerciseLog(exercise, sets, substituteRows);
 }
 
 function serializeExerciseLog(
 	exercise: typeof exerciseLogs.$inferSelect,
 	sets: Array<typeof setLogs.$inferSelect>,
+	substitutes: SubstituteRow[] = [],
 ) {
 	return {
 		id: exercise.id,
@@ -659,7 +680,51 @@ function serializeExerciseLog(
 			reps: set.reps,
 			durationSeconds: set.durationSeconds,
 		})),
+		substitutes: substitutes.map((substitute) => ({
+			exercise: {
+				id: substitute.exerciseId,
+				name: substitute.exerciseName,
+				equipment: substitute.exerciseEquipment,
+				trackingType: substitute.exerciseTrackingType,
+			},
+			targetSets: substitute.targetSets,
+			targetMinReps: substitute.targetMinReps,
+			targetMaxReps: substitute.targetMaxReps,
+			targetDurationSeconds: substitute.targetDurationSeconds,
+			notes: substitute.notes,
+		})),
 	};
+}
+
+type SubstituteRow = Awaited<ReturnType<typeof loadSubstitutes>>[number];
+
+async function loadSubstitutes(plannedExerciseIds: string[]) {
+	if (plannedExerciseIds.length === 0) return [];
+	return db
+		.select({
+			plannedExerciseId: plannedExerciseSubstitutes.plannedExerciseId,
+			exerciseId: plannedExerciseSubstitutes.exerciseId,
+			targetSets: plannedExerciseSubstitutes.targetSets,
+			targetMinReps: plannedExerciseSubstitutes.targetMinReps,
+			targetMaxReps: plannedExerciseSubstitutes.targetMaxReps,
+			targetDurationSeconds:
+				plannedExerciseSubstitutes.targetDurationSeconds,
+			notes: plannedExerciseSubstitutes.notes,
+			exerciseName: exercises.name,
+			exerciseEquipment: exercises.equipment,
+			exerciseTrackingType: exercises.trackingType,
+		})
+		.from(plannedExerciseSubstitutes)
+		.innerJoin(
+			exercises,
+			eq(exercises.id, plannedExerciseSubstitutes.exerciseId),
+		)
+		.where(
+			inArray(
+				plannedExerciseSubstitutes.plannedExerciseId,
+				plannedExerciseIds,
+			),
+		);
 }
 
 function hitsTopRepRange(target: string, reps: number) {
