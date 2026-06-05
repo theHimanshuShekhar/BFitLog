@@ -11,6 +11,7 @@ import {
 	TextInput,
 	View,
 } from "react-native";
+import { isDefaultAdminUser } from "@/auth/default-admin-onboarding";
 import { useAuth } from "@/auth/use-auth";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { colors, layout, spacing } from "@/theme";
@@ -94,8 +95,10 @@ export default function HistoryScreen() {
 
 	useFocusEffect(
 		useCallback(() => {
+			if (session.isPending || !session.data) return;
+			if (isDefaultAdminUser(session.data.user)) return;
 			void load();
-		}, [load]),
+		}, [load, session.data, session.isPending]),
 	);
 
 	if (session.isPending) {

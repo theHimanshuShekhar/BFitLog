@@ -1,4 +1,5 @@
 import type { BodyWeightGoal, BodyWeightLog } from "@bfitlog/shared";
+import { buildAuthRequestInit } from "../api/auth-request";
 import { apiBaseUrl } from "../api/client";
 import { authClient } from "../auth/auth-client";
 import type { BodyWeightSyncClient } from "./body-weight-repository";
@@ -7,12 +8,7 @@ type GoalResponse = { goal: BodyWeightGoal | null };
 type LogsResponse = { logs: BodyWeightLog[] };
 
 async function authFetch(path: string, init: RequestInit = {}) {
-	const cookie = authClient.getCookie();
-	const headers = new Headers(init.headers);
-	if (cookie) headers.set("Cookie", cookie);
-
-	const requestInit: RequestInit = { ...init, headers };
-	if (cookie) requestInit.credentials = "omit";
+	const requestInit = buildAuthRequestInit(authClient.getCookie(), init);
 
 	const response = await fetch(`${apiBaseUrl}${path}`, requestInit);
 

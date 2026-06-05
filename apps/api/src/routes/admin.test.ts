@@ -46,6 +46,41 @@ describe("admin routes", () => {
 		expect(response.status).toBe(401);
 	});
 
+	it("blocks the default admin from app data until the first real user is created", async () => {
+		await seedTrainingPlan();
+		const { app, cookie } = await createDefaultAdminSession();
+
+		const plan = await app.request("/training-plan/template", {
+			headers: { cookie },
+		});
+		expect(plan.status).toBe(403);
+
+		const users = await app.request("/admin/users", { headers: { cookie } });
+		expect(users.status).toBe(200);
+
+		const create = await app.request("/admin/users", {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				username: "realadmin",
+				displayName: "Real Admin",
+				password: "password1234",
+			}),
+		});
+		expect(create.status).toBe(201);
+		const realLogin = await app.request("/api/auth/sign-in/username", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ username: "realadmin", password: "password1234" }),
+		});
+		const realCookie = realLogin.headers.get("set-cookie") ?? "";
+
+		const allowedPlan = await app.request("/training-plan/template", {
+			headers: { cookie: realCookie },
+		});
+		expect(allowedPlan.status).toBe(200);
+	});
+
 	it("lets the default admin create the first real admin and deletes the default admin", async () => {
 		const { app, cookie } = await createDefaultAdminSession();
 

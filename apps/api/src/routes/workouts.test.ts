@@ -8,10 +8,25 @@ async function createSessionWithActivePlan() {
 	await seedTrainingPlan();
 	const app = createApp();
 	await ensureDefaultAdmin();
-	const login = await app.request("/api/auth/sign-in/username", {
+	const defaultLogin = await app.request("/api/auth/sign-in/username", {
 		method: "POST",
 		headers: { "content-type": "application/json" },
 		body: JSON.stringify({ username: "admin", password: "admin" }),
+	});
+	const defaultCookie = defaultLogin.headers.get("set-cookie") ?? "";
+	await app.request("/admin/users", {
+		method: "POST",
+		headers: { "content-type": "application/json", cookie: defaultCookie },
+		body: JSON.stringify({
+			username: "realadmin",
+			displayName: "Real Admin",
+			password: "password1234",
+		}),
+	});
+	const login = await app.request("/api/auth/sign-in/username", {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({ username: "realadmin", password: "password1234" }),
 	});
 	const loginBody = await login.clone().json();
 	const cookie = login.headers.get("set-cookie") ?? "";

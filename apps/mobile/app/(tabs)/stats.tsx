@@ -9,6 +9,7 @@ import {
 	Text,
 	View,
 } from "react-native";
+import { isDefaultAdminUser } from "@/auth/default-admin-onboarding";
 import { useAuth } from "@/auth/use-auth";
 import {
 	BodyWeightChart,
@@ -29,6 +30,9 @@ export default function StatsScreen() {
 
 	useFocusEffect(
 		useCallback(() => {
+			if (session.isPending || !session.data) return undefined;
+			if (isDefaultAdminUser(session.data.user)) return undefined;
+
 			let active = true;
 			const repository = getBodyWeightRepository();
 			repository
@@ -49,7 +53,7 @@ export default function StatsScreen() {
 			return () => {
 				active = false;
 			};
-		}, []),
+		}, [session.data, session.isPending]),
 	);
 
 	if (session.isPending) {

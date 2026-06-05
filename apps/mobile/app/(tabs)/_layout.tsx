@@ -1,5 +1,7 @@
-import { Tabs } from "expo-router";
-import { type ColorValue, Text } from "react-native";
+import { Redirect, Tabs } from "expo-router";
+import { ActivityIndicator, type ColorValue, Text, View } from "react-native";
+import { isDefaultAdminUser } from "../../src/auth/default-admin-onboarding";
+import { useAuth } from "../../src/auth/use-auth";
 import { colors } from "../../src/theme";
 
 function TabIcon({ color, label }: { color: ColorValue; label: string }) {
@@ -7,6 +9,27 @@ function TabIcon({ color, label }: { color: ColorValue; label: string }) {
 }
 
 export default function TabsLayout() {
+	const session = useAuth();
+
+	if (session.isPending) {
+		return (
+			<View
+				style={{
+					flex: 1,
+					alignItems: "center",
+					justifyContent: "center",
+					backgroundColor: colors.background,
+				}}
+			>
+				<ActivityIndicator color={colors.primary} />
+			</View>
+		);
+	}
+
+	if (!session.data) return <Redirect href="/login" />;
+	if (isDefaultAdminUser(session.data.user))
+		return <Redirect href="/first-user" />;
+
 	return (
 		<Tabs
 			screenOptions={{

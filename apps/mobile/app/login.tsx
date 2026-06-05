@@ -9,6 +9,7 @@ import {
 	View,
 } from "react-native";
 import { authClient } from "../src/auth/auth-client";
+import { routeAfterLogin } from "../src/auth/default-admin-onboarding";
 import { colors, spacing } from "../src/theme";
 
 export default function LoginScreen() {
@@ -21,7 +22,7 @@ export default function LoginScreen() {
 		try {
 			const result = await authClient.signIn.username({ username, password });
 			if (result.error) throw new Error(result.error.message ?? "Login failed");
-			router.replace("/");
+			router.replace(routeAfterLogin(result.data?.user));
 		} catch (error) {
 			Alert.alert(
 				"Login failed",

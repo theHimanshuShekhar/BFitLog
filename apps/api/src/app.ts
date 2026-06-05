@@ -1,3 +1,4 @@
+import { count, eq, ne } from "drizzle-orm";
 import { auth } from "./auth/auth.js";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -8,6 +9,9 @@ import { healthRoutes } from "./routes/health.js";
 import { setupRoutes } from "./routes/setup.js";
 import { trainingPlanRoutes } from "./routes/training-plan.js";
 import { workoutRoutes } from "./routes/workouts.js";
+import { defaultAdminUsername } from "./bootstrap.js";
+import { createDb } from "./db/client.js";
+import { user } from "./db/schema.js";
 import { readEnv } from "./env.js";
 
 type Variables = {
@@ -20,6 +24,10 @@ type AppOptions = {
 };
 
 const authRateLimit = new Map<string, { count: number; resetAt: number }>();
+const db = createDb(
+	process.env.DATABASE_URL ??
+		"postgres://bfitlog:bfitlog@localhost:5432/bfitlog",
+);
 
 export function createApp(options: AppOptions = {}) {
 	const app = new Hono<{ Variables: Variables }>();
@@ -77,6 +85,44 @@ export function createApp(options: AppOptions = {}) {
 		c.set("session", session?.session ?? null);
 
 		await next();
+	});
+
+	app.use("*", async (c, next) => {
+		const currentUser = c.get("user") as { username?: string } | null;
+		if (currentUser?.username !== defaultAdminUsername) {
+			await next();
+			return;
+		}
+
+		const [realUserCount] = await db
+			.select({ value: count() })
+			.from(user)
+			.where(ne(user.username, defaultAdminUsername));
+		if ((realUserCount?.value ?? 0) > 0) {
+			await next();
+			return;
+		}
+
+		const path = new URL(c.req.url).pathname;
+		const canBootstrapFirstUser =
+			path === "/admin/users" &&
+			(c.req.method === "GET" || c.req.method === "POST");
+		const isAlwaysAllowed =
+			path === "/health" ||
+			path === "/setup/status" ||
+			path.startsWith("/api/auth/");
+
+		if (canBootstrapFirstUser || isAlwaysAllowed) {
+			await next();
+			return;
+		}
+
+		return c.json(
+			{
+				error: "Create your first real admin user before using the app.",
+			},
+			403,
+		);
 	});
 
 	app.on(["POST", "GET"], "/api/auth/*", (c) => {

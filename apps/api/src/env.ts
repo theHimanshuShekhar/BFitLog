@@ -25,6 +25,8 @@ export function readEnv(env = process.env): ApiEnv {
 			: []),
 	]);
 
+	const secureCookies = env.BETTER_AUTH_SECURE_COOKIES;
+
 	return {
 		port: Number(env.PORT ?? 3000),
 		corsAllowedOrigins:
@@ -35,8 +37,9 @@ export function readEnv(env = process.env): ApiEnv {
 					: [],
 		betterAuthTrustedOrigins,
 		useSecureCookies:
-			env.BETTER_AUTH_SECURE_COOKIES === "true" ||
-			env.NODE_ENV === "production",
+			secureCookies === undefined
+				? env.NODE_ENV === "production"
+				: secureCookies === "true",
 	};
 }
 
