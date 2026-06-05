@@ -2,6 +2,7 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import {
 	ActivityIndicator,
+	Alert,
 	Pressable,
 	ScrollView,
 	StyleSheet,
@@ -10,6 +11,7 @@ import {
 	View,
 } from "react-native";
 import { useAuth } from "@/auth/use-auth";
+import { formatDateTime, formatKg, formatSeconds } from "@/format";
 import { colors, spacing } from "@/theme";
 import {
 	completeWorkout,
@@ -36,6 +38,14 @@ type ExerciseInput = {
 };
 
 type RestTimer = { exerciseName: string; remainingSeconds: number } | null;
+
+function confirmDestructive(message: string) {
+	if (typeof window !== "undefined" && typeof window.confirm === "function") {
+		return window.confirm(message);
+	}
+	Alert.alert("Confirm", message);
+	return true;
+}
 
 export default function WorkoutScreen() {
 	const params = useLocalSearchParams<{ workoutId?: string }>();
@@ -97,6 +107,7 @@ export default function WorkoutScreen() {
 					<Text style={styles.description}>{error}</Text>
 				</View>
 				<Pressable
+					accessibilityRole="button"
 					style={styles.secondaryButton}
 					onPress={() => void loadDraft()}
 				>
@@ -203,6 +214,7 @@ export default function WorkoutScreen() {
 	};
 
 	const removeWorkout = async () => {
+		if (!confirmDestructive("Delete this workout?")) return;
 		setStatus("saving");
 		try {
 			await deleteWorkout(workout.id);
@@ -231,6 +243,7 @@ export default function WorkoutScreen() {
 	};
 
 	const discard = async () => {
+		if (!confirmDestructive("Discard this draft workout?")) return;
 		setStatus("saving");
 		try {
 			await discardWorkout(workout.id);
@@ -251,12 +264,13 @@ export default function WorkoutScreen() {
 				{workout.status === "completed" ? "Completed workout" : "Workout draft"}
 			</Text>
 			<Text style={styles.description}>
-				Started {new Date(workout.startedAt).toLocaleString()}
+				Started {formatDateTime(workout.startedAt)}
 			</Text>
 			<TextInput
+				accessibilityLabel="Workout note"
 				value={workoutNote}
 				onChangeText={setWorkoutNote}
-				placeholder="Workout note"
+				placeholder="Workout note…"
 				placeholderTextColor={colors.mutedText}
 				style={styles.fullInput}
 				multiline
@@ -269,9 +283,11 @@ export default function WorkoutScreen() {
 				<View style={styles.card}>
 					<Text style={styles.cardTitle}>Rest timer</Text>
 					<Text style={styles.status}>
-						Rest after {restTimer.exerciseName}: {restTimer.remainingSeconds}s
+						Rest after {restTimer.exerciseName}:{" "}
+						{formatSeconds(restTimer.remainingSeconds)}
 					</Text>
 					<Pressable
+						accessibilityRole="button"
 						style={styles.secondaryButton}
 						onPress={() => setRestTimer(null)}
 					>
@@ -310,86 +326,99 @@ export default function WorkoutScreen() {
 
 						<View style={styles.inputRow}>
 							<TextInput
+								accessibilityLabel="Weight in kilograms"
 								value={input.weightKg}
 								onChangeText={(value) =>
 									updateInput(exercise.id, { weightKg: value })
 								}
-								placeholder="kg"
+								placeholder="e.g. 80.0…"
 								placeholderTextColor={colors.mutedText}
+								inputMode="decimal"
 								keyboardType="decimal-pad"
 								style={styles.input}
 							/>
 							<TextInput
+								accessibilityLabel="Reps"
 								value={input.reps}
 								onChangeText={(value) =>
 									updateInput(exercise.id, { reps: value })
 								}
-								placeholder="reps"
+								placeholder="e.g. 8…"
 								placeholderTextColor={colors.mutedText}
+								inputMode="numeric"
 								keyboardType="number-pad"
 								style={styles.input}
 							/>
 							<TextInput
+								accessibilityLabel="Duration in seconds"
 								value={input.durationSeconds}
 								onChangeText={(value) =>
 									updateInput(exercise.id, { durationSeconds: value })
 								}
-								placeholder="sec"
+								placeholder="e.g. 60…"
 								placeholderTextColor={colors.mutedText}
+								inputMode="numeric"
 								keyboardType="number-pad"
 								style={styles.input}
 							/>
 						</View>
 
 						<TextInput
+							accessibilityLabel="Exercise note"
 							value={input.note}
 							onChangeText={(value) =>
 								updateInput(exercise.id, { note: value })
 							}
-							placeholder="Exercise note"
+							placeholder="e.g. Smooth tempo…"
 							placeholderTextColor={colors.mutedText}
 							style={styles.fullInput}
 							multiline
 						/>
 
 						<TextInput
+							accessibilityLabel="Substitute exercise id"
 							value={input.performedExerciseId}
 							onChangeText={(value) =>
 								updateInput(exercise.id, { performedExerciseId: value })
 							}
-							placeholder="Substitute exercise ID (optional)"
+							placeholder="e.g. exercise-id…"
 							placeholderTextColor={colors.mutedText}
 							style={styles.fullInput}
+							autoCorrect={false}
 						/>
 
 						<TextInput
+							accessibilityLabel="Substitution note"
 							value={input.substitutionNote}
 							onChangeText={(value) =>
 								updateInput(exercise.id, { substitutionNote: value })
 							}
-							placeholder="Substitution note"
+							placeholder="Substitution note…"
 							placeholderTextColor={colors.mutedText}
 							style={styles.fullInput}
 						/>
 
 						<TextInput
+							accessibilityLabel="Skip reason"
 							value={input.skipReason}
 							onChangeText={(value) =>
 								updateInput(exercise.id, { skipReason: value })
 							}
-							placeholder="Skip reason"
+							placeholder="Skip reason…"
 							placeholderTextColor={colors.mutedText}
 							style={styles.fullInput}
 						/>
 
 						<View style={styles.buttonRow}>
 							<Pressable
+								accessibilityRole="button"
 								style={styles.primaryButton}
 								onPress={() => void saveExercise(exercise)}
 							>
 								<Text style={styles.primaryButtonText}>Save set</Text>
 							</Pressable>
 							<Pressable
+								accessibilityRole="button"
 								style={styles.secondaryButtonCompact}
 								onPress={() => void skip(exercise)}
 							>
@@ -409,19 +438,29 @@ export default function WorkoutScreen() {
 			/>
 
 			<Pressable
+				accessibilityRole="button"
 				style={styles.secondaryButton}
 				onPress={() => void saveWorkoutNote()}
 			>
 				<Text style={styles.secondaryButtonText}>Save workout note</Text>
 			</Pressable>
-			<Pressable style={styles.primaryButton} onPress={() => void complete()}>
+			<Pressable
+				accessibilityRole="button"
+				style={styles.primaryButton}
+				onPress={() => void complete()}
+			>
 				<Text style={styles.primaryButtonText}>Complete workout</Text>
 			</Pressable>
-			<Pressable style={styles.secondaryButton} onPress={() => void discard()}>
+			<Pressable
+				accessibilityRole="button"
+				style={styles.secondaryButton}
+				onPress={() => void discard()}
+			>
 				<Text style={styles.secondaryButtonText}>Discard draft</Text>
 			</Pressable>
 			{workout.status === "completed" ? (
 				<Pressable
+					accessibilityRole="button"
 					style={styles.secondaryButton}
 					onPress={() => void removeWorkout()}
 				>
@@ -455,6 +494,7 @@ function Checklist({
 			<Text style={styles.cardTitle}>{title}</Text>
 			{items.map((item) => (
 				<Pressable
+					accessibilityRole="button"
 					key={item.checklistItemId}
 					style={styles.checklistRow}
 					onPress={() => onToggle?.(item)}
@@ -511,8 +551,8 @@ function replaceExercise(
 
 function formatSet(set: WorkoutExercise["sets"][number]) {
 	if (set.durationSeconds)
-		return `Set ${set.setIndex}: ${set.durationSeconds}s`;
-	return `Set ${set.setIndex}: ${set.weightKg ?? "-"} kg × ${set.reps ?? "-"} reps`;
+		return `Set ${set.setIndex}: ${formatSeconds(set.durationSeconds)}`;
+	return `Set ${set.setIndex}: ${set.weightKg == null ? "-" : formatKg(set.weightKg)} × ${set.reps ?? "-"} reps`;
 }
 
 const styles = StyleSheet.create({

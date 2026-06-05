@@ -46,27 +46,35 @@ export function ChangePasswordForm() {
 		<View style={styles.card}>
 			<Text style={styles.cardTitle}>Change password</Text>
 			<TextInput
+				accessibilityLabel="Current password"
 				style={styles.input}
-				placeholder="Current password"
+				placeholder="Current password…"
 				placeholderTextColor={colors.mutedText}
 				value={currentPassword}
 				onChangeText={setCurrentPassword}
+				autoComplete="current-password"
 				secureTextEntry
 			/>
 			<TextInput
+				accessibilityLabel="New password"
 				style={styles.input}
-				placeholder="New password"
+				placeholder="New password…"
 				placeholderTextColor={colors.mutedText}
 				value={newPassword}
 				onChangeText={setNewPassword}
+				autoComplete="new-password"
 				secureTextEntry
 			/>
 			{message ? (
-				<Text style={status === "error" ? styles.error : styles.status}>
+				<Text
+					accessibilityLiveRegion="polite"
+					style={status === "error" ? styles.error : styles.status}
+				>
 					{message}
 				</Text>
 			) : null}
 			<Pressable
+				accessibilityRole="button"
 				style={styles.primaryButton}
 				onPress={() => void submit()}
 				disabled={status === "saving"}

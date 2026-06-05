@@ -1,8 +1,9 @@
 import type { BodyWeightLog } from "@bfitlog/shared";
-import { useFocusEffect, router } from "expo-router";
+import { Link, useFocusEffect, router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
 	ActivityIndicator,
+	Alert,
 	Pressable,
 	RefreshControl,
 	ScrollView,
@@ -14,11 +15,20 @@ import {
 import { isDefaultAdminUser } from "@/auth/default-admin-onboarding";
 import { useAuth } from "@/auth/use-auth";
 import { getBodyWeightRepository } from "@/body-weight/repository";
+import { formatDateTime, formatKg } from "@/format";
 import { colors, layout, spacing } from "@/theme";
 import {
 	listCompletedWorkouts,
 	type WorkoutHistoryItem,
 } from "@/workouts/workout-api";
+
+function confirmDestructive(message: string) {
+	if (typeof window !== "undefined" && typeof window.confirm === "function") {
+		return window.confirm(message);
+	}
+	Alert.alert("Confirm", message);
+	return true;
+}
 
 export default function HistoryScreen() {
 	const session = useAuth();
@@ -62,6 +72,7 @@ export default function HistoryScreen() {
 	};
 
 	const deleteBodyWeightLog = async (logId: string) => {
+		if (!confirmDestructive("Delete this body weight log?")) return;
 		const now = new Date().toISOString();
 		const repository = getBodyWeightRepository();
 		await repository.deleteLog(logId, now);
@@ -131,7 +142,11 @@ export default function HistoryScreen() {
 			</Text>
 			<Text style={styles.status}>{syncStatus}</Text>
 
-			<Pressable style={styles.secondaryButton} onPress={() => void load()}>
+			<Pressable
+				accessibilityRole="button"
+				style={styles.secondaryButton}
+				onPress={() => void load()}
+			>
 				<Text style={styles.secondaryButtonText}>Refresh</Text>
 			</Pressable>
 
@@ -150,21 +165,19 @@ export default function HistoryScreen() {
 							Day {workout.trainingDay.sequence}: {workout.trainingDay.title}
 						</Text>
 						<Text style={styles.status}>
-							{workout.completedAt
-								? new Date(workout.completedAt).toLocaleString()
-								: new Date(workout.startedAt).toLocaleString()}
+							{formatDateTime(workout.completedAt ?? workout.startedAt)}
 						</Text>
 						{workout.note ? (
 							<Text style={styles.description}>{workout.note}</Text>
 						) : null}
-						<Pressable
-							style={styles.secondaryButtonCompact}
-							onPress={() =>
-								router.push(`/workout?workoutId=${workout.id}` as never)
-							}
-						>
-							<Text style={styles.secondaryButtonText}>View / edit</Text>
-						</Pressable>
+						<Link href={`/workout?workoutId=${workout.id}` as never} asChild>
+							<Pressable
+								accessibilityRole="link"
+								style={styles.secondaryButtonCompact}
+							>
+								<Text style={styles.secondaryButtonText}>View / edit</Text>
+							</Pressable>
+						</Link>
 					</View>
 				))
 			)}
@@ -183,28 +196,33 @@ export default function HistoryScreen() {
 						{editingLogId === log.id ? (
 							<>
 								<TextInput
+									accessibilityLabel="Body weight in kilograms"
 									style={styles.input}
+									inputMode="decimal"
 									keyboardType="decimal-pad"
-									placeholder="kg"
+									placeholder="e.g. 90.0…"
 									placeholderTextColor={colors.mutedText}
 									value={editWeightKg}
 									onChangeText={setEditWeightKg}
 								/>
 								<TextInput
+									accessibilityLabel="Body weight note"
 									style={styles.input}
-									placeholder="Note"
+									placeholder="e.g. Felt strong…"
 									placeholderTextColor={colors.mutedText}
 									value={editNote}
 									onChangeText={setEditNote}
 								/>
 								<View style={styles.buttonRow}>
 									<Pressable
+										accessibilityRole="button"
 										style={styles.secondaryButtonCompact}
 										onPress={() => void saveBodyWeightLog(log)}
 									>
 										<Text style={styles.secondaryButtonText}>Save</Text>
 									</Pressable>
 									<Pressable
+										accessibilityRole="button"
 										style={styles.secondaryButtonCompact}
 										onPress={() => setEditingLogId(null)}
 									>
@@ -214,23 +232,23 @@ export default function HistoryScreen() {
 							</>
 						) : (
 							<>
-								<Text style={styles.cardTitle}>
-									{log.weightKg.toFixed(1)} kg
-								</Text>
+								<Text style={styles.cardTitle}>{formatKg(log.weightKg)}</Text>
 								<Text style={styles.status}>
-									{new Date(log.measuredAt).toLocaleString()}
+									{formatDateTime(log.measuredAt)}
 								</Text>
 								{log.note ? (
 									<Text style={styles.description}>{log.note}</Text>
 								) : null}
 								<View style={styles.buttonRow}>
 									<Pressable
+										accessibilityRole="button"
 										style={styles.secondaryButtonCompact}
 										onPress={() => startEdit(log)}
 									>
 										<Text style={styles.secondaryButtonText}>Edit</Text>
 									</Pressable>
 									<Pressable
+										accessibilityRole="button"
 										style={styles.dangerButtonCompact}
 										onPress={() => void deleteBodyWeightLog(log.id)}
 									>

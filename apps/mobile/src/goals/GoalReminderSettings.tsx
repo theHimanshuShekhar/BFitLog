@@ -67,14 +67,18 @@ export function GoalReminderSettings() {
 			<Text style={styles.title}>Goals and reminders</Text>
 			<Text style={styles.label}>Workout frequency goal / week</Text>
 			<TextInput
+				accessibilityLabel="Workout frequency goal per week"
 				value={target}
 				onChangeText={setTarget}
+				inputMode="numeric"
 				keyboardType="number-pad"
-				placeholder="3"
+				placeholder="3…"
 				placeholderTextColor={colors.mutedText}
 				style={styles.input}
 			/>
 			<Pressable
+				accessibilityRole="switch"
+				accessibilityState={{ checked: workoutEnabled }}
 				style={styles.toggleButton}
 				onPress={() => setWorkoutEnabled((value) => !value)}
 			>
@@ -83,13 +87,16 @@ export function GoalReminderSettings() {
 				</Text>
 			</Pressable>
 			<TextInput
+				accessibilityLabel="Workout reminder time"
 				value={workoutTime}
 				onChangeText={setWorkoutTime}
-				placeholder="18:00"
+				placeholder="18:00…"
 				placeholderTextColor={colors.mutedText}
 				style={styles.input}
 			/>
 			<Pressable
+				accessibilityRole="switch"
+				accessibilityState={{ checked: weighInEnabled }}
 				style={styles.toggleButton}
 				onPress={() => setWeighInEnabled((value) => !value)}
 			>
@@ -98,16 +105,23 @@ export function GoalReminderSettings() {
 				</Text>
 			</Pressable>
 			<TextInput
+				accessibilityLabel="Weigh-in reminder time"
 				value={weighInTime}
 				onChangeText={setWeighInTime}
-				placeholder="07:00"
+				placeholder="07:00…"
 				placeholderTextColor={colors.mutedText}
 				style={styles.input}
 			/>
-			<Pressable style={styles.button} onPress={() => void save()}>
+			<Pressable
+				accessibilityRole="button"
+				style={styles.button}
+				onPress={() => void save()}
+			>
 				<Text style={styles.buttonText}>Save goals and reminders</Text>
 			</Pressable>
-			<Text style={styles.status}>{status}</Text>
+			<Text accessibilityLiveRegion="polite" style={styles.status}>
+				{status}
+			</Text>
 		</View>
 	);
 }

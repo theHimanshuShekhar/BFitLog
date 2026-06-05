@@ -63,26 +63,37 @@ export function AddBodyWeightLogForm({ userId, onSaved }: Props) {
 		<View style={styles.card}>
 			<Text style={styles.title}>Add body weight</Text>
 			<TextInput
+				accessibilityLabel="Body weight in kilograms"
 				style={styles.input}
+				inputMode="decimal"
 				keyboardType="decimal-pad"
-				placeholder="90.0"
+				placeholder="90.0…"
 				placeholderTextColor={colors.mutedText}
 				value={weightKg}
 				onChangeText={setWeightKg}
 			/>
 			<TextInput
+				accessibilityLabel="Body weight note"
 				style={styles.input}
-				placeholder="Optional note"
+				placeholder="Optional note…"
 				placeholderTextColor={colors.mutedText}
 				value={note}
 				onChangeText={setNote}
 			/>
-			<Pressable style={styles.button} onPress={save} disabled={saving}>
+			<Pressable
+				accessibilityRole="button"
+				style={styles.button}
+				onPress={save}
+				disabled={saving}
+			>
 				<Text style={styles.buttonText}>
 					{saving ? "Saving…" : "Save body weight"}
 				</Text>
 			</Pressable>
-			<Text style={messageKind === "error" ? styles.error : styles.status}>
+			<Text
+				accessibilityLiveRegion="polite"
+				style={messageKind === "error" ? styles.error : styles.status}
+			>
 				{syncStatus}
 			</Text>
 		</View>

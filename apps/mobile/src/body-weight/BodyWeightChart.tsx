@@ -2,6 +2,7 @@ import type { BodyWeightGoal, BodyWeightLog } from "@bfitlog/shared";
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Line, Path, Text as SvgText } from "react-native-svg";
+import { formatKg } from "../format";
 import { colors, spacing } from "../theme";
 
 export type ChartRange = "30d" | "90d" | "1y" | "all";
@@ -40,7 +41,11 @@ export function BodyWeightChart({ logs, goal, range }: Props) {
 	const lastTime = new Date(points.at(-1)?.measuredAt ?? Date.now()).getTime();
 	const timeSpan = Math.max(lastTime - firstTime, 1);
 
-	const scaled = points.map((log) => {
+	const displayPoints =
+		points.length > 80
+			? points.filter((_, index) => index % Math.ceil(points.length / 80) === 0)
+			: points;
+	const scaled = displayPoints.map((log) => {
 		const x =
 			padding +
 			((new Date(log.measuredAt).getTime() - firstTime) / timeSpan) *
@@ -99,7 +104,7 @@ export function BodyWeightChart({ logs, goal, range }: Props) {
 							fontSize={10}
 							textAnchor="end"
 						>
-							Goal {goalTargetKg?.toFixed(1)}kg
+							Goal {goalTargetKg === null ? "" : formatKg(goalTargetKg)}
 						</SvgText>
 					</>
 				) : null}
@@ -115,8 +120,8 @@ export function BodyWeightChart({ logs, goal, range }: Props) {
 				))}
 			</Svg>
 			<Text style={styles.summary}>
-				Latest: {points.at(-1)?.weightKg.toFixed(1)} kg · Entries:{" "}
-				{points.length}
+				Latest: {points.at(-1) ? formatKg(points.at(-1)?.weightKg ?? 0) : "n/a"}{" "}
+				· Entries: {points.length}
 			</Text>
 		</View>
 	);

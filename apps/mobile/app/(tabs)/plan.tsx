@@ -13,6 +13,7 @@ import {
 import { apiBaseUrl } from "@/api/client";
 import { authClient } from "@/auth/auth-client";
 import { useAuth } from "@/auth/use-auth";
+import { formatSeconds } from "@/format";
 import { colors, layout, spacing } from "@/theme";
 
 const planCacheKey = "bfitlog:training-plan-template";
@@ -166,6 +167,7 @@ export default function PlanScreen() {
 					</Text>
 				</View>
 				<Pressable
+					accessibilityRole="button"
 					style={styles.secondaryButton}
 					onPress={() => void loadPlan()}
 				>
@@ -230,19 +232,22 @@ function Checklist({
 function ExerciseRow({ planned }: { planned: PlannedExercise }) {
 	const exercise = planned.exercise;
 	const target = planned.targetDurationSeconds
-		? `${planned.targetSets} × ${planned.targetDurationSeconds}s`
+		? `${planned.targetSets} × ${formatSeconds(planned.targetDurationSeconds)}`
 		: `${planned.targetSets} × ${planned.targetMinReps}-${planned.targetMaxReps}`;
 
 	return (
 		<View style={styles.exerciseCard}>
-			<Pressable onPress={() => openExerciseDetail(planned, target)}>
+			<Pressable
+				accessibilityRole="link"
+				onPress={() => openExerciseDetail(planned, target)}
+			>
 				<Text style={styles.cardTitle}>
 					{exercise?.name ?? "Unknown exercise"}
 				</Text>
 				<Text style={styles.detailLink}>View details</Text>
 			</Pressable>
 			<Text style={styles.status}>
-				{target} · Rest {planned.restSeconds}s
+				{target} · Rest {formatSeconds(planned.restSeconds)}
 			</Text>
 			{exercise?.equipment ? (
 				<Text style={styles.status}>{exercise.equipment}</Text>
@@ -268,6 +273,7 @@ function ExerciseRow({ planned }: { planned: PlannedExercise }) {
 				<View style={styles.mediaRow}>
 					{exercise.media.map((media) => (
 						<Pressable
+							accessibilityRole="link"
 							key={media.id}
 							style={styles.mediaButton}
 							onPress={() => void Linking.openURL(media.url)}

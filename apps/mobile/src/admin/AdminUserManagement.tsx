@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
 	ActivityIndicator,
+	Alert,
 	Pressable,
 	StyleSheet,
 	Text,
@@ -19,6 +20,14 @@ import {
 	type AdminUser,
 	type PartnerLink,
 } from "./admin-api";
+
+function confirmDestructive(message: string) {
+	if (typeof window !== "undefined" && typeof window.confirm === "function") {
+		return window.confirm(message);
+	}
+	Alert.alert("Confirm", message);
+	return true;
+}
 
 export function AdminUserManagement() {
 	const [users, setUsers] = useState<AdminUser[]>([]);
@@ -92,6 +101,12 @@ export function AdminUserManagement() {
 	};
 
 	const changeRole = async (user: AdminUser) => {
+		if (
+			!confirmDestructive(
+				`Change ${user.username} to ${user.role === "admin" ? "member" : "admin"}?`,
+			)
+		)
+			return;
 		setStatus("saving");
 		setMessage(null);
 		try {
@@ -174,7 +189,10 @@ export function AdminUserManagement() {
 				<ActivityIndicator color={colors.primary} />
 			) : null}
 			{message ? (
-				<Text style={status === "error" ? styles.error : styles.status}>
+				<Text
+					accessibilityLiveRegion="polite"
+					style={status === "error" ? styles.error : styles.status}
+				>
 					{message}
 				</Text>
 			) : null}
@@ -186,8 +204,9 @@ export function AdminUserManagement() {
 						{user.username} · {user.role}
 					</Text>
 					<TextInput
+						accessibilityLabel="New password"
 						style={styles.input}
-						placeholder="New password"
+						placeholder="New password…"
 						placeholderTextColor={colors.mutedText}
 						value={resetPasswords[user.id] ?? ""}
 						onChangeText={(value) =>
@@ -196,9 +215,11 @@ export function AdminUserManagement() {
 								[user.id]: value,
 							}))
 						}
+						autoComplete="new-password"
 						secureTextEntry
 					/>
 					<Pressable
+						accessibilityRole="button"
 						style={styles.secondaryButton}
 						onPress={() => void resetPassword(user)}
 						disabled={status === "saving"}
@@ -206,6 +227,7 @@ export function AdminUserManagement() {
 						<Text style={styles.secondaryButtonText}>Reset password</Text>
 					</Pressable>
 					<Pressable
+						accessibilityRole="button"
 						style={styles.secondaryButton}
 						onPress={() => void changeRole(user)}
 						disabled={status === "saving"}
@@ -219,29 +241,36 @@ export function AdminUserManagement() {
 
 			<Text style={styles.sectionTitle}>Create user</Text>
 			<TextInput
+				accessibilityLabel="Username"
+				autoComplete="username"
 				style={styles.input}
-				placeholder="Username"
+				placeholder="Username…"
 				placeholderTextColor={colors.mutedText}
 				value={username}
 				onChangeText={setUsername}
 				autoCapitalize="none"
+				autoCorrect={false}
 			/>
 			<TextInput
+				accessibilityLabel="Display name"
 				style={styles.input}
-				placeholder="Display name"
+				placeholder="Display name…"
 				placeholderTextColor={colors.mutedText}
 				value={displayName}
 				onChangeText={setDisplayName}
 			/>
 			<TextInput
+				accessibilityLabel="Temporary password"
 				style={styles.input}
-				placeholder="Temporary password"
+				placeholder="Temporary password…"
 				placeholderTextColor={colors.mutedText}
 				value={password}
 				onChangeText={setPassword}
+				autoComplete="new-password"
 				secureTextEntry
 			/>
 			<Pressable
+				accessibilityRole="button"
 				style={styles.primaryButton}
 				onPress={() => void createUser()}
 				disabled={status === "saving"}
@@ -262,22 +291,29 @@ export function AdminUserManagement() {
 				))
 			)}
 			<TextInput
+				accessibilityLabel="First username"
+				autoComplete="username"
 				style={styles.input}
-				placeholder="First username"
+				placeholder="First username…"
 				placeholderTextColor={colors.mutedText}
 				value={partnerUsernameA}
 				onChangeText={setPartnerUsernameA}
 				autoCapitalize="none"
+				autoCorrect={false}
 			/>
 			<TextInput
+				accessibilityLabel="Second username"
+				autoComplete="username"
 				style={styles.input}
-				placeholder="Second username"
+				placeholder="Second username…"
 				placeholderTextColor={colors.mutedText}
 				value={partnerUsernameB}
 				onChangeText={setPartnerUsernameB}
 				autoCapitalize="none"
+				autoCorrect={false}
 			/>
 			<Pressable
+				accessibilityRole="button"
 				style={styles.secondaryButton}
 				onPress={() => void addPartnerLink()}
 				disabled={status === "saving"}

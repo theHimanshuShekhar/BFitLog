@@ -84,61 +84,78 @@ export default function SetupScreen() {
 
 			<Text style={styles.section}>Admin</Text>
 			<TextInput
+				accessibilityLabel="Admin username"
+				autoComplete="username"
 				style={styles.input}
-				placeholder="Username"
+				placeholder="e.g. alex…"
 				placeholderTextColor={colors.mutedText}
 				value={adminUsername}
 				onChangeText={setAdminUsername}
 				autoCapitalize="none"
+				autoCorrect={false}
 			/>
 			<FieldError message={errors.adminUsername} />
 			<TextInput
+				accessibilityLabel="Admin display name"
 				style={styles.input}
-				placeholder="Display name"
+				placeholder="e.g. Alex Lee…"
 				placeholderTextColor={colors.mutedText}
 				value={adminDisplayName}
 				onChangeText={setAdminDisplayName}
 			/>
 			<FieldError message={errors.adminDisplayName} />
 			<TextInput
+				accessibilityLabel="Admin password"
 				style={styles.input}
-				placeholder="Password"
+				placeholder="e.g. strong password…"
 				placeholderTextColor={colors.mutedText}
 				value={adminPassword}
 				onChangeText={setAdminPassword}
+				autoComplete="new-password"
 				secureTextEntry
 			/>
 			<FieldError message={errors.adminPassword} />
 
 			<Text style={styles.section}>Partner</Text>
 			<TextInput
+				accessibilityLabel="Partner username"
+				autoComplete="username"
 				style={styles.input}
-				placeholder="Username"
+				placeholder="e.g. sam…"
 				placeholderTextColor={colors.mutedText}
 				value={partnerUsername}
 				onChangeText={setPartnerUsername}
 				autoCapitalize="none"
+				autoCorrect={false}
 			/>
 			<FieldError message={errors.partnerUsername} />
 			<TextInput
+				accessibilityLabel="Partner display name"
 				style={styles.input}
-				placeholder="Display name"
+				placeholder="e.g. Sam Lee…"
 				placeholderTextColor={colors.mutedText}
 				value={partnerDisplayName}
 				onChangeText={setPartnerDisplayName}
 			/>
 			<FieldError message={errors.partnerDisplayName} />
 			<TextInput
+				accessibilityLabel="Partner password"
 				style={styles.input}
-				placeholder="Password"
+				placeholder="e.g. strong password…"
 				placeholderTextColor={colors.mutedText}
 				value={partnerPassword}
 				onChangeText={setPartnerPassword}
+				autoComplete="new-password"
 				secureTextEntry
 			/>
 			<FieldError message={errors.partnerPassword} />
 
-			<Pressable style={styles.button} onPress={submit} disabled={saving}>
+			<Pressable
+				accessibilityRole="button"
+				style={styles.button}
+				onPress={submit}
+				disabled={saving}
+			>
 				<Text style={styles.buttonText}>
 					{saving ? "Creating…" : "Create users"}
 				</Text>
@@ -149,7 +166,11 @@ export default function SetupScreen() {
 
 function FieldError({ message }: { message: string | undefined }) {
 	if (!message) return null;
-	return <Text style={styles.error}>{message}</Text>;
+	return (
+		<Text accessibilityLiveRegion="polite" style={styles.error}>
+			{message}
+		</Text>
+	);
 }
 
 const styles = StyleSheet.create({

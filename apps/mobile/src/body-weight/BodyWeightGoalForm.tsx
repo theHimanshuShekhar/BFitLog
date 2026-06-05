@@ -69,18 +69,22 @@ export function BodyWeightGoalForm({ userId }: Props) {
 			<Text style={styles.title}>Body weight goal</Text>
 			<Text style={styles.label}>Target kg</Text>
 			<TextInput
+				accessibilityLabel="Target weight in kilograms"
 				style={styles.input}
+				inputMode="decimal"
 				keyboardType="decimal-pad"
-				placeholder="85.0"
+				placeholder="85.0…"
 				placeholderTextColor={colors.mutedText}
 				value={targetKg}
 				onChangeText={setTargetKg}
 			/>
 
 			<Text style={styles.label}>Direction</Text>
-			<View style={styles.directionRow}>
+			<View accessibilityRole="radiogroup" style={styles.directionRow}>
 				{directions.map((item) => (
 					<Pressable
+						accessibilityRole="radio"
+						accessibilityState={{ checked: direction === item }}
 						key={item}
 						style={[
 							styles.directionButton,
@@ -100,12 +104,20 @@ export function BodyWeightGoalForm({ userId }: Props) {
 				))}
 			</View>
 
-			<Pressable style={styles.button} onPress={save} disabled={saving}>
+			<Pressable
+				accessibilityRole="button"
+				style={styles.button}
+				onPress={save}
+				disabled={saving}
+			>
 				<Text style={styles.buttonText}>
 					{saving ? "Saving…" : "Save goal"}
 				</Text>
 			</Pressable>
-			<Text style={messageKind === "error" ? styles.error : styles.status}>
+			<Text
+				accessibilityLiveRegion="polite"
+				style={messageKind === "error" ? styles.error : styles.status}
+			>
 				{syncStatus}
 			</Text>
 		</View>

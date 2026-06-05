@@ -72,6 +72,7 @@ function MediaItem({ item }: { item: MediaLink }) {
 					})
 				: null}
 			<Pressable
+				accessibilityRole="link"
 				style={styles.mediaButton}
 				onPress={() => void Linking.openURL(item.url)}
 			>

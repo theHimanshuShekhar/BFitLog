@@ -77,34 +77,44 @@ export default function FirstUserScreen() {
 				account is deleted and you will log in with your new user.
 			</Text>
 			{message ? (
-				<Text style={status === "error" ? styles.error : styles.status}>
+				<Text
+					accessibilityLiveRegion="polite"
+					style={status === "error" ? styles.error : styles.status}
+				>
 					{message}
 				</Text>
 			) : null}
 			<TextInput
+				accessibilityLabel="Username"
+				autoComplete="username"
 				style={styles.input}
-				placeholder="Username"
+				placeholder="e.g. alex…"
 				placeholderTextColor={colors.mutedText}
 				value={username}
 				onChangeText={setUsername}
 				autoCapitalize="none"
+				autoCorrect={false}
 			/>
 			<TextInput
+				accessibilityLabel="Display name"
 				style={styles.input}
-				placeholder="Display name"
+				placeholder="e.g. Alex Lee…"
 				placeholderTextColor={colors.mutedText}
 				value={displayName}
 				onChangeText={setDisplayName}
 			/>
 			<TextInput
+				accessibilityLabel="Password"
 				style={styles.input}
-				placeholder="Password"
+				placeholder="e.g. strong password…"
 				placeholderTextColor={colors.mutedText}
 				value={password}
 				onChangeText={setPassword}
+				autoComplete="new-password"
 				secureTextEntry
 			/>
 			<Pressable
+				accessibilityRole="button"
 				style={styles.button}
 				onPress={() => void submit()}
 				disabled={status === "saving"}

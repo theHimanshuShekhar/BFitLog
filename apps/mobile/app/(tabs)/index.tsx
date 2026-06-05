@@ -1,5 +1,5 @@
 import type { BodyWeightLog } from "@bfitlog/shared";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
 	ActivityIndicator,
@@ -13,6 +13,7 @@ import { apiGet } from "@/api/client";
 import { useAuth } from "@/auth/use-auth";
 import { AddBodyWeightLogForm } from "@/body-weight/AddBodyWeightLogForm";
 import { getBodyWeightRepository } from "@/body-weight/repository";
+import { formatKg } from "@/format";
 import { colors, layout, spacing } from "@/theme";
 import {
 	getActivePlan,
@@ -131,7 +132,28 @@ export default function HomeScreen() {
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
-			<Text style={styles.eyebrow}>BFitLog</Text>
+			<View style={styles.topBar}>
+				<Text style={styles.eyebrow}>BFitLog</Text>
+				<View
+					style={[
+						styles.apiBadge,
+						status === "offline" && styles.apiBadgeOffline,
+					]}
+				>
+					{status === "checking" ? (
+						<ActivityIndicator color={colors.primary} size="small" />
+					) : (
+						<Text
+							style={[
+								styles.apiBadgeText,
+								status === "offline" && styles.apiBadgeTextOffline,
+							]}
+						>
+							API {status === "online" ? "Online" : "Offline"}
+						</Text>
+					)}
+				</View>
+			</View>
 			<Text style={styles.title}>Home</Text>
 			<Text style={styles.description}>
 				Track body weight locally and sync when the server is reachable.
@@ -143,21 +165,10 @@ export default function HomeScreen() {
 			</View>
 
 			<View style={styles.card}>
-				<Text style={styles.cardTitle}>API status</Text>
-				{status === "checking" ? (
-					<ActivityIndicator color={colors.primary} />
-				) : (
-					<Text style={styles.status}>
-						{status === "online" ? "Online" : "Offline / unreachable"}
-					</Text>
-				)}
-			</View>
-
-			<View style={styles.card}>
 				<Text style={styles.cardTitle}>Latest body weight</Text>
 				<Text style={styles.status}>
 					{latestLog
-						? `${latestLog.weightKg.toFixed(1)} kg`
+						? formatKg(latestLog.weightKg)
 						: "No body weight logged yet"}
 				</Text>
 			</View>
@@ -172,6 +183,11 @@ export default function HomeScreen() {
 						{trainingDays.map((day) => (
 							<Pressable
 								key={day.id}
+								accessibilityRole="tab"
+								accessibilityState={{
+									selected: selectedTrainingDayId === day.id,
+								}}
+								accessibilityLabel={`Select training day ${day.sequence}`}
 								style={[
 									styles.dayOverrideButton,
 									selectedTrainingDayId === day.id &&
@@ -198,6 +214,8 @@ export default function HomeScreen() {
 					</Text>
 				) : null}
 				<Pressable
+					accessibilityRole="button"
+					accessibilityLabel={workoutCta}
 					style={styles.primaryButton}
 					onPress={() => void openWorkout()}
 					disabled={workoutStatus === "loading"}
@@ -212,19 +230,17 @@ export default function HomeScreen() {
 				<AddBodyWeightLogForm userId={user.id} onSaved={setLatestLog} />
 			) : null}
 
-			<Pressable
-				style={styles.secondaryButton}
-				onPress={() => router.push("/stats")}
-			>
-				<Text style={styles.secondaryButtonText}>View stats</Text>
-			</Pressable>
+			<Link href="/stats" asChild>
+				<Pressable accessibilityRole="link" style={styles.secondaryButton}>
+					<Text style={styles.secondaryButtonText}>View stats</Text>
+				</Pressable>
+			</Link>
 
-			<Pressable
-				style={styles.secondaryButton}
-				onPress={() => router.push("/settings")}
-			>
-				<Text style={styles.secondaryButtonText}>Open settings</Text>
-			</Pressable>
+			<Link href="/settings" asChild>
+				<Pressable accessibilityRole="link" style={styles.secondaryButton}>
+					<Text style={styles.secondaryButtonText}>Open settings</Text>
+				</Pressable>
+			</Link>
 		</ScrollView>
 	);
 }
@@ -244,6 +260,33 @@ const styles = StyleSheet.create({
 		gap: spacing.md,
 		padding: spacing.lg,
 		backgroundColor: colors.background,
+	},
+	topBar: {
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
+		gap: spacing.md,
+	},
+	apiBadge: {
+		minHeight: 32,
+		alignItems: "center",
+		justifyContent: "center",
+		paddingHorizontal: spacing.md,
+		borderRadius: 999,
+		borderWidth: 1,
+		borderColor: colors.primary,
+		backgroundColor: colors.surface,
+	},
+	apiBadgeOffline: {
+		borderColor: colors.danger,
+	},
+	apiBadgeText: {
+		color: colors.primary,
+		fontSize: 13,
+		fontWeight: "800",
+	},
+	apiBadgeTextOffline: {
+		color: colors.danger,
 	},
 	eyebrow: {
 		color: colors.primary,

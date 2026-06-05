@@ -41,7 +41,10 @@ export default function LoginScreen() {
 			</Text>
 			<TextInput
 				style={styles.input}
-				placeholder="Username"
+				accessibilityLabel="Username"
+				autoComplete="username"
+				autoCorrect={false}
+				placeholder="e.g. admin…"
 				placeholderTextColor={colors.mutedText}
 				value={username}
 				onChangeText={setUsername}
@@ -49,13 +52,21 @@ export default function LoginScreen() {
 			/>
 			<TextInput
 				style={styles.input}
-				placeholder="Password"
+				accessibilityLabel="Password"
+				autoComplete="current-password"
+				placeholder="e.g. admin…"
 				placeholderTextColor={colors.mutedText}
 				value={password}
 				onChangeText={setPassword}
 				secureTextEntry
 			/>
-			<Pressable style={styles.button} onPress={submit} disabled={saving}>
+			<Pressable
+				accessibilityRole="button"
+				accessibilityLabel="Log in"
+				style={styles.button}
+				onPress={submit}
+				disabled={saving}
+			>
 				<Text style={styles.buttonText}>
 					{saving ? "Logging in…" : "Log in"}
 				</Text>

@@ -62,7 +62,8 @@ export default function SettingsScreen() {
 				</Text>
 				<Text style={styles.description}>Version 0.1.0</Text>
 			</View>
-			<Pressable style={styles.secondaryButton} onPress={logout}>
+			<Pressable
+				accessibilityRole="button" style={styles.secondaryButton} onPress={logout}>
 				<Text style={styles.secondaryButtonText}>Log out</Text>
 			</Pressable>
 		</ScrollView>

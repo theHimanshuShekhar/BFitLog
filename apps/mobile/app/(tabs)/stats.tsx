@@ -1,5 +1,5 @@
 import type { BodyWeightGoal, BodyWeightLog } from "@bfitlog/shared";
-import { useFocusEffect, router } from "expo-router";
+import { Link, useFocusEffect, router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
 	ActivityIndicator,
@@ -16,6 +16,7 @@ import {
 	type ChartRange,
 } from "@/body-weight/BodyWeightChart";
 import { getBodyWeightRepository } from "@/body-weight/repository";
+import { formatKg, integerFormatter } from "@/format";
 import { colors, layout, spacing } from "@/theme";
 import { getWorkoutStats, type WorkoutStats } from "@/workouts/workout-api";
 
@@ -76,9 +77,11 @@ export default function StatsScreen() {
 				Body weight trend for {session.data.user.name}
 			</Text>
 
-			<View style={styles.rangeRow}>
+			<View accessibilityRole="tablist" style={styles.rangeRow}>
 				{ranges.map((item) => (
 					<Pressable
+						accessibilityRole="tab"
+						accessibilityState={{ selected: range === item }}
 						key={item}
 						style={[
 							styles.rangeButton,
@@ -107,10 +110,13 @@ export default function StatsScreen() {
 						<View key={exercise.exerciseId} style={styles.statRow}>
 							<Text style={styles.status}>{exercise.exerciseName}</Text>
 							<Text style={styles.description}>
-								Best: {exercise.bestWeightKg ?? "—"} kg · Volume:{" "}
-								{Math.round(exercise.volumeKg)} kg
+								Best:{" "}
+								{exercise.bestWeightKg === null
+									? "—"
+									: formatKg(exercise.bestWeightKg)}{" "}
+								· Volume: {formatKg(Math.round(exercise.volumeKg))}
 								{exercise.bestDurationSeconds
-									? ` · Duration: ${exercise.bestDurationSeconds}s`
+									? ` · Duration: ${integerFormatter.format(exercise.bestDurationSeconds)} sec`
 									: ""}
 							</Text>
 							{exercise.progressionHint ? (
@@ -139,12 +145,11 @@ export default function StatsScreen() {
 				)}
 			</View>
 
-			<Pressable
-				style={styles.secondaryButton}
-				onPress={() => router.push("/")}
-			>
-				<Text style={styles.secondaryButtonText}>Back home</Text>
-			</Pressable>
+			<Link href="/" asChild>
+				<Pressable accessibilityRole="link" style={styles.secondaryButton}>
+					<Text style={styles.secondaryButtonText}>Back home</Text>
+				</Pressable>
+			</Link>
 		</ScrollView>
 	);
 }
