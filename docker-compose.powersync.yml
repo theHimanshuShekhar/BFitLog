@@ -1,0 +1,44 @@
+services:
+  postgres:
+    command: ["postgres", "-c", "wal_level=logical"]
+
+  powersync:
+    image: journeyapps/powersync-service:latest
+    command: ["start", "-r", "unified"]
+    restart: unless-stopped
+    depends_on:
+      mongo-rs-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/service.yaml
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docs/spikes/powersync-prototype/service.yaml:/config/service.yaml:ro
+      - ./docs/spikes/powersync-prototype/sync-config.yaml:/config/sync-config.yaml:ro
+
+  mongo:
+    image: mongo:7.0
+    command: --replSet rs0 --bind_ip_all --quiet
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - powersync_mongo_data:/data/db
+
+  mongo-rs-init:
+    image: mongo:7.0
+    depends_on:
+      - mongo
+    restart: on-failure
+    entrypoint:
+      - bash
+      - -c
+      - 'mongosh --host mongo:27017 --eval ''try{rs.status().ok && quit(0)} catch {} rs.initiate({_id: "rs0", version: 1, members: [{ _id: 0, host : "mongo:27017" }]})'''
+
+volumes:
+  powersync_mongo_data:

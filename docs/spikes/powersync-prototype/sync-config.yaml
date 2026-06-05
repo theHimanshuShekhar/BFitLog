@@ -1,0 +1,51 @@
+config:
+  edition: 3
+
+streams:
+  own_body_weight:
+    queries:
+      - SELECT * FROM body_weight_goals WHERE user_id = auth.user_id()
+      - SELECT * FROM body_weight_logs WHERE user_id = auth.user_id() AND deleted_at IS NULL
+
+  visible_partner_body_weight:
+    queries:
+      - |
+        SELECT body_weight_goals.*
+        FROM body_weight_goals
+        WHERE user_id IN (
+          SELECT user_b_id FROM partner_links WHERE user_a_id = auth.user_id()
+          UNION
+          SELECT user_a_id FROM partner_links WHERE user_b_id = auth.user_id()
+        )
+      - |
+        SELECT body_weight_logs.*
+        FROM body_weight_logs
+        WHERE deleted_at IS NULL
+          AND user_id IN (
+            SELECT user_b_id FROM partner_links WHERE user_a_id = auth.user_id()
+            UNION
+            SELECT user_a_id FROM partner_links WHERE user_b_id = auth.user_id()
+          )
+
+  own_workouts:
+    queries:
+      - SELECT * FROM workout_logs WHERE user_id = auth.user_id() AND deleted_at IS NULL
+      - |
+        SELECT exercise_logs.*
+        FROM exercise_logs
+        JOIN workout_logs ON workout_logs.id = exercise_logs.workout_log_id
+        WHERE workout_logs.user_id = auth.user_id()
+          AND workout_logs.deleted_at IS NULL
+      - |
+        SELECT set_logs.*
+        FROM set_logs
+        JOIN exercise_logs ON exercise_logs.id = set_logs.exercise_log_id
+        JOIN workout_logs ON workout_logs.id = exercise_logs.workout_log_id
+        WHERE workout_logs.user_id = auth.user_id()
+          AND workout_logs.deleted_at IS NULL
+      - |
+        SELECT workout_checklist_logs.*
+        FROM workout_checklist_logs
+        JOIN workout_logs ON workout_logs.id = workout_checklist_logs.workout_log_id
+        WHERE workout_logs.user_id = auth.user_id()
+          AND workout_logs.deleted_at IS NULL

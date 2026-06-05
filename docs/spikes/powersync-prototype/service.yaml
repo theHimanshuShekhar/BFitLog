@@ -1,0 +1,22 @@
+replication:
+  connections:
+    - type: postgresql
+      uri: postgresql://powersync_role:powersync-dev-password@postgres:5432/bfitlog
+      sslmode: disable
+
+storage:
+  type: mongodb
+  uri: mongodb://mongo:27017/powersync_bfitlog
+
+port: 8080
+
+sync_config:
+  path: /config/sync-config.yaml
+
+client_auth:
+  jwks_uri: http://api:3000/powersync/jwks
+  audience:
+    - powersync-dev
+
+telemetry:
+  disable_telemetry_sharing: true
