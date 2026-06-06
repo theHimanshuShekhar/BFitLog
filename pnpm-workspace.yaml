@@ -1,5 +1,8 @@
 packages:
   - apps/*
   - packages/*
+overrides:
+  esbuild: 0.25.12
+  uuid: 11.1.1
 onlyBuiltDependencies:
   - msgpackr-extract
