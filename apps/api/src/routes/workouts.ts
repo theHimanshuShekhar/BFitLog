@@ -87,6 +87,7 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		const rows = workoutIds.length
 			? await db
 					.select({
+						exerciseLogId: exerciseLogs.id,
 						workoutLogId: exerciseLogs.workoutLogId,
 						plannedExerciseTarget: exerciseLogs.plannedExerciseTarget,
 						status: exerciseLogs.status,
@@ -118,7 +119,17 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 				progressionHint: string | null;
 			}
 		>();
-		const successfulSessions = new Map<string, Set<string>>();
+		const successfulCandidates = new Map<
+			string,
+			{
+				exerciseId: string;
+				workoutLogId: string;
+				goodForm: boolean | null;
+				targetSets: number | null;
+				targetMaxReps: number | null;
+				reps: number[];
+			}
+		>();
 		for (const row of rows) {
 			if (row.status === "skipped" || !row.performedExerciseId) continue;
 			const current = exerciseStats.get(row.performedExerciseId) ?? {
@@ -141,17 +152,34 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 					row.durationSeconds,
 				);
 			}
+			const target = parseRepTarget(row.plannedExerciseTarget);
+			const candidate = successfulCandidates.get(row.exerciseLogId) ?? {
+				exerciseId: row.performedExerciseId,
+				workoutLogId: row.workoutLogId,
+				goodForm: row.goodForm,
+				targetSets: target?.sets ?? null,
+				targetMaxReps: target?.maxReps ?? null,
+				reps: [],
+			};
+			if (typeof row.reps === "number") candidate.reps.push(row.reps);
+			successfulCandidates.set(row.exerciseLogId, candidate);
+			exerciseStats.set(row.performedExerciseId, current);
+		}
+		const successfulSessions = new Map<string, Set<string>>();
+		for (const candidate of successfulCandidates.values()) {
+			const { targetSets, targetMaxReps } = candidate;
 			if (
-				row.goodForm &&
-				row.reps &&
-				hitsTopRepRange(row.plannedExerciseTarget, row.reps)
+				candidate.goodForm &&
+				targetSets !== null &&
+				targetMaxReps !== null &&
+				candidate.reps.length >= targetSets &&
+				candidate.reps.slice(0, targetSets).every((reps) => reps >= targetMaxReps)
 			) {
 				const sessions =
-					successfulSessions.get(row.performedExerciseId) ?? new Set<string>();
-				sessions.add(row.workoutLogId);
-				successfulSessions.set(row.performedExerciseId, sessions);
+					successfulSessions.get(candidate.exerciseId) ?? new Set<string>();
+				sessions.add(candidate.workoutLogId);
+				successfulSessions.set(candidate.exerciseId, sessions);
 			}
-			exerciseStats.set(row.performedExerciseId, current);
 		}
 		for (const stat of exerciseStats.values()) {
 			stat.successfulTopRangeSessions =
@@ -379,53 +407,59 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		) {
 			return c.json({ error: "skipReason is required when skipping" }, 400);
 		}
+		const sets = Array.isArray(body.sets) ? body.sets : [];
+		const invalidSet = sets.find((set) => !isValidSetInput(set));
+		if (invalidSet) return c.json({ error: "Invalid set payload" }, 400);
+		const status = body.status;
 
 		const now = new Date();
-		await db
-			.update(exerciseLogs)
-			.set({
-				status: body.status,
-				goodForm: typeof body.goodForm === "boolean" ? body.goodForm : null,
-				note: typeof body.note === "string" ? body.note : null,
-				skipReason:
-					typeof body.skipReason === "string" ? body.skipReason.trim() : null,
-				substitutionNote:
-					typeof body.substitutionNote === "string"
-						? body.substitutionNote
-						: null,
-				performedExerciseId:
-					typeof body.performedExerciseId === "string"
-						? body.performedExerciseId
-						: undefined,
-				updatedAt: now,
-			})
-			.where(
-				and(
-					eq(exerciseLogs.id, exerciseLogId),
-					eq(exerciseLogs.workoutLogId, workoutId),
-				),
-			);
-
-		await db.delete(setLogs).where(eq(setLogs.exerciseLogId, exerciseLogId));
-		const sets = Array.isArray(body.sets) ? body.sets : [];
-		if (sets.length) {
-			await db.insert(setLogs).values(
-				sets.map((set, index) => ({
-					id: crypto.randomUUID(),
-					exerciseLogId,
-					setIndex: typeof set.setIndex === "number" ? set.setIndex : index + 1,
-					weightKg:
-						typeof set.weightKg === "number" ? set.weightKg.toString() : null,
-					reps: typeof set.reps === "number" ? set.reps : null,
-					durationSeconds:
-						typeof set.durationSeconds === "number"
-							? set.durationSeconds
+		await db.transaction(async (tx) => {
+			await tx
+				.update(exerciseLogs)
+				.set({
+					status,
+					goodForm: typeof body.goodForm === "boolean" ? body.goodForm : null,
+					note: typeof body.note === "string" ? body.note : null,
+					skipReason:
+						typeof body.skipReason === "string" ? body.skipReason.trim() : null,
+					substitutionNote:
+						typeof body.substitutionNote === "string"
+							? body.substitutionNote
 							: null,
-					createdAt: now,
+					performedExerciseId:
+						typeof body.performedExerciseId === "string"
+							? body.performedExerciseId
+							: undefined,
 					updatedAt: now,
-				})),
-			);
-		}
+				})
+				.where(
+					and(
+						eq(exerciseLogs.id, exerciseLogId),
+						eq(exerciseLogs.workoutLogId, workoutId),
+					),
+				);
+
+			await tx.delete(setLogs).where(eq(setLogs.exerciseLogId, exerciseLogId));
+			if (sets.length) {
+				await tx.insert(setLogs).values(
+					sets.map((set, index) => ({
+						id: crypto.randomUUID(),
+						exerciseLogId,
+						setIndex:
+							typeof set.setIndex === "number" ? set.setIndex : index + 1,
+						weightKg:
+							typeof set.weightKg === "number" ? set.weightKg.toString() : null,
+						reps: typeof set.reps === "number" ? set.reps : null,
+						durationSeconds:
+							typeof set.durationSeconds === "number"
+								? set.durationSeconds
+								: null,
+						createdAt: now,
+						updatedAt: now,
+					})),
+				);
+			}
+		});
 
 		const exercise = await loadExerciseLog(exerciseLogId);
 		return c.json({ exercise });
@@ -533,6 +567,7 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		await db
 			.update(workoutLogs)
 			.set({ status: "discarded", updatedAt: now, deletedAt: now })
+
 			.where(
 				and(eq(workoutLogs.id, workoutId), eq(workoutLogs.userId, user.id)),
 			);
@@ -556,6 +591,28 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 
 function isExerciseLogStatus(value: unknown): value is ExerciseLogStatus {
 	return value === "planned" || value === "completed" || value === "skipped";
+}
+
+function isValidSetInput(set: SetInput) {
+	if (set.setIndex !== undefined) {
+		if (typeof set.setIndex !== "number") return false;
+		if (!Number.isInteger(set.setIndex) || set.setIndex < 1) return false;
+	}
+	if (set.weightKg !== undefined) {
+		if (typeof set.weightKg !== "number") return false;
+		if (!Number.isFinite(set.weightKg) || set.weightKg <= 0) return false;
+	}
+	if (set.reps !== undefined) {
+		if (typeof set.reps !== "number") return false;
+		if (!Number.isInteger(set.reps) || set.reps < 1) return false;
+	}
+	if (set.durationSeconds !== undefined) {
+		if (typeof set.durationSeconds !== "number") return false;
+		if (!Number.isInteger(set.durationSeconds) || set.durationSeconds < 1) {
+			return false;
+		}
+	}
+	return true;
 }
 
 async function loadWorkout(workoutId: string, userId: string) {
@@ -727,9 +784,10 @@ async function loadSubstitutes(plannedExerciseIds: string[]) {
 		);
 }
 
-function hitsTopRepRange(target: string, reps: number) {
-	const match = target.match(/×\s*\d+-(\d+)/);
-	return match?.[1] ? reps >= Number(match[1]) : false;
+function parseRepTarget(target: string) {
+	const match = target.match(/(\d+)\s*×\s*\d+-(\d+)/);
+	if (!match?.[1] || !match[2]) return null;
+	return { sets: Number(match[1]), maxReps: Number(match[2]) };
 }
 
 function weekKey(date: Date) {

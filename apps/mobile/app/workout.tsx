@@ -2,7 +2,6 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import {
 	ActivityIndicator,
-	Alert,
 	Pressable,
 	ScrollView,
 	StyleSheet,
@@ -11,6 +10,7 @@ import {
 	View,
 } from "react-native";
 import { useAuth } from "@/auth/use-auth";
+import { confirmDestructive } from "@/confirm";
 import { formatDateTime, formatKg, formatSeconds } from "@/format";
 import {
 	getWorkoutDetailActions,
@@ -43,6 +43,7 @@ import {
 type ExerciseInput = {
 	sets: WorkoutSetInput[];
 	note: string;
+	goodForm: boolean;
 	skipReason: string;
 	performedExerciseId: string;
 	substitutionNote: string;
@@ -50,13 +51,6 @@ type ExerciseInput = {
 
 type RestTimer = { exerciseName: string; remainingSeconds: number } | null;
 
-function confirmDestructive(message: string) {
-	if (typeof window !== "undefined" && typeof window.confirm === "function") {
-		return window.confirm(message);
-	}
-	Alert.alert("Confirm", message);
-	return true;
-}
 
 export default function WorkoutScreen() {
 	const params = useLocalSearchParams<{ workoutId?: string }>();
@@ -196,6 +190,7 @@ export default function WorkoutScreen() {
 		try {
 			const sets = buildWorkoutSetPayload(input.sets);
 			const updated = await saveExerciseSet(workout.id, exercise, sets, {
+				goodForm: input.goodForm,
 				note: input.note,
 				performedExerciseId: input.performedExerciseId,
 				substitutionNote: input.substitutionNote,
@@ -260,7 +255,7 @@ export default function WorkoutScreen() {
 	};
 
 	const removeWorkout = async () => {
-		if (!confirmDestructive("Delete this workout?")) return;
+		if (!(await confirmDestructive("Delete this workout?"))) return;
 		setStatus("saving");
 		try {
 			await deleteWorkout(workout.id);
@@ -289,7 +284,7 @@ export default function WorkoutScreen() {
 	};
 
 	const discard = async () => {
-		if (!confirmDestructive("Discard this draft workout?")) return;
+		if (!(await confirmDestructive("Discard this draft workout?", "Discard"))) return;
 		setStatus("saving");
 		try {
 			await discardWorkout(workout.id);
@@ -454,6 +449,19 @@ export default function WorkoutScreen() {
 							<Text style={styles.secondaryButtonText}>Add set</Text>
 						</Pressable>
 
+						<Pressable
+							accessibilityRole="checkbox"
+							accessibilityState={{ checked: input.goodForm }}
+							style={styles.secondaryButtonCompact}
+							onPress={() =>
+								updateInput(exercise.id, { goodForm: !input.goodForm })
+							}
+						>
+							<Text style={styles.secondaryButtonText}>
+								{input.goodForm ? "Good form ✓" : "Mark good form"}
+							</Text>
+						</Pressable>
+
 						<TextInput
 							accessibilityLabel="Exercise note"
 							value={input.note}
@@ -607,6 +615,7 @@ function Checklist({
 
 const emptyInput: ExerciseInput = {
 	sets: [{ ...emptyWorkoutSetInput }],
+	goodForm: false,
 	note: "",
 	skipReason: "",
 	performedExerciseId: "",
@@ -616,6 +625,7 @@ const emptyInput: ExerciseInput = {
 function inputFromExercise(exercise: WorkoutExercise): ExerciseInput {
 	return {
 		sets: workoutSetInputsFromSavedSets(exercise.sets),
+		goodForm: exercise.goodForm ?? false,
 		note: exercise.note ?? "",
 		skipReason:
 			exercise.status === "skipped" ? (exercise.skipReason ?? "") : "",

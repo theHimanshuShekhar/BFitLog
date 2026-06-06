@@ -193,6 +193,7 @@ export async function saveExerciseSet(
 	exercise: WorkoutExercise,
 	sets: Array<{ setIndex: number; weightKg?: number; reps?: number; durationSeconds?: number }>,
 	options: {
+		goodForm?: boolean;
 		note?: string;
 		performedExerciseId?: string;
 		substitutionNote?: string;
@@ -205,7 +206,7 @@ export async function saveExerciseSet(
 			...authHeaders(true),
 			body: JSON.stringify({
 				status: "completed",
-				goodForm: true,
+				goodForm: options.goodForm ?? false,
 				note: options.note?.trim() || undefined,
 				performedExerciseId: options.performedExerciseId?.trim() || undefined,
 				substitutionNote: options.substitutionNote?.trim() || undefined,

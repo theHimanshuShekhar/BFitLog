@@ -64,11 +64,6 @@ export default function HomeScreen() {
 				if (active) setSetupChecked(true);
 			});
 
-		getBodyWeightRepository()
-			.listLogs()
-			.then((logs) => {
-				if (active) setLatestLog(logs[0] ?? null);
-			});
 
 		getActivePlan()
 			.then((plan) => {
@@ -100,7 +95,19 @@ export default function HomeScreen() {
 
 	useEffect(() => {
 		if (!setupChecked || session.isPending) return;
-		if (!session.data) router.replace("/login");
+		if (!session.data) {
+			router.replace("/login");
+			return;
+		}
+		let active = true;
+		getBodyWeightRepository(session.data.user.id)
+			.listLogs()
+			.then((logs) => {
+				if (active) setLatestLog(logs[0] ?? null);
+			});
+		return () => {
+			active = false;
+		};
 	}, [session.data, session.isPending, setupChecked]);
 
 	if (!setupChecked || session.isPending) {

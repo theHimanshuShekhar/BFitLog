@@ -2,13 +2,13 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
 	ActivityIndicator,
-	Alert,
 	Pressable,
 	StyleSheet,
 	Text,
 	TextInput,
 	View,
 } from "react-native";
+import { confirmDestructive } from "@/confirm";
 import { colors, spacing } from "@/theme";
 import {
 	createAdminUser,
@@ -21,13 +21,6 @@ import {
 	type PartnerLink,
 } from "./admin-api";
 
-function confirmDestructive(message: string) {
-	if (typeof window !== "undefined" && typeof window.confirm === "function") {
-		return window.confirm(message);
-	}
-	Alert.alert("Confirm", message);
-	return true;
-}
 
 export function AdminUserManagement() {
 	const [users, setUsers] = useState<AdminUser[]>([]);
@@ -102,9 +95,10 @@ export function AdminUserManagement() {
 
 	const changeRole = async (user: AdminUser) => {
 		if (
-			!confirmDestructive(
+			!(await confirmDestructive(
 				`Change ${user.username} to ${user.role === "admin" ? "member" : "admin"}?`,
-			)
+				"Change role",
+			))
 		)
 			return;
 		setStatus("saving");

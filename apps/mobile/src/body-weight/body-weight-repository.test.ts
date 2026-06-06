@@ -10,11 +10,12 @@ const userId = "better-auth-user";
 const logId = "00000000-0000-4000-8000-000000000111";
 const now = "2026-06-01T10:00:00.000Z";
 
-function createRepository(syncClient?: BodyWeightSyncClient) {
-	return new BodyWeightRepository(
-		new BodyWeightStore(new MemoryStorage()),
-		syncClient,
-	);
+function createRepository(
+	syncClient?: BodyWeightSyncClient,
+	repositoryUserId = userId,
+	store = new BodyWeightStore(new MemoryStorage()),
+) {
+	return new BodyWeightRepository(store, syncClient, repositoryUserId);
 }
 
 describe("BodyWeightRepository", () => {
@@ -32,6 +33,58 @@ describe("BodyWeightRepository", () => {
 		await repository.saveLog(log);
 
 		await expect(repository.listLogs()).resolves.toEqual([log]);
+	});
+
+	it("keeps body weight state isolated by repository storage key", async () => {
+		const storage = new MemoryStorage();
+		const userRepository = createRepository(
+			undefined,
+			userId,
+			new BodyWeightStore(storage, `bfitlog:body-weight:${userId}`),
+		);
+		const otherRepository = createRepository(
+			undefined,
+			"other-user",
+			new BodyWeightStore(storage, "bfitlog:body-weight:other-user"),
+		);
+		const userGoal: BodyWeightGoal = {
+			userId,
+			targetKg: 85,
+			direction: "lose",
+			updatedAt: now,
+		};
+		const otherGoal: BodyWeightGoal = {
+			userId: "other-user",
+			targetKg: 75,
+			direction: "maintain",
+			updatedAt: now,
+		};
+		const userLog: BodyWeightLog = {
+			id: logId,
+			userId,
+			measuredAt: now,
+			weightKg: 91.2,
+			createdAt: now,
+			updatedAt: now,
+		};
+		const otherLog: BodyWeightLog = {
+			id: "00000000-0000-4000-8000-000000000222",
+			userId: "other-user",
+			measuredAt: now,
+			weightKg: 72.4,
+			createdAt: now,
+			updatedAt: now,
+		};
+
+		await userRepository.saveGoal(userGoal);
+		await userRepository.saveLog(userLog);
+		await otherRepository.saveGoal(otherGoal);
+		await otherRepository.saveLog(otherLog);
+
+		await expect(userRepository.getGoal()).resolves.toEqual(userGoal);
+		await expect(userRepository.listLogs()).resolves.toEqual([userLog]);
+		await expect(otherRepository.getGoal()).resolves.toEqual(otherGoal);
+		await expect(otherRepository.listLogs()).resolves.toEqual([otherLog]);
 	});
 
 	it("pushes dirty goal and logs during sync", async () => {

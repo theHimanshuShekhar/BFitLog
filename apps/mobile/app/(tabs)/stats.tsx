@@ -36,7 +36,7 @@ export default function StatsScreen() {
 			if (isDefaultAdminUser(session.data.user)) return undefined;
 
 			let active = true;
-			const repository = getBodyWeightRepository();
+			const repository = getBodyWeightRepository(session.data.user.id);
 			repository
 				.sync()
 				.catch(() => undefined)

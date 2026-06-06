@@ -13,13 +13,19 @@ export class BodyWeightRepository {
 	constructor(
 		private readonly store: BodyWeightStore,
 		private readonly syncClient?: BodyWeightSyncClient,
+		private readonly userId?: string,
 	) {}
 
 	async getGoal(): Promise<BodyWeightGoal | null> {
-		return (await this.store.load()).goal;
+		const goal = (await this.store.load()).goal;
+		if (this.userId && goal?.userId !== this.userId) return null;
+		return goal;
 	}
 
 	async saveGoal(goal: BodyWeightGoal): Promise<void> {
+		if (this.userId && goal.userId !== this.userId) {
+			throw new Error("Cannot save body weight goal for a different user");
+		}
 		const parsed = bodyWeightGoalSchema.parse(goal);
 		const state = await this.store.load();
 		await this.store.save({ ...state, goal: parsed, dirtyGoal: true });
@@ -27,19 +33,21 @@ export class BodyWeightRepository {
 
 	async listLogs(includeDeleted = false): Promise<BodyWeightLog[]> {
 		const state = await this.store.load();
-		const logs = includeDeleted
-			? state.logs
-			: state.logs.filter((log) => !log.deletedAt);
-		return [...logs].sort((a, b) => b.measuredAt.localeCompare(a.measuredAt));
+		return state.logs
+			.filter((log) => !this.userId || log.userId === this.userId)
+			.filter((log) => includeDeleted || !log.deletedAt)
+			.sort((a, b) => b.measuredAt.localeCompare(a.measuredAt));
 	}
 
 	async saveLog(log: BodyWeightLog): Promise<void> {
+		if (this.userId && log.userId !== this.userId) {
+			throw new Error("Cannot save body weight log for a different user");
+		}
 		const parsed = bodyWeightLogSchema.parse(log);
 		const state = await this.store.load();
-		const logs = upsertById(state.logs, parsed);
 		await this.store.save({
 			...state,
-			logs,
+			logs: upsertById(state.logs, parsed),
 			dirtyLogIds: unique([...state.dirtyLogIds, parsed.id]),
 		});
 	}

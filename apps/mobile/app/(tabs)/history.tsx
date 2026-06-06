@@ -3,7 +3,6 @@ import { Link, useFocusEffect, router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
 	ActivityIndicator,
-	Alert,
 	Pressable,
 	RefreshControl,
 	ScrollView,
@@ -15,6 +14,7 @@ import {
 import { isDefaultAdminUser } from "@/auth/default-admin-onboarding";
 import { useAuth } from "@/auth/use-auth";
 import { getBodyWeightRepository } from "@/body-weight/repository";
+import { confirmDestructive } from "@/confirm";
 import { formatDateTime, formatKg } from "@/format";
 import { colors, layout, spacing } from "@/theme";
 import {
@@ -22,13 +22,6 @@ import {
 	type WorkoutHistoryItem,
 } from "@/workouts/workout-api";
 
-function confirmDestructive(message: string) {
-	if (typeof window !== "undefined" && typeof window.confirm === "function") {
-		return window.confirm(message);
-	}
-	Alert.alert("Confirm", message);
-	return true;
-}
 
 export default function HistoryScreen() {
 	const session = useAuth();
@@ -39,6 +32,7 @@ export default function HistoryScreen() {
 	const [editingLogId, setEditingLogId] = useState<string | null>(null);
 	const [editWeightKg, setEditWeightKg] = useState("");
 	const [editNote, setEditNote] = useState("");
+	const userId = session.data?.user.id;
 
 	const startEdit = (log: BodyWeightLog) => {
 		setEditingLogId(log.id);
@@ -52,7 +46,8 @@ export default function HistoryScreen() {
 			setSyncStatus("Enter a valid body weight in kg.");
 			return;
 		}
-		const repository = getBodyWeightRepository();
+		if (!userId) return;
+		const repository = getBodyWeightRepository(userId);
 		await repository.saveLog({
 			...log,
 			weightKg: Math.round(weightKg * 10) / 10,
@@ -72,9 +67,10 @@ export default function HistoryScreen() {
 	};
 
 	const deleteBodyWeightLog = async (logId: string) => {
-		if (!confirmDestructive("Delete this body weight log?")) return;
+		if (!(await confirmDestructive("Delete this body weight log?"))) return;
 		const now = new Date().toISOString();
-		const repository = getBodyWeightRepository();
+		if (!userId) return;
+		const repository = getBodyWeightRepository(userId);
 		await repository.deleteLog(logId, now);
 		setLogs(await repository.listLogs());
 		setSyncStatus("Syncing…");
@@ -88,7 +84,8 @@ export default function HistoryScreen() {
 	};
 
 	const load = useCallback(async () => {
-		const repository = getBodyWeightRepository();
+		if (!userId) return;
+		const repository = getBodyWeightRepository(userId);
 		setRefreshing(true);
 		setLogs(await repository.listLogs());
 		setSyncStatus("Syncing…");
@@ -102,7 +99,7 @@ export default function HistoryScreen() {
 		} finally {
 			setRefreshing(false);
 		}
-	}, []);
+	}, [userId]);
 
 	useFocusEffect(
 		useCallback(() => {

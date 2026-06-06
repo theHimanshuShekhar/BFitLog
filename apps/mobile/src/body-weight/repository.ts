@@ -3,12 +3,21 @@ import { BodyWeightRepository } from "./body-weight-repository";
 import { BodyWeightStore } from "./body-weight-store";
 import { HttpBodyWeightSyncClient } from "./body-weight-sync-client";
 
-let repository: BodyWeightRepository | null = null;
+const repositories = new Map<string, BodyWeightRepository>();
 
-export function getBodyWeightRepository() {
-	repository ??= new BodyWeightRepository(
-		new BodyWeightStore(AsyncStorage),
+export function getBodyWeightRepository(userId: string) {
+	const repository = repositories.get(userId);
+	if (repository) return repository;
+
+	const nextRepository = new BodyWeightRepository(
+		new BodyWeightStore(AsyncStorage, `bfitlog:body-weight:${userId}`),
 		new HttpBodyWeightSyncClient(),
+		userId,
 	);
-	return repository;
+	repositories.set(userId, nextRepository);
+	return nextRepository;
+}
+
+export function resetBodyWeightRepositoriesForTest() {
+	repositories.clear();
 }

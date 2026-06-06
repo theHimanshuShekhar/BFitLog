@@ -125,6 +125,27 @@ describe("admin routes", () => {
 		expect(body.user).toMatchObject({ username: "member", role: "member" });
 	});
 
+	it("does not let an admin demote the last admin", async () => {
+		const { app, cookie } = await createRealAdminSession();
+		const users = await app.request("/admin/users", { headers: { cookie } });
+		const usersBody = await users.json();
+		const adminUser = usersBody.users.find(
+			(item: { username: string }) => item.username === "realadmin",
+		);
+
+		const demote = await app.request(`/admin/users/${adminUser.id}/role`, {
+			method: "PATCH",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({ role: "member" }),
+		});
+
+		expect(demote.status).toBe(400);
+		expect(await demote.json()).toMatchObject({
+			error: "Cannot demote the last admin",
+		});
+	});
+
+
 	it("lets admins create and list Partner Links", async () => {
 		const { app, cookie } = await createRealAdminSession();
 		const memberA = await app.request("/admin/users", {
@@ -196,6 +217,7 @@ describe("admin routes", () => {
 		);
 		expect(updateDay.status).toBe(200);
 
+
 		const updateExercise = await app.request(
 			"/admin/training-plan/planned-exercises/day-1-upper-a-smith-machine-bench-press",
 			{
@@ -215,6 +237,25 @@ describe("admin routes", () => {
 		expect(planBody.template.days[0].exercises[0]).toMatchObject({
 			targetSets: 4,
 			restSeconds: 120,
+		});
+	});
+
+	it("rejects invalid planned exercise target edits", async () => {
+		await seedTrainingPlan();
+		const { app, cookie } = await createRealAdminSession();
+
+		const response = await app.request(
+			"/admin/training-plan/planned-exercises/day-1-upper-a-smith-machine-bench-press",
+			{
+				method: "PATCH",
+				headers: { "content-type": "application/json", cookie },
+				body: JSON.stringify({ targetMinReps: 12, targetMaxReps: 8 }),
+			},
+		);
+
+		expect(response.status).toBe(400);
+		expect(await response.json()).toMatchObject({
+			error: "Invalid planned exercise target",
 		});
 	});
 

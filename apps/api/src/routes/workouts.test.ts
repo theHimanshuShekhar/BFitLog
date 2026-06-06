@@ -157,7 +157,11 @@ describe("workout routes", () => {
 					body: JSON.stringify({
 						status: "completed",
 						goodForm: true,
-						sets: [{ setIndex: 1, weightKg: 20, reps: 10 }],
+						sets: [
+							{ setIndex: 1, weightKg: 20, reps: 10 },
+							{ setIndex: 2, weightKg: 20, reps: 10 },
+							{ setIndex: 3, weightKg: 20, reps: 10 },
+						],
 					}),
 				},
 			);
@@ -176,12 +180,57 @@ describe("workout routes", () => {
 		expect(body.exercises[0]).toMatchObject({
 			exerciseName: "Smith Machine Bench Press",
 			bestWeightKg: 20,
-			volumeKg: 400,
+			volumeKg: 1200,
 			successfulTopRangeSessions: 2,
 		});
 		expect(body.exercises[0].progressionHint).toContain("Consider increasing");
 		expect(body.consistency[0]).toMatchObject({ count: 2 });
 	});
+
+	it("does not count partial top-range sets as progression-ready sessions", async () => {
+		const { app, cookie, plan } = await createSessionWithActivePlan();
+		const day1 = plan.template.days[0];
+
+		for (const startedAt of [
+			"2026-06-02T10:00:00.000Z",
+			"2026-06-05T10:00:00.000Z",
+		]) {
+			const start = await app.request("/workouts/draft", {
+				method: "POST",
+				headers: { "content-type": "application/json", cookie },
+				body: JSON.stringify({ trainingDayId: day1.id, startedAt }),
+			});
+			const started = await start.json();
+			await app.request(
+				`/workouts/${started.workout.id}/exercises/${started.workout.exercises[0].id}`,
+				{
+					method: "PUT",
+					headers: { "content-type": "application/json", cookie },
+					body: JSON.stringify({
+						status: "completed",
+						goodForm: true,
+						sets: [{ setIndex: 1, weightKg: 20, reps: 10 }],
+					}),
+				},
+			);
+			await app.request(`/workouts/${started.workout.id}/complete`, {
+				method: "POST",
+				headers: { "content-type": "application/json", cookie },
+				body: JSON.stringify({ completedAt: startedAt }),
+			});
+		}
+
+		const response = await app.request("/stats/workouts", {
+			headers: { cookie },
+		});
+		const body = await response.json();
+
+		expect(body.exercises[0]).toMatchObject({
+			successfulTopRangeSessions: 0,
+			progressionHint: null,
+		});
+	});
+
 
 	it("lists completed workout history for the current user", async () => {
 		const { app, cookie, plan } = await createSessionWithActivePlan();
@@ -323,5 +372,51 @@ describe("workout routes", () => {
 			status: "completed",
 			note: "Done",
 		});
+	});
+
+	it("rejects invalid set payloads without replacing saved sets", async () => {
+		const { app, cookie, plan } = await createSessionWithActivePlan();
+		const trainingDayId = plan.template.days[0].id as string;
+		const start = await app.request("/workouts/draft", {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				trainingDayId,
+				startedAt: "2026-06-02T10:00:00.000Z",
+			}),
+		});
+		const started = await start.json();
+		const exerciseLogId = started.workout.exercises[0].id as string;
+		const path = `/workouts/${started.workout.id}/exercises/${exerciseLogId}`;
+
+		const valid = await app.request(path, {
+			method: "PUT",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				status: "completed",
+				goodForm: true,
+				sets: [{ setIndex: 1, weightKg: 20, reps: 10 }],
+			}),
+		});
+		expect(valid.status).toBe(200);
+
+		const invalid = await app.request(path, {
+			method: "PUT",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				status: "completed",
+				goodForm: true,
+				sets: [{ setIndex: 1, weightKg: -20, reps: 10 }],
+			}),
+		});
+		expect(invalid.status).toBe(400);
+
+		const detail = await app.request(`/workouts/${started.workout.id}`, {
+			headers: { cookie },
+		});
+		const detailBody = await detail.json();
+		expect(detailBody.workout.exercises[0].sets).toEqual([
+			expect.objectContaining({ weightKg: 20, reps: 10 }),
+		]);
 	});
 });

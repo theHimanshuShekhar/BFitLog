@@ -251,13 +251,31 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 				update.restSeconds = body.restSeconds;
 			if (typeof body?.notes === "string" || body?.notes === null)
 				update.notes = body.notes?.trim() || null;
+			const [current] = await db
+				.select()
+				.from(plannedExercises)
+				.where(eq(plannedExercises.id, plannedExerciseId))
+				.limit(1);
+			if (!current) return c.json({ error: "Planned exercise not found" }, 404);
 			if (
-				("targetSets" in update &&
-					(!update.targetSets || update.targetSets < 1)) ||
-				("restSeconds" in update &&
-					(!update.restSeconds || update.restSeconds < 1))
+				!isValidPlannedExerciseTarget({
+					targetSets: update.targetSets ?? current.targetSets,
+					targetMinReps:
+						update.targetMinReps === undefined
+							? current.targetMinReps
+							: update.targetMinReps,
+					targetMaxReps:
+						update.targetMaxReps === undefined
+							? current.targetMaxReps
+							: update.targetMaxReps,
+					targetDurationSeconds:
+						update.targetDurationSeconds === undefined
+							? current.targetDurationSeconds
+							: update.targetDurationSeconds,
+					restSeconds: update.restSeconds ?? current.restSeconds,
+				})
 			) {
-				return c.json({ error: "Targets must be positive numbers" }, 400);
+				return c.json({ error: "Invalid planned exercise target" }, 400);
 			}
 
 			const [updated] = await db
@@ -265,7 +283,6 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 				.set(update)
 				.where(eq(plannedExercises.id, plannedExerciseId))
 				.returning();
-			if (!updated) return c.json({ error: "Planned exercise not found" }, 404);
 			return c.json({ plannedExercise: updated });
 		},
 	)
@@ -277,6 +294,23 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 			return c.json({ error: "Role must be admin or member" }, 400);
 		}
 		const targetUserId = c.req.param("userId");
+		if (body.role === "member") {
+			const [target] = await db
+				.select({ role: user.role })
+				.from(user)
+				.where(eq(user.id, targetUserId))
+				.limit(1);
+			if (!target) return c.json({ error: "User not found" }, 404);
+			if (target.role === "admin") {
+				const [adminCount] = await db
+					.select({ value: count() })
+					.from(user)
+					.where(eq(user.role, "admin"));
+				if ((adminCount?.value ?? 0) <= 1) {
+					return c.json({ error: "Cannot demote the last admin" }, 400);
+				}
+			}
+		}
 		const [updated] = await db
 			.update(user)
 			.set({ role: body.role })
@@ -317,4 +351,46 @@ export const adminRoutes = new Hono<{ Variables: Variables }>()
 
 function isValidUsername(username: string) {
 	return username.trim().length >= 2 && /^[a-zA-Z0-9_-]+$/.test(username);
+}
+
+function isValidPlannedExerciseTarget(
+	value: Pick<
+		typeof plannedExercises.$inferSelect,
+		| "targetSets"
+		| "targetMinReps"
+		| "targetMaxReps"
+		| "targetDurationSeconds"
+		| "restSeconds"
+	>,
+) {
+	if (!Number.isInteger(value.targetSets) || value.targetSets < 1) return false;
+	if (!Number.isInteger(value.restSeconds) || value.restSeconds < 1) return false;
+	if (
+		value.targetMinReps !== null &&
+		(!Number.isInteger(value.targetMinReps) || value.targetMinReps < 1)
+	) {
+		return false;
+	}
+	if (
+		value.targetMaxReps !== null &&
+		(!Number.isInteger(value.targetMaxReps) || value.targetMaxReps < 1)
+	) {
+		return false;
+	}
+	if (
+		value.targetDurationSeconds !== null &&
+		(!Number.isInteger(value.targetDurationSeconds) ||
+			value.targetDurationSeconds < 1)
+	) {
+		return false;
+	}
+	const hasReps = value.targetMinReps !== null || value.targetMaxReps !== null;
+	const hasDuration = value.targetDurationSeconds !== null;
+	if (hasReps && hasDuration) return false;
+	if (!hasReps && !hasDuration) return false;
+	if (hasReps) {
+		if (value.targetMinReps === null || value.targetMaxReps === null) return false;
+		if (value.targetMinReps > value.targetMaxReps) return false;
+	}
+	return true;
 }

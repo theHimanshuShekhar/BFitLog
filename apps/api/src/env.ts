@@ -1,6 +1,7 @@
 export type ApiEnv = {
 	port: number;
 	corsAllowedOrigins: string[];
+	betterAuthSecret: string;
 	betterAuthTrustedOrigins: string[];
 	useSecureCookies: boolean;
 };
@@ -13,18 +14,24 @@ const developmentOrigins = [
 	"bfitlog://*",
 ];
 
+const developmentSecret = "development-secret-change-before-production";
+
 export function readEnv(env = process.env): ApiEnv {
+	const isProduction = env.NODE_ENV === "production";
 	const betterAuthUrl = env.BETTER_AUTH_URL ?? "http://localhost:3000";
+	const betterAuthSecret = env.BETTER_AUTH_SECRET ?? developmentSecret;
+	if (isProduction && betterAuthSecret === developmentSecret) {
+		throw new Error("BETTER_AUTH_SECRET must be set in production");
+	}
 	const corsAllowedOrigins = parseCsv(env.CORS_ALLOWED_ORIGINS);
 	const betterAuthTrustedOrigins = unique([
 		betterAuthUrl,
-		...developmentOrigins,
+		...(isProduction ? [] : developmentOrigins),
 		...parseCsv(env.BETTER_AUTH_TRUSTED_ORIGINS),
 		...(env.NODE_ENV === "development"
 			? ["exp://", "exp://**", "exp://192.168.*.*:*/**"]
 			: []),
 	]);
-
 	const secureCookies = env.BETTER_AUTH_SECURE_COOKIES;
 
 	return {
@@ -32,14 +39,13 @@ export function readEnv(env = process.env): ApiEnv {
 		corsAllowedOrigins:
 			corsAllowedOrigins.length > 0
 				? corsAllowedOrigins
-				: env.NODE_ENV === "production"
+				: isProduction
 					? [betterAuthUrl]
 					: [],
+		betterAuthSecret,
 		betterAuthTrustedOrigins,
 		useSecureCookies:
-			secureCookies === undefined
-				? env.NODE_ENV === "production"
-				: secureCookies === "true",
+			secureCookies === undefined ? isProduction : secureCookies === "true",
 	};
 }
 

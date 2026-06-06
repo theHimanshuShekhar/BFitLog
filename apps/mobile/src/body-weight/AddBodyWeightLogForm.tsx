@@ -39,7 +39,7 @@ export function AddBodyWeightLogForm({ userId, onSaved }: Props) {
 		};
 
 		try {
-			const repository = getBodyWeightRepository();
+			const repository = getBodyWeightRepository(userId);
 			await repository.saveLog(log);
 			onSaved?.(log);
 			setWeightKg("");

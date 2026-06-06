@@ -19,7 +19,7 @@ export function BodyWeightGoalForm({ userId }: Props) {
 
 	useEffect(() => {
 		let active = true;
-		getBodyWeightRepository()
+		getBodyWeightRepository(userId)
 			.getGoal()
 			.then((goal) => {
 				if (!active || !goal) return;
@@ -29,7 +29,7 @@ export function BodyWeightGoalForm({ userId }: Props) {
 		return () => {
 			active = false;
 		};
-	}, []);
+	}, [userId]);
 
 	async function save() {
 		const parsedTarget = Number(targetKg);
@@ -42,7 +42,7 @@ export function BodyWeightGoalForm({ userId }: Props) {
 		setSaving(true);
 		setMessageKind("status");
 		try {
-			const repository = getBodyWeightRepository();
+			const repository = getBodyWeightRepository(userId);
 			await repository.saveGoal({
 				userId,
 				targetKg: Math.round(parsedTarget * 10) / 10,
