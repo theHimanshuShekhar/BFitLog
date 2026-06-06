@@ -123,13 +123,20 @@ export async function getActivePlan(): Promise<ActivePlan | null> {
 	return body.plan;
 }
 
-export async function getWorkoutStats(): Promise<WorkoutStats> {
-	const response = await fetch(`${apiBaseUrl}/stats/workouts`, authHeaders());
+export async function getWorkoutStats(userId?: string): Promise<WorkoutStats> {
+	const query = userId ? `?userId=${encodeURIComponent(userId)}` : "";
+	const response = await fetch(
+		`${apiBaseUrl}/stats/workouts${query}`,
+		authHeaders(),
+	);
 	return parseJson<WorkoutStats>(response, "Load workout stats");
 }
 
-export async function listCompletedWorkouts(): Promise<WorkoutHistoryItem[]> {
-	const response = await fetch(`${apiBaseUrl}/workouts`, authHeaders());
+export async function listCompletedWorkouts(
+	userId?: string,
+): Promise<WorkoutHistoryItem[]> {
+	const query = userId ? `?userId=${encodeURIComponent(userId)}` : "";
+	const response = await fetch(`${apiBaseUrl}/workouts${query}`, authHeaders());
 	const body = await parseJson<{ workouts: WorkoutHistoryItem[] }>(
 		response,
 		"Load workout history",

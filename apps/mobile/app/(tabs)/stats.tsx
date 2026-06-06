@@ -15,9 +15,15 @@ import {
 	BodyWeightChart,
 	type ChartRange,
 } from "@/body-weight/BodyWeightChart";
+import {
+	pullBodyWeightGoalForUser,
+	pullBodyWeightLogsForUser,
+} from "@/body-weight/body-weight-sync-client";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { formatKg, integerFormatter } from "@/format";
 import { colors, layout, spacing } from "@/theme";
+import { VisibleUserPicker } from "@/users/VisibleUserPicker";
+import { useVisibleUsers } from "@/users/use-visible-users";
 import { blurActiveElement } from "@/web-focus";
 import { getWorkoutStats, type WorkoutStats } from "@/workouts/workout-api";
 
@@ -29,6 +35,9 @@ export default function StatsScreen() {
 	const [goal, setGoal] = useState<BodyWeightGoal | null>(null);
 	const [logs, setLogs] = useState<BodyWeightLog[]>([]);
 	const [workoutStats, setWorkoutStats] = useState<WorkoutStats | null>(null);
+	const { visibleUsers, selectedUserId, setSelectedUserId } = useVisibleUsers(
+		session.data?.user,
+	);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -36,26 +45,41 @@ export default function StatsScreen() {
 			if (isDefaultAdminUser(session.data.user)) return undefined;
 
 			let active = true;
-			const repository = getBodyWeightRepository(session.data.user.id);
-			repository
-				.sync()
-				.catch(() => undefined)
-				.finally(() => {
-					Promise.all([
-						repository.getGoal(),
-						repository.listLogs(),
-						getWorkoutStats().catch(() => null),
-					]).then(([nextGoal, nextLogs, nextWorkoutStats]) => {
-						if (!active) return;
-						setGoal(nextGoal);
-						setLogs(nextLogs);
-						setWorkoutStats(nextWorkoutStats);
+			const ownUserId = session.data.user.id;
+			const targetUserId = selectedUserId ?? ownUserId;
+			if (targetUserId === ownUserId) {
+				const repository = getBodyWeightRepository(ownUserId);
+				repository
+					.sync()
+					.catch(() => undefined)
+					.finally(() => {
+						Promise.all([
+							repository.getGoal(),
+							repository.listLogs(),
+							getWorkoutStats(targetUserId).catch(() => null),
+						]).then(([nextGoal, nextLogs, nextWorkoutStats]) => {
+							if (!active) return;
+							setGoal(nextGoal);
+							setLogs(nextLogs);
+							setWorkoutStats(nextWorkoutStats);
+						});
 					});
+			} else {
+				Promise.all([
+					pullBodyWeightGoalForUser(targetUserId),
+					pullBodyWeightLogsForUser(targetUserId),
+					getWorkoutStats(targetUserId).catch(() => null),
+				]).then(([nextGoal, nextLogs, nextWorkoutStats]) => {
+					if (!active) return;
+					setGoal(nextGoal);
+					setLogs(nextLogs);
+					setWorkoutStats(nextWorkoutStats);
 				});
+			}
 			return () => {
 				active = false;
 			};
-		}, [session.data, session.isPending]),
+		}, [selectedUserId, session.data, session.isPending]),
 	);
 
 	if (session.isPending) {
@@ -75,8 +99,15 @@ export default function StatsScreen() {
 		<ScrollView contentContainerStyle={styles.container}>
 			<Text style={styles.title}>Stats</Text>
 			<Text style={styles.description}>
-				Body weight trend for {session.data.user.name}
+				Body weight trend for{" "}
+				{visibleUsers.find((user) => user.id === selectedUserId)?.name ??
+					session.data.user.name}
 			</Text>
+			<VisibleUserPicker
+				users={visibleUsers}
+				selectedUserId={selectedUserId ?? session.data.user.id}
+				onSelect={setSelectedUserId}
+			/>
 
 			<View accessibilityRole="tablist" style={styles.rangeRow}>
 				{ranges.map((item) => (

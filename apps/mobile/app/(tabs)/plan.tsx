@@ -18,8 +18,9 @@ import { useAuth } from "@/auth/use-auth";
 import { formatSeconds } from "@/format";
 import { colors, layout, spacing } from "@/theme";
 import { getInlineMediaEmbed } from "@/training-media";
+import { VisibleUserPicker } from "@/users/VisibleUserPicker";
+import { useVisibleUsers } from "@/users/use-visible-users";
 
-const planCacheKey = "bfitlog:training-plan-template";
 
 type TrainingPlanTemplate = {
 	id: string;
@@ -90,11 +91,17 @@ export default function PlanScreen() {
 		"loading",
 	);
 	const [error, setError] = useState<string | null>(null);
+	const { visibleUsers, selectedUserId, setSelectedUserId } = useVisibleUsers(
+		session.data?.user,
+	);
 
 	const loadPlan = useCallback(async () => {
+		if (!session.data) return;
+		const targetUserId = selectedUserId ?? session.data.user.id;
+		const cacheKey = `bfitlog:training-plan-template:${targetUserId}`;
 		setStatus("loading");
 		setError(null);
-		const cached = await AsyncStorage.getItem(planCacheKey);
+		const cached = await AsyncStorage.getItem(cacheKey);
 		if (cached) {
 			setPlan(JSON.parse(cached) as TrainingPlanTemplate);
 		}
@@ -102,7 +109,11 @@ export default function PlanScreen() {
 			const cookie = authClient.getCookie();
 			const headers = new Headers();
 			if (cookie) headers.set("Cookie", cookie);
-			let response = await fetch(`${apiBaseUrl}/training-plan/active`, {
+			const query =
+				targetUserId === session.data.user.id
+					? ""
+					: `?userId=${encodeURIComponent(targetUserId)}`;
+			let response = await fetch(`${apiBaseUrl}/training-plan/active${query}`, {
 				headers,
 				credentials: cookie ? "omit" : "include",
 			});
@@ -110,7 +121,7 @@ export default function PlanScreen() {
 				throw new Error(`Plan request failed with ${response.status}`);
 			let body = (await response.json()) as ActivePlanResponse;
 
-			if (!body.plan) {
+			if (!body.plan && targetUserId === session.data.user.id) {
 				response = await fetch(`${apiBaseUrl}/training-plan/active/default`, {
 					method: "POST",
 					headers,
@@ -124,7 +135,7 @@ export default function PlanScreen() {
 			const template = body.plan?.template ?? null;
 			setPlan(template);
 			if (template)
-				await AsyncStorage.setItem(planCacheKey, JSON.stringify(template));
+				await AsyncStorage.setItem(cacheKey, JSON.stringify(template));
 			setStatus("ready");
 		} catch (err) {
 			if (cached) {
@@ -136,7 +147,7 @@ export default function PlanScreen() {
 			);
 			setStatus("error");
 		}
-	}, []);
+	}, [selectedUserId, session.data]);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -186,6 +197,12 @@ export default function PlanScreen() {
 			<Text style={styles.description}>{plan?.name}</Text>
 			{plan?.goal ? <Text style={styles.status}>Goal: {plan.goal}</Text> : null}
 			{plan?.notes ? <Text style={styles.status}>{plan.notes}</Text> : null}
+
+			<VisibleUserPicker
+				users={visibleUsers}
+				selectedUserId={selectedUserId ?? session.data.user.id}
+				onSelect={setSelectedUserId}
+			/>
 
 			{plan?.days.map((day) => (
 				<View key={day.id} style={styles.dayCard}>

@@ -8,6 +8,7 @@ import { goalRoutes } from "./routes/goals.js";
 import { healthRoutes } from "./routes/health.js";
 import { setupRoutes } from "./routes/setup.js";
 import { trainingPlanRoutes } from "./routes/training-plan.js";
+import { visibleUserRoutes } from "./routes/visible-users.js";
 import { workoutRoutes } from "./routes/workouts.js";
 import { defaultAdminUsername } from "./bootstrap.js";
 import { createDb } from "./db/client.js";
@@ -136,6 +137,7 @@ export function createApp(options: AppOptions = {}) {
 	app.route("/", goalRoutes);
 	app.route("/", trainingPlanRoutes);
 	app.route("/", workoutRoutes);
+	app.route("/", visibleUserRoutes);
 
 	return app;
 }

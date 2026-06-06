@@ -13,6 +13,7 @@ import {
 	userTrainingPlans,
 	workoutLogs,
 } from "../db/schema.js";
+import { canReadUserData } from "./visibility.js";
 
 const db = createDb(
 	process.env.DATABASE_URL ??
@@ -83,10 +84,14 @@ export const trainingPlanRoutes = new Hono<{ Variables: Variables }>()
 		const user = c.get("user");
 		if (!user) return c.json({ error: "Unauthorized" }, 401);
 
+		const targetUserId = c.req.query("userId") ?? user.id;
+		if (!(await canReadUserData(user.id, targetUserId))) {
+			return c.json({ error: "Forbidden" }, 403);
+		}
 		const [activePlan] = await db
 			.select()
 			.from(userTrainingPlans)
-			.where(eq(userTrainingPlans.userId, user.id))
+			.where(eq(userTrainingPlans.userId, targetUserId))
 			.orderBy(desc(userTrainingPlans.activeAt))
 			.limit(1);
 

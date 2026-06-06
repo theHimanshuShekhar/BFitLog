@@ -46,6 +46,72 @@ async function createSessionWithActivePlan() {
 	};
 }
 
+async function createLinkedPartnerSessions() {
+	await seedTrainingPlan();
+	const app = createApp();
+	await ensureDefaultAdmin();
+	const defaultLogin = await app.request("/api/auth/sign-in/username", {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({ username: "admin", password: "admin" }),
+	});
+	const defaultCookie = defaultLogin.headers.get("set-cookie") ?? "";
+	const adminCreate = await app.request("/admin/users", {
+		method: "POST",
+		headers: { "content-type": "application/json", cookie: defaultCookie },
+		body: JSON.stringify({
+			username: "realadmin",
+			displayName: "Real Admin",
+			password: "password1234",
+		}),
+	});
+	const adminBody = await adminCreate.json();
+	const adminLogin = await app.request("/api/auth/sign-in/username", {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({ username: "realadmin", password: "password1234" }),
+	});
+	const adminCookie = adminLogin.headers.get("set-cookie") ?? "";
+	const partnerCreate = await app.request("/admin/users", {
+		method: "POST",
+		headers: { "content-type": "application/json", cookie: adminCookie },
+		body: JSON.stringify({
+			username: "partner",
+			displayName: "Partner",
+			password: "password1234",
+		}),
+	});
+	const partnerBody = await partnerCreate.json();
+	await app.request("/admin/partner-links", {
+		method: "POST",
+		headers: { "content-type": "application/json", cookie: adminCookie },
+		body: JSON.stringify({
+			userAId: adminBody.user.id,
+			userBId: partnerBody.user.id,
+		}),
+	});
+	const partnerLogin = await app.request("/api/auth/sign-in/username", {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({ username: "partner", password: "password1234" }),
+	});
+	const partnerCookie = partnerLogin.headers.get("set-cookie") ?? "";
+	const activePlanResponse = await app.request(
+		"/training-plan/active/default",
+		{ method: "POST", headers: { cookie: partnerCookie } },
+	);
+	const activePlanBody = await activePlanResponse.json();
+	return {
+		app,
+		adminCookie,
+		adminUserId: adminBody.user.id as string,
+		partnerCookie,
+		partnerUserId: partnerBody.user.id as string,
+		partnerPlan: activePlanBody.plan,
+	};
+}
+
+
 describe("workout routes", () => {
 	beforeEach(async () => {
 		await truncateAppTables();
@@ -172,6 +238,7 @@ describe("workout routes", () => {
 			});
 		}
 
+
 		const response = await app.request("/stats/workouts", {
 			headers: { cookie },
 		});
@@ -185,6 +252,59 @@ describe("workout routes", () => {
 		});
 		expect(body.exercises[0].progressionHint).toContain("Consider increasing");
 		expect(body.consistency[0]).toMatchObject({ count: 2 });
+	});
+
+	it("lets linked partners open workout detail and active plan", async () => {
+		const { app, adminCookie, partnerCookie, partnerUserId, partnerPlan } =
+			await createLinkedPartnerSessions();
+		const day1 = partnerPlan.template.days[0];
+		const start = await app.request("/workouts/draft", {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie: partnerCookie },
+			body: JSON.stringify({
+				trainingDayId: day1.id,
+				startedAt: "2026-06-02T10:00:00.000Z",
+			}),
+		});
+		const started = await start.json();
+		await app.request(`/workouts/${started.workout.id}/complete`, {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie: partnerCookie },
+			body: JSON.stringify({ completedAt: "2026-06-02T11:00:00.000Z" }),
+		});
+
+		const partnerHistory = await app.request(
+			`/workouts?userId=${partnerUserId}`,
+			{ headers: { cookie: adminCookie } },
+		);
+		expect(partnerHistory.status).toBe(200);
+		const historyBody = await partnerHistory.json();
+		expect(historyBody.workouts[0].id).toBe(started.workout.id);
+
+		const visibleUsers = await app.request("/visible-users", {
+			headers: { cookie: adminCookie },
+		});
+		expect(visibleUsers.status).toBe(200);
+		const visibleUsersBody = await visibleUsers.json();
+		expect(visibleUsersBody.users).toEqual([
+			expect.objectContaining({ id: expect.any(String), username: "realadmin" }),
+			expect.objectContaining({ id: partnerUserId, username: "partner" }),
+		]);
+
+		const detail = await app.request(`/workouts/${started.workout.id}`, {
+			headers: { cookie: adminCookie },
+		});
+		expect(detail.status).toBe(200);
+		const detailBody = await detail.json();
+		expect(detailBody.workout.userId).toBe(partnerUserId);
+
+		const activePlan = await app.request(
+			`/training-plan/active?userId=${partnerUserId}`,
+			{ headers: { cookie: adminCookie } },
+		);
+		expect(activePlan.status).toBe(200);
+		const activePlanBody = await activePlan.json();
+		expect(activePlanBody.plan.userId).toBe(partnerUserId);
 	});
 
 	it("does not count partial top-range sets as progression-ready sessions", async () => {

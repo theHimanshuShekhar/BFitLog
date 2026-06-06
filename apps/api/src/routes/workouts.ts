@@ -369,7 +369,16 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 		const user = requireUser(c);
 		if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-		const workout = await loadWorkout(c.req.param("workoutId"), user.id);
+		const [workoutLog] = await db
+			.select({ userId: workoutLogs.userId })
+			.from(workoutLogs)
+			.where(eq(workoutLogs.id, c.req.param("workoutId")))
+			.limit(1);
+		if (!workoutLog) return c.json({ error: "Workout not found" }, 404);
+		if (!(await canReadUserData(user.id, workoutLog.userId))) {
+			return c.json({ error: "Forbidden" }, 403);
+		}
+		const workout = await loadWorkout(c.req.param("workoutId"), workoutLog.userId);
 		if (!workout) return c.json({ error: "Workout not found" }, 404);
 		return c.json({ workout });
 	})

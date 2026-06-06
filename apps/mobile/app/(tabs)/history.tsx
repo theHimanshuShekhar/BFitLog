@@ -13,10 +13,13 @@ import {
 } from "react-native";
 import { isDefaultAdminUser } from "@/auth/default-admin-onboarding";
 import { useAuth } from "@/auth/use-auth";
+import { pullBodyWeightLogsForUser } from "@/body-weight/body-weight-sync-client";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { confirmDestructive } from "@/confirm";
 import { formatDateTime, formatKg } from "@/format";
 import { colors, layout, spacing } from "@/theme";
+import { VisibleUserPicker } from "@/users/VisibleUserPicker";
+import { useVisibleUsers } from "@/users/use-visible-users";
 import {
 	listCompletedWorkouts,
 	type WorkoutHistoryItem,
@@ -33,6 +36,10 @@ export default function HistoryScreen() {
 	const [editWeightKg, setEditWeightKg] = useState("");
 	const [editNote, setEditNote] = useState("");
 	const userId = session.data?.user.id;
+	const { visibleUsers, selectedUserId, setSelectedUserId } = useVisibleUsers(
+		session.data?.user,
+	);
+	const isOwnUser = !userId || selectedUserId === userId;
 
 	const startEdit = (log: BodyWeightLog) => {
 		setEditingLogId(log.id);
@@ -85,21 +92,39 @@ export default function HistoryScreen() {
 
 	const load = useCallback(async () => {
 		if (!userId) return;
-		const repository = getBodyWeightRepository(userId);
+		const targetUserId = selectedUserId ?? userId;
 		setRefreshing(true);
-		setLogs(await repository.listLogs());
-		setSyncStatus("Syncing…");
-		try {
-			await repository.sync();
+		if (targetUserId === userId) {
+			const repository = getBodyWeightRepository(userId);
 			setLogs(await repository.listLogs());
-			setWorkouts(await listCompletedWorkouts());
-			setSyncStatus("Synced");
+			setSyncStatus("Syncing…");
+			try {
+				await repository.sync();
+				setLogs(await repository.listLogs());
+				setWorkouts(await listCompletedWorkouts(targetUserId));
+				setSyncStatus("Synced");
+			} catch {
+				setSyncStatus("Offline / sync pending");
+			} finally {
+				setRefreshing(false);
+			}
+			return;
+		}
+		setSyncStatus("Loading partner data…");
+		try {
+			const [nextLogs, nextWorkouts] = await Promise.all([
+				pullBodyWeightLogsForUser(targetUserId),
+				listCompletedWorkouts(targetUserId),
+			]);
+			setLogs(nextLogs);
+			setWorkouts(nextWorkouts);
+			setSyncStatus("Loaded partner data");
 		} catch {
-			setSyncStatus("Offline / sync pending");
+			setSyncStatus("Unable to load partner data");
 		} finally {
 			setRefreshing(false);
 		}
-	}, [userId]);
+	}, [selectedUserId, userId]);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -135,8 +160,15 @@ export default function HistoryScreen() {
 		>
 			<Text style={styles.title}>History</Text>
 			<Text style={styles.description}>
-				Body weight logs for {session.data.user.name}
+				Body weight logs for{" "}
+				{visibleUsers.find((user) => user.id === selectedUserId)?.name ??
+					session.data.user.name}
 			</Text>
+			<VisibleUserPicker
+				users={visibleUsers}
+				selectedUserId={selectedUserId ?? session.data.user.id}
+				onSelect={setSelectedUserId}
+			/>
 			<Text style={styles.status}>{syncStatus}</Text>
 
 			<Pressable
@@ -236,22 +268,24 @@ export default function HistoryScreen() {
 								{log.note ? (
 									<Text style={styles.description}>{log.note}</Text>
 								) : null}
-								<View style={styles.buttonRow}>
-									<Pressable
-										accessibilityRole="button"
-										style={styles.secondaryButtonCompact}
-										onPress={() => startEdit(log)}
-									>
-										<Text style={styles.secondaryButtonText}>Edit</Text>
-									</Pressable>
-									<Pressable
-										accessibilityRole="button"
-										style={styles.dangerButtonCompact}
-										onPress={() => void deleteBodyWeightLog(log.id)}
-									>
-										<Text style={styles.dangerButtonText}>Delete</Text>
-									</Pressable>
-								</View>
+								{isOwnUser ? (
+									<View style={styles.buttonRow}>
+										<Pressable
+											accessibilityRole="button"
+											style={styles.secondaryButtonCompact}
+											onPress={() => startEdit(log)}
+										>
+											<Text style={styles.secondaryButtonText}>Edit</Text>
+										</Pressable>
+										<Pressable
+											accessibilityRole="button"
+											style={styles.dangerButtonCompact}
+											onPress={() => void deleteBodyWeightLog(log.id)}
+										>
+											<Text style={styles.dangerButtonText}>Delete</Text>
+										</Pressable>
+									</View>
+								) : null}
 							</>
 						)}
 					</View>

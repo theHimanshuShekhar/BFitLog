@@ -53,3 +53,23 @@ export class HttpBodyWeightSyncClient implements BodyWeightSyncClient {
 		return body.logs;
 	}
 }
+
+export async function pullBodyWeightGoalForUser(
+	userId: string,
+): Promise<BodyWeightGoal | null> {
+	const response = await authFetch(
+		`/body-weight/goal?userId=${encodeURIComponent(userId)}`,
+	);
+	const body = (await response.json()) as GoalResponse;
+	return body.goal;
+}
+
+export async function pullBodyWeightLogsForUser(
+	userId: string,
+): Promise<BodyWeightLog[]> {
+	const response = await authFetch(
+		`/body-weight/logs?userId=${encodeURIComponent(userId)}`,
+	);
+	const body = (await response.json()) as LogsResponse;
+	return body.logs;
+}
