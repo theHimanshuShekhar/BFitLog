@@ -1,5 +1,5 @@
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
 	ActivityIndicator,
 	Pressable,
@@ -25,6 +25,12 @@ import {
 	type WorkoutSetInput,
 } from "@/workouts/workout-set-inputs";
 import { formatWorkoutSubstituteLabel } from "@/workouts/workout-substitutes";
+import {
+	pauseRestTimer,
+	resumeRestTimer,
+	tickRestTimer,
+	type RestTimerState,
+} from "@/workouts/rest-timer";
 import { colors, spacing } from "@/theme";
 import {
 	completeWorkout,
@@ -48,8 +54,7 @@ type ExerciseInput = {
 	performedExerciseId: string;
 	substitutionNote: string;
 };
-
-type RestTimer = { exerciseName: string; remainingSeconds: number } | null;
+type RestTimer = RestTimerState | null;
 
 
 export default function WorkoutScreen() {
@@ -87,6 +92,14 @@ export default function WorkoutScreen() {
 			setStatus("error");
 		}
 	}, [params.workoutId]);
+
+	useEffect(() => {
+		if (!restTimer || restTimer.paused) return undefined;
+		const interval = setInterval(() => {
+			setRestTimer((current) => tickRestTimer(current));
+		}, 1000);
+		return () => clearInterval(interval);
+	}, [restTimer]);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -199,6 +212,7 @@ export default function WorkoutScreen() {
 			setRestTimer({
 				exerciseName: exercise.plannedExerciseName,
 				remainingSeconds: exercise.restSeconds ?? 90,
+				paused: false,
 			});
 			setStatus("ready");
 		} catch (err) {
@@ -330,6 +344,21 @@ export default function WorkoutScreen() {
 						Rest after {restTimer.exerciseName}:{" "}
 						{formatSeconds(restTimer.remainingSeconds)}
 					</Text>
+					<Pressable
+						accessibilityRole="button"
+						style={styles.secondaryButton}
+						onPress={() =>
+							setRestTimer((current) =>
+								current?.paused
+									? resumeRestTimer(current)
+									: pauseRestTimer(current),
+							)
+						}
+					>
+						<Text style={styles.secondaryButtonText}>
+							{restTimer.paused ? "Resume rest timer" : "Pause rest timer"}
+						</Text>
+					</Pressable>
 					<Pressable
 						accessibilityRole="button"
 						style={styles.secondaryButton}
