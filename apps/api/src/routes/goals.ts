@@ -26,7 +26,18 @@ function requireUser(c: { get: (key: "user") => Variables["user"] }) {
 }
 
 function isReminderTime(value: unknown) {
-	return typeof value === "string" && /^\d{2}:\d{2}$/.test(value);
+	if (typeof value !== "string") return false;
+	const match = value.match(/^(\d{2}):(\d{2})$/);
+	if (!match?.[1] || !match[2]) return false;
+	const hour = Number(match[1]);
+	const minute = Number(match[2]);
+	return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+}
+
+function parseUpdatedAt(value: unknown) {
+	if (typeof value !== "string") return new Date();
+	const date = new Date(value);
+	return Number.isNaN(date.getTime()) ? null : date;
 }
 
 export const goalRoutes = new Hono<{ Variables: Variables }>()
@@ -57,10 +68,15 @@ export const goalRoutes = new Hono<{ Variables: Variables }>()
 		) {
 			return c.json({ error: "Target workouts per week must be 1-14" }, 400);
 		}
-		const updatedAt =
-			typeof body.updatedAt === "string"
-				? new Date(body.updatedAt)
-				: new Date();
+		const updatedAt = parseUpdatedAt(body.updatedAt);
+		if (!updatedAt) return c.json({ error: "updatedAt must be an ISO date" }, 400);
+		const [existing] = await db
+			.select()
+			.from(workoutFrequencyGoals)
+			.where(eq(workoutFrequencyGoals.userId, user.id));
+		if (existing && existing.updatedAt >= updatedAt) {
+			return c.json({ goal: existing });
+		}
 		await db
 			.insert(workoutFrequencyGoals)
 			.values({
@@ -118,10 +134,15 @@ export const goalRoutes = new Hono<{ Variables: Variables }>()
 		) {
 			return c.json({ error: "Weigh-in reminder time must be HH:MM" }, 400);
 		}
-		const updatedAt =
-			typeof body.updatedAt === "string"
-				? new Date(body.updatedAt)
-				: new Date();
+		const updatedAt = parseUpdatedAt(body.updatedAt);
+		if (!updatedAt) return c.json({ error: "updatedAt must be an ISO date" }, 400);
+		const [existing] = await db
+			.select()
+			.from(reminderSettings)
+			.where(eq(reminderSettings.userId, user.id));
+		if (existing && existing.updatedAt >= updatedAt) {
+			return c.json({ settings: existing });
+		}
 		const values = {
 			userId: user.id,
 			workoutReminderEnabled: body.workoutReminderEnabled,

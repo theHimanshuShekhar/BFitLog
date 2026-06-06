@@ -52,7 +52,7 @@ export default function SettingsScreen() {
 				</Text>
 			</View>
 			<BodyWeightGoalForm userId={session.data.user.id} />
-			<GoalReminderSettings />
+			<GoalReminderSettings userId={session.data.user.id} />
 			<ChangePasswordForm />
 			{role === "admin" ? <AdminUserManagement /> : null}
 			<View style={styles.card}>

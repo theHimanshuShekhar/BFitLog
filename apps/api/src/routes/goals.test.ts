@@ -53,6 +53,75 @@ describe("goal and reminder routes", () => {
 		expect(getBody.goal.targetWorkoutsPerWeek).toBe(4);
 	});
 
+	it("keeps newer workout frequency goals when stale offline writes arrive", async () => {
+		const { app, cookie } = await createSession();
+		await app.request("/goals/workout-frequency", {
+			method: "PUT",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				targetWorkoutsPerWeek: 5,
+				updatedAt: "2026-06-05T10:00:00.000Z",
+			}),
+		});
+
+		const stale = await app.request("/goals/workout-frequency", {
+			method: "PUT",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				targetWorkoutsPerWeek: 2,
+				updatedAt: "2026-06-04T10:00:00.000Z",
+			}),
+		});
+		expect(stale.status).toBe(200);
+		const staleBody = await stale.json();
+		expect(staleBody.goal).toMatchObject({
+			targetWorkoutsPerWeek: 5,
+			updatedAt: "2026-06-05T10:00:00.000Z",
+		});
+	});
+
+	it("rejects invalid reminder times and stale reminder settings", async () => {
+		const { app, cookie } = await createSession();
+		const invalid = await app.request("/reminders/settings", {
+			method: "PUT",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				workoutReminderEnabled: true,
+				workoutReminderTime: "99:99",
+				weighInReminderEnabled: false,
+				updatedAt: "2026-06-05T10:00:00.000Z",
+			}),
+		});
+		expect(invalid.status).toBe(400);
+
+		await app.request("/reminders/settings", {
+			method: "PUT",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				workoutReminderEnabled: true,
+				workoutReminderTime: "18:00",
+				weighInReminderEnabled: false,
+				updatedAt: "2026-06-05T10:00:00.000Z",
+			}),
+		});
+		const stale = await app.request("/reminders/settings", {
+			method: "PUT",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify({
+				workoutReminderEnabled: true,
+				workoutReminderTime: "19:00",
+				weighInReminderEnabled: false,
+				updatedAt: "2026-06-04T10:00:00.000Z",
+			}),
+		});
+		expect(stale.status).toBe(200);
+		const staleBody = await stale.json();
+		expect(staleBody.settings).toMatchObject({
+			workoutReminderTime: "18:00",
+			updatedAt: "2026-06-05T10:00:00.000Z",
+		});
+	});
+
 	it("upserts reminder settings and notification devices", async () => {
 		const { app, cookie } = await createSession();
 		const settings = await app.request("/reminders/settings", {

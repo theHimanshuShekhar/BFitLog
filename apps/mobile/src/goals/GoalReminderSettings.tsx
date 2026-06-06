@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { colors, spacing } from "@/theme";
-import {
-	getReminderSettings,
-	getWorkoutFrequencyGoal,
-	saveReminderSettings,
-	saveWorkoutFrequencyGoal,
-} from "./goals-api";
+import { getGoalReminderRepository } from "./repository";
 
-export function GoalReminderSettings() {
+type GoalReminderSettingsProps = {
+	userId: string;
+};
+
+export function GoalReminderSettings({ userId }: GoalReminderSettingsProps) {
 	const [target, setTarget] = useState("3");
 	const [workoutEnabled, setWorkoutEnabled] = useState(false);
 	const [workoutTime, setWorkoutTime] = useState("18:00");
@@ -18,16 +17,24 @@ export function GoalReminderSettings() {
 
 	useEffect(() => {
 		let active = true;
-		Promise.all([getWorkoutFrequencyGoal(), getReminderSettings()])
-			.then(([goal, reminders]) => {
-				if (!active) return;
-				if (goal) setTarget(String(goal.targetWorkoutsPerWeek));
-				if (reminders) {
-					setWorkoutEnabled(reminders.workoutReminderEnabled);
-					setWorkoutTime(reminders.workoutReminderTime ?? "18:00");
-					setWeighInEnabled(reminders.weighInReminderEnabled);
-					setWeighInTime(reminders.weighInReminderTime ?? "07:00");
-				}
+		const repository = getGoalReminderRepository(userId);
+		repository
+			.sync()
+			.catch(() => undefined)
+			.finally(() => {
+				Promise.all([repository.getGoal(), repository.getSettings()]).then(
+					([goal, reminders]) => {
+						if (!active) return;
+						if (goal) setTarget(String(goal.targetWorkoutsPerWeek));
+						if (reminders) {
+							setWorkoutEnabled(reminders.workoutReminderEnabled);
+							setWorkoutTime(reminders.workoutReminderTime ?? "18:00");
+							setWeighInEnabled(reminders.weighInReminderEnabled);
+							setWeighInTime(reminders.weighInReminderTime ?? "07:00");
+						}
+						setStatus("Synced");
+					},
+				);
 			})
 			.catch(() => {
 				if (active) setStatus("Offline / using local defaults");
@@ -35,7 +42,7 @@ export function GoalReminderSettings() {
 		return () => {
 			active = false;
 		};
-	}, []);
+	}, [userId]);
 
 	const save = async () => {
 		const parsed = Number(target);
@@ -44,14 +51,23 @@ export function GoalReminderSettings() {
 			return;
 		}
 		setStatus("Saving…");
+		const repository = getGoalReminderRepository(userId);
+		const updatedAt = new Date().toISOString();
+		await repository.saveGoal({
+			userId,
+			targetWorkoutsPerWeek: parsed,
+			updatedAt,
+		});
+		await repository.saveSettings({
+			userId,
+			workoutReminderEnabled: workoutEnabled,
+			workoutReminderTime: workoutEnabled ? workoutTime : null,
+			weighInReminderEnabled: weighInEnabled,
+			weighInReminderTime: weighInEnabled ? weighInTime : null,
+			updatedAt,
+		});
 		try {
-			await saveWorkoutFrequencyGoal(parsed);
-			await saveReminderSettings({
-				workoutReminderEnabled: workoutEnabled,
-				workoutReminderTime: workoutTime,
-				weighInReminderEnabled: weighInEnabled,
-				weighInReminderTime: weighInTime,
-			});
+			await repository.sync();
 			setStatus("Synced");
 		} catch (error) {
 			setStatus(

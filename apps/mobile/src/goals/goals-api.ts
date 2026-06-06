@@ -1,5 +1,6 @@
 import { apiBaseUrl } from "@/api/client";
 import { authClient } from "@/auth/auth-client";
+import type { GoalReminderSyncClient } from "./goal-reminder-repository";
 
 export type WorkoutFrequencyGoal = {
 	userId: string;
@@ -44,20 +45,25 @@ export async function getWorkoutFrequencyGoal() {
 	return body.goal;
 }
 
-export async function saveWorkoutFrequencyGoal(targetWorkoutsPerWeek: number) {
+export async function pushWorkoutFrequencyGoal(goal: WorkoutFrequencyGoal) {
 	const response = await fetch(`${apiBaseUrl}/goals/workout-frequency`, {
 		method: "PUT",
 		...authHeaders(true),
-		body: JSON.stringify({
-			targetWorkoutsPerWeek,
-			updatedAt: new Date().toISOString(),
-		}),
+		body: JSON.stringify(goal),
 	});
 	const body = await parseJson<{ goal: WorkoutFrequencyGoal }>(
 		response,
 		"Save workout frequency goal",
 	);
 	return body.goal;
+}
+
+export async function saveWorkoutFrequencyGoal(targetWorkoutsPerWeek: number) {
+	return pushWorkoutFrequencyGoal({
+		userId: "",
+		targetWorkoutsPerWeek,
+		updatedAt: new Date().toISOString(),
+	});
 }
 
 export async function getReminderSettings() {
@@ -72,20 +78,46 @@ export async function getReminderSettings() {
 	return body.settings;
 }
 
-export async function saveReminderSettings(input: {
-	workoutReminderEnabled: boolean;
-	workoutReminderTime: string;
-	weighInReminderEnabled: boolean;
-	weighInReminderTime: string;
-}) {
+export async function pushReminderSettings(settings: ReminderSettings) {
 	const response = await fetch(`${apiBaseUrl}/reminders/settings`, {
 		method: "PUT",
 		...authHeaders(true),
-		body: JSON.stringify({ ...input, updatedAt: new Date().toISOString() }),
+		body: JSON.stringify(settings),
 	});
 	const body = await parseJson<{ settings: ReminderSettings }>(
 		response,
 		"Save reminder settings",
 	);
 	return body.settings;
+}
+
+export async function saveReminderSettings(input: {
+	workoutReminderEnabled: boolean;
+	workoutReminderTime: string;
+	weighInReminderEnabled: boolean;
+	weighInReminderTime: string;
+}) {
+	return pushReminderSettings({
+		userId: "",
+		...input,
+		updatedAt: new Date().toISOString(),
+	});
+}
+
+export class HttpGoalReminderSyncClient implements GoalReminderSyncClient {
+	async pullGoal() {
+		return getWorkoutFrequencyGoal();
+	}
+
+	async pullSettings() {
+		return getReminderSettings();
+	}
+
+	async pushGoal(goal: WorkoutFrequencyGoal) {
+		return pushWorkoutFrequencyGoal(goal);
+	}
+
+	async pushSettings(settings: ReminderSettings) {
+		return pushReminderSettings(settings);
+	}
 }
