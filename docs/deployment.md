@@ -60,12 +60,7 @@ Checklist for a Dockhand environment:
 2. Persist the `postgres_data` Docker volume.
 3. Expose only the reverse proxy publicly; keep Postgres private to the Docker network.
 4. Point the reverse proxy public hostname at the API service.
-5. Run database migrations before or during API startup. The API image currently runs migrations on container startup.
-6. Run the training-plan seed command after first deploy or include it as a one-off Dockhand task:
-
-```bash
-docker compose run --rm api pnpm --filter @bfitlog/api db:seed:training-plan
-```
+5. Run database migrations and the idempotent training-plan seed before or during API startup. The API image runs both on container startup before starting the server.
 
 ## Postgres backup
 
