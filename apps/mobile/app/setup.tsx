@@ -13,7 +13,7 @@ import {
 	validateSetupForm,
 	type SetupFormErrors,
 } from "../src/setup/setup-validation";
-import { colors, spacing } from "../src/theme";
+import { colors, layout, spacing } from "../src/theme";
 
 export default function SetupScreen() {
 	const [adminUsername, setAdminUsername] = useState("");
@@ -176,6 +176,9 @@ function FieldError({ message }: { message: string | undefined }) {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		width: "100%",
+		maxWidth: layout.narrowContentWidth,
+		alignSelf: "center",
 		gap: spacing.md,
 		padding: spacing.lg,
 		backgroundColor: colors.background,

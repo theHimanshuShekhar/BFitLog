@@ -1,5 +1,11 @@
 import { Redirect, Tabs } from "expo-router";
-import { ActivityIndicator, type ColorValue, Text, View } from "react-native";
+import {
+	ActivityIndicator,
+	Platform,
+	type ColorValue,
+	Text,
+	View,
+} from "react-native";
 import { isDefaultAdminUser } from "../../src/auth/default-admin-onboarding";
 import { useAuth } from "../../src/auth/use-auth";
 import { colors } from "../../src/theme";
@@ -70,8 +76,8 @@ export default function TabsLayout() {
 				headerShown: false,
 				tabBarStyle: {
 					position: "absolute",
-					left: 12,
-					right: 12,
+					left: Platform.OS === "web" ? 16 : 12,
+					right: Platform.OS === "web" ? 28 : 12,
 					bottom: 14,
 					height: 70,
 					paddingTop: 7,

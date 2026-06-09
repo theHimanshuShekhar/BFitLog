@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { authClient } from "../src/auth/auth-client";
 import { routeAfterLogin } from "../src/auth/default-admin-onboarding";
-import { colors, spacing } from "../src/theme";
+import { colors, layout, spacing } from "../src/theme";
 
 export default function LoginScreen() {
 	const [username, setUsername] = useState("");
@@ -78,6 +78,9 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		width: "100%",
+		maxWidth: layout.narrowContentWidth,
+		alignSelf: "center",
 		gap: spacing.md,
 		padding: spacing.lg,
 		backgroundColor: colors.background,

@@ -71,6 +71,26 @@ Checklist for a Dockhand environment:
 
 Postgres is intentionally not published on the host in `docker-compose.yml`. The normal migration path is app startup over the Docker internal network, so production migrations do not require opening the database port. For emergency/manual database inspection, use `docker compose exec postgres ...` from the host rather than publishing Postgres publicly.
 
+### Postgres password mismatch after changing `.env.prod`
+
+The official Postgres image reads `POSTGRES_PASSWORD` only when it initializes a new database volume. Changing `POSTGRES_PASSWORD` later does not rewrite the password inside an existing `postgres_data` volume. If the app fails on startup with `password authentication failed for user "bfitlog"` during migrations, the app is using a different password than the existing database role.
+
+Safe options:
+
+1. Set `POSTGRES_PASSWORD` back to the password that initialized the existing volume, then restart the app.
+2. If you can still connect with the old password, rotate the database role explicitly:
+
+```bash
+docker compose exec -T postgres psql \
+  -U "${POSTGRES_USER:-bfitlog}" \
+  -d "${POSTGRES_DB:-bfitlog}" \
+  -c "ALTER USER \"${POSTGRES_USER:-bfitlog}\" WITH PASSWORD '<new-password>';"
+```
+
+Then update `.env.prod` to the same `<new-password>` and restart the app.
+
+Destructive option: remove the `postgres_data` volume and redeploy. This resets all production data and should only be used before real data exists.
+
 ## Postgres backup
 
 Create logical backups with `pg_dump` from the running Compose stack:

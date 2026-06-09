@@ -1,11 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
-import { createElement, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import {
 	Image,
 	Linking,
 	Pressable,
-	Platform,
 	StyleSheet,
 	Text,
 	View,
@@ -331,17 +330,9 @@ function MediaPreview({
 }: {
 	media: { id: string; kind: "gif" | "video"; url: string };
 }) {
-	const embed = getInlineMediaEmbed(media);
+	const embed = media.kind === "gif" ? getInlineMediaEmbed(media) : null;
 	return (
 		<View style={styles.mediaItem}>
-			{Platform.OS === "web" && embed?.type === "iframe"
-				? createElement("iframe", {
-						src: embed.url,
-						style: styles.webEmbed,
-						title: `${media.kind} demonstration`,
-						allowFullScreen: true,
-					})
-				: null}
 			{embed?.type === "image" ? (
 				<Image
 					source={{ uri: embed.url }}

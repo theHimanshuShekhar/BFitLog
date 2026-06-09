@@ -12,7 +12,7 @@ import { createAdminUser } from "@/admin/admin-api";
 import { authClient } from "@/auth/auth-client";
 import { isDefaultAdminUser } from "@/auth/default-admin-onboarding";
 import { useAuth } from "@/auth/use-auth";
-import { colors, spacing } from "@/theme";
+import { colors, layout, spacing } from "@/theme";
 
 export default function FirstUserScreen() {
 	const session = useAuth();
@@ -130,6 +130,9 @@ export default function FirstUserScreen() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		width: "100%",
+		maxWidth: layout.narrowContentWidth,
+		alignSelf: "center",
 		gap: spacing.md,
 		padding: spacing.lg,
 		backgroundColor: colors.background,
