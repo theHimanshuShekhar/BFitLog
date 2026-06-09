@@ -4,6 +4,7 @@ import {
 	Platform,
 	type ColorValue,
 	Text,
+	useWindowDimensions,
 	View,
 } from "react-native";
 import { isDefaultAdminUser } from "../../src/auth/default-admin-onboarding";
@@ -50,6 +51,12 @@ function TabIcon({
 
 export default function TabsLayout() {
 	const session = useAuth();
+	const { width } = useWindowDimensions();
+	const webHorizontalInset =
+		Platform.OS === "web"
+			? Math.max(16, (width - layout.maxContentWidth) / 2)
+			: 12;
+
 
 	if (session.isPending) {
 		return (
@@ -76,13 +83,8 @@ export default function TabsLayout() {
 				headerShown: false,
 				tabBarStyle: {
 					position: "absolute",
-					...(Platform.OS === "web"
-						? {
-								width: "100%",
-								maxWidth: layout.maxContentWidth,
-								alignSelf: "center" as const,
-							}
-						: { left: 12, right: 12 }),
+					left: webHorizontalInset,
+					right: webHorizontalInset,
 					bottom: 14,
 					height: 70,
 					paddingTop: 7,
