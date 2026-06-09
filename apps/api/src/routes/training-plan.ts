@@ -76,7 +76,10 @@ export const trainingPlanRoutes = new Hono<{ Variables: Variables }>()
 			day: {
 				id: nextDay.id,
 				sequence: nextDay.sequence,
+				name: nextDay.title,
 				title: nextDay.title,
+				description: nextDay.description,
+				notes: nextDay.notes,
 			},
 		});
 	})
@@ -229,12 +232,16 @@ async function loadTemplate(templateId: string) {
 	return {
 		id: template.id,
 		name: template.name,
+		description: template.description ?? template.goal,
 		goal: template.goal,
 		notes: template.notes,
 		days: days.map((day) => ({
 			id: day.id,
 			sequence: day.sequence,
+			name: day.title,
 			title: day.title,
+			description: day.description,
+			notes: day.notes,
 			checklist: (checklistByDay.get(day.id) ?? []).map((item) => ({
 				id: item.id,
 				kind: item.kind,
@@ -256,8 +263,18 @@ async function loadTemplate(templateId: string) {
 						? {
 								id: exercise.id,
 								name: exercise.name,
+								description: exercise.description,
 								equipment: exercise.equipment,
+								machine: exercise.machine ?? exercise.equipment,
 								trackingType: exercise.trackingType,
+								recommendedSets: exercise.recommendedSets,
+								recommendedMinReps: exercise.recommendedMinReps,
+								recommendedMaxReps: exercise.recommendedMaxReps,
+								recommendedDurationSeconds:
+									exercise.recommendedDurationSeconds,
+								demoGifUrl: exercise.demoGifUrl,
+								demoVideoUrl: exercise.demoVideoUrl,
+								substituteExerciseId: exercise.substituteExerciseId,
 								media: (mediaByExercise.get(exercise.id) ?? []).map(
 									(media) => ({
 										id: media.id,
@@ -277,8 +294,23 @@ async function loadTemplate(templateId: string) {
 									? {
 											id: substituteExercise.id,
 											name: substituteExercise.name,
+											description: substituteExercise.description,
 											equipment: substituteExercise.equipment,
+											machine:
+												substituteExercise.machine ??
+												substituteExercise.equipment,
 											trackingType: substituteExercise.trackingType,
+											recommendedSets: substituteExercise.recommendedSets,
+											recommendedMinReps:
+												substituteExercise.recommendedMinReps,
+											recommendedMaxReps:
+												substituteExercise.recommendedMaxReps,
+											recommendedDurationSeconds:
+												substituteExercise.recommendedDurationSeconds,
+											demoGifUrl: substituteExercise.demoGifUrl,
+											demoVideoUrl: substituteExercise.demoVideoUrl,
+											substituteExerciseId:
+												substituteExercise.substituteExerciseId,
 										}
 									: null,
 								targetSets: substitute.targetSets,

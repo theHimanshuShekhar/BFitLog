@@ -20,8 +20,8 @@ Recent verification passed:
 - `[x]` `pnpm test`
 - `[x]` `pnpm typecheck`
 - `[x]` Expo web export for current mobile app
-- `[x]` Docker API image builds
-- `[x]` Docker API container starts and responds to `/health`
+- `[x]` Docker app image builds
+- `[x]` Docker app container starts and responds to `/health`
 - `[x]` Local Postgres migrations run
 
 ## Completed commits
@@ -103,13 +103,13 @@ Recent verification passed:
 
 - `[x]` Create `docker-compose.yml`
 - `[x]` Add Postgres service
-- `[x]` Add API service
-- `[x]` Add API Dockerfile
+- `[x]` Add combined app service for API and Expo web
+- `[x]` Add app Dockerfile
 - `[x]` Add `.env.example`
 - `[x]` Verify `docker compose config`
 - `[x]` Verify Postgres health
-- `[x]` Verify API Docker image builds
-- `[x]` Verify API container responds to `/health`
+- `[x]` Verify app Docker image builds
+- `[x]` Verify app container responds to `/health`
 - `[x]` Run API migrations at container startup
 - `[x]` Add production Dockhand deployment notes — see `docs/deployment.md`
 - `[x]` Add backup/restore documentation for Postgres — see `docs/deployment.md`
@@ -141,11 +141,11 @@ Recent verification passed:
 
 ## Training/workout schemas
 
-- `[x]` Add shared Exercise schema
-- `[x]` Add shared Training Plan Template schema
-- `[x]` Add shared Training Day schema
-- `[x]` Add shared Planned Exercise schema
-- `[x]` Add shared Checklist Item schema
+- `[x]` Add shared atomic Exercise schema with rep-based or time-based recommended prescriptions
+- `[x]` Add shared User-owned Training Plan schema
+- `[x]` Add shared Workout Day schema
+- `[x]` Keep compatibility schema for ordered day exercises during transition
+- `[x]` Add shared dynamic warmup/static stretch item schema
 - `[x]` Add shared Exercise Media schema
 - `[x]` Add shared Exercise Substitute schema
 - `[x]` Add shared Workout Log schema
@@ -213,14 +213,14 @@ Recent verification passed:
 
 ## Training plan schema
 
-- `[x]` Add `exercises`
+- `[x]` Add `exercises` with atomic recommendation, machine, demo, and substitute-link fields
 - `[x]` Add `exercise_media`
-- `[x]` Add `training_plan_templates`
-- `[x]` Add `user_training_plans`
-- `[x]` Add `training_days`
-- `[x]` Add `training_day_checklist_items`
-- `[x]` Add `planned_exercises`
-- `[x]` Add `planned_exercise_substitutes`
+- `[x]` Add compatibility `training_plan_templates`
+- `[x]` Add user-owned `user_training_plans`
+- `[x]` Add `training_days` with Workout Day description/notes fields
+- `[x]` Add `training_day_checklist_items` for dynamic warmups and static stretches
+- `[x]` Keep compatibility `planned_exercises` as the ordered Workout Day exercise join
+- `[x]` Keep compatibility `planned_exercise_substitutes` during Exercise substitute-link transition
 - `[x]` Generate training schema migration
 - `[x]` Verify migration runs
 
@@ -332,37 +332,37 @@ Recent verification passed:
 - `[x]` Seed 20 exercises
 - `[x]` Seed exercise equipment
 - `[x]` Seed tracking type: `reps_weight` / `duration`
-- `[x]` Seed 40 media links: GIF + video per exercise
-- `[x]` Seed 4 Training Days
-- `[x]` Seed warmup checklist items
-- `[x]` Seed cooldown checklist items
-- `[x]` Seed 20 Planned Exercises
-- `[x]` Seed target sets/reps/duration/rest/notes
-- `[x]` Seed preferred substitutes
-- `[x]` Create per-user active plan instances on demand from the seeded template
+- `[x]` Seed demo GIF + video links per exercise
+- `[x]` Seed 4 Workout Days
+- `[x]` Seed dynamic warmup stretch text items
+- `[x]` Seed static stretch text items
+- `[x]` Seed 20 ordered Workout Day exercises
+- `[x]` Seed Exercise-level recommended sets/reps or duration defaults
+- `[x]` Seed Exercise-level substitute links
+- `[x]` Keep default active-plan creation path during transition to user-created plans
 - `[x]` Make seed script idempotent for future substitute data
 
 ## Plan API
 
 - `[x]` Add authenticated `/training-plan/template`
-- `[x]` Return template metadata
-- `[x]` Return Training Days
-- `[x]` Return warmup/cooldown checklist items
-- `[x]` Return Planned Exercises
-- `[x]` Return Exercise details
+- `[x]` Return plan metadata
+- `[x]` Return Workout Days
+- `[x]` Return dynamic warmup/static stretch text items
+- `[x]` Return ordered Workout Day Exercises
+- `[x]` Return atomic Exercise details and recommendations
 - `[x]` Return media links
 - `[x]` Add plan API test
 - `[x]` Add endpoint for current user's active plan
-- `[x]` Add endpoint to create active plan from template
+- `[x]` Keep endpoint to create active plan from starter content during transition
 - `[x]` Add admin-only plan editing endpoints
 
 ## Plan UI
 
 - `[x]` Fetch training plan in Plan tab
-- `[x]` Render Training Days as Day 1–Day 4
-- `[x]` Render warmup checklist
-- `[x]` Render cooldown checklist
-- `[x]` Render Planned Exercises and targets
+- `[x]` Render Workout Days as Day 1–Day 4
+- `[x]` Render dynamic warmup stretches
+- `[x]` Render static stretches
+- `[x]` Render Exercises and recommended prescriptions
 - `[x]` Render Exercise detail screen
 - `[x]` Show embedded media inline where possible — web embeds YouTube media inline and keeps fallback links for Android/GIF pages
 - `[x]` Add fallback source link when embed fails
@@ -602,14 +602,13 @@ Recent verification passed:
 
 ## Deployment and operations
 
-- `[x]` Docker Compose API/Postgres stack
-- `[x]` Container startup migrations
+- `[x]` Docker Compose app/Postgres stack
 - `[x]` Include training-plan seed in setup/deploy flow
 - `[x]` Dockhand deployment config/docs
 - `[x]` Backup docs
 - `[x]` Restore docs
 - `[x]` Upgrade/migration docs
-- `[x]` Healthcheck configuration for API service
+- `[x]` Healthcheck configuration for app service
 
 ---
 
@@ -644,8 +643,8 @@ pnpm test
 pnpm typecheck
 pnpm --filter @bfitlog/mobile exec expo export --platform web --output-dir dist-test
 rm -rf apps/mobile/dist-test
-docker compose build --pull=false api
-docker compose up -d postgres api
+docker compose build --pull=false app
+docker compose up -d postgres app
 ```
 
 Then verify API health without dumping large output:

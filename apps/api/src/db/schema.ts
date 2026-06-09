@@ -192,6 +192,14 @@ export const exercises = pgTable("exercises", {
 	name: text("name").notNull().unique(),
 	description: text("description"),
 	equipment: text("equipment"),
+	machine: text("machine"),
+	recommendedSets: integer("recommended_sets"),
+	recommendedMinReps: integer("recommended_min_reps"),
+	recommendedMaxReps: integer("recommended_max_reps"),
+	recommendedDurationSeconds: integer("recommended_duration_seconds"),
+	demoGifUrl: text("demo_gif_url"),
+	demoVideoUrl: text("demo_video_url"),
+	substituteExerciseId: text("substitute_exercise_id"),
 	trackingType: exerciseTrackingType("tracking_type").notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true })
 		.notNull()
@@ -219,6 +227,7 @@ export const trainingPlanTemplates = pgTable("training_plan_templates", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull(),
 	goal: text("goal"),
+	description: text("description"),
 	notes: text("notes"),
 	createdAt: timestamp("created_at", { withTimezone: true })
 		.notNull()
@@ -239,6 +248,8 @@ export const userTrainingPlans = pgTable(
 			onDelete: "set null",
 		}),
 		name: text("name").notNull(),
+	description: text("description"),
+	notes: text("notes"),
 		activeAt: timestamp("active_at", { withTimezone: true })
 			.notNull()
 			.defaultNow(),
@@ -256,8 +267,14 @@ export const trainingDays = pgTable(
 		templateId: text("template_id")
 			.notNull()
 			.references(() => trainingPlanTemplates.id, { onDelete: "cascade" }),
+		userTrainingPlanId: text("user_training_plan_id").references(
+			() => userTrainingPlans.id,
+			{ onDelete: "cascade" },
+		),
 		sequence: integer("sequence").notNull(),
 		title: text("title").notNull(),
+		description: text("description"),
+		notes: text("notes"),
 	},
 	(table) => [index("training_days_template_idx").on(table.templateId)],
 );

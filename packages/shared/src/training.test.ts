@@ -20,6 +20,9 @@ describe("training schemas", () => {
 				description: "Squat holding a dumbbell or kettlebell.",
 				equipment: "Dumbbell",
 				trackingType: "reps_weight",
+				recommendedSets: 3,
+				recommendedMinReps: 8,
+				recommendedMaxReps: 12,
 				media: [
 					{
 						id: "goblet-squat-video",
@@ -28,7 +31,25 @@ describe("training schemas", () => {
 					},
 				],
 			}),
-		).toMatchObject({ id: "goblet-squat", media: [{ kind: "video" }] });
+		).toMatchObject({
+			id: "goblet-squat",
+			recommendedSets: 3,
+			recommendedMaxReps: 12,
+			media: [{ kind: "video" }],
+		});
+	});
+
+	it("accepts time-based exercises with recommended duration", () => {
+		expect(
+			exerciseSchema.parse({
+				id: "plank",
+				name: "Plank",
+				equipment: "Bodyweight",
+				trackingType: "duration",
+				recommendedSets: 3,
+				recommendedDurationSeconds: 60,
+			}),
+		).toMatchObject({ id: "plank", recommendedDurationSeconds: 60 });
 	});
 
 	it("rejects planned exercises without any target", () => {
@@ -47,6 +68,7 @@ describe("training schemas", () => {
 		const template = trainingPlanTemplateSchema.parse({
 			id: "beginner-upper-lower-4-day",
 			name: "4-Day Beginner Upper/Lower Split",
+			description: "User-created training plan.",
 			goal: "Build strength",
 			notes: "Rotate days sequentially.",
 			days: [
@@ -54,6 +76,9 @@ describe("training schemas", () => {
 					id: "day-1",
 					sequence: 1,
 					title: "Upper A",
+					name: "Upper A",
+					description: "Upper-body workout day.",
+					notes: "Warm up shoulders before pressing.",
 					checklist: [
 						{
 							id: "warmup-1",
@@ -75,6 +100,9 @@ describe("training schemas", () => {
 								name: "Goblet Squat",
 								equipment: "Dumbbell",
 								trackingType: "reps_weight",
+								recommendedSets: 3,
+								recommendedMinReps: 8,
+								recommendedMaxReps: 12,
 								media: [],
 							},
 							substitutes: [],

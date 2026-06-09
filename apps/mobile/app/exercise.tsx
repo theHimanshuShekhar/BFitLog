@@ -18,6 +18,7 @@ export default function ExerciseDetailScreen() {
 		name?: string;
 		target?: string;
 		equipment?: string;
+		description?: string;
 		trackingType?: string;
 		notes?: string;
 		media?: string;
@@ -32,6 +33,9 @@ export default function ExerciseDetailScreen() {
 				<Text style={styles.description}>{params.target}</Text>
 			) : null}
 
+			{params.description ? (
+				<Text style={styles.description}>{params.description}</Text>
+			) : null}
 			<View style={styles.card}>
 				<Text style={styles.cardTitle}>Details</Text>
 				{params.equipment ? (
@@ -146,7 +150,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.border,
 		backgroundColor: colors.card,
-		boxShadow: `0px 12px 24px ${colors.glow}`,
+		boxShadow: `0px 4px 12px ${colors.glow}`,
 	},
 	cardTitle: {
 		color: colors.text,

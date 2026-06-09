@@ -715,7 +715,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.border,
 		borderRadius: radius.lg,
 		backgroundColor: colors.card,
-		boxShadow: `0px 12px 24px ${colors.glow}`,
+		boxShadow: `0px 4px 12px ${colors.glow}`,
 	},
 	cardTitle: {
 		color: colors.text,
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.border,
 		backgroundColor: colors.primary,
-		boxShadow: `0px 8px 24px ${colors.glow}`,
+		boxShadow: `0px 3px 10px ${colors.glow}`,
 	},
 	primaryButtonText: {
 		color: colors.text,

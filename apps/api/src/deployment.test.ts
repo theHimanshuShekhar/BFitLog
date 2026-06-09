@@ -2,15 +2,24 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 describe("deployment runtime", () => {
-	it("runs the training-plan seed during container startup", async () => {
+	it("runs migrations and seed from the API startup path", async () => {
 		const dockerfile = await readFile("Dockerfile", "utf8");
-		expect(dockerfile).toContain("src/db/migrate.ts");
-		expect(dockerfile).toContain("src/db/seed-training-plan.ts");
-		expect(dockerfile.indexOf("src/db/migrate.ts")).toBeLessThan(
-			dockerfile.indexOf("src/db/seed-training-plan.ts"),
+		const index = await readFile("src/index.ts", "utf8");
+
+		expect(dockerfile).toContain('CMD ["./node_modules/.bin/tsx", "src/index.ts"]');
+		expect(index).toContain("runMigrations");
+		expect(index).toContain("ensureDefaultAdmin");
+		expect(index).toContain("seedTrainingPlan");
+		expect(index.indexOf("await runMigrations()")).toBeLessThan(
+			index.indexOf("await ensureDefaultAdmin()"),
 		);
-		expect(dockerfile.indexOf("src/db/seed-training-plan.ts")).toBeLessThan(
-			dockerfile.indexOf("src/index.ts"),
+		expect(index.indexOf("await ensureDefaultAdmin()")).toBeLessThan(
+			index.indexOf("await seedTrainingPlan()"),
 		);
+		expect(index.indexOf("await seedTrainingPlan()")).toBeLessThan(
+			index.indexOf("const app = createApp()"),
+		);
+		expect(dockerfile).toContain("pnpm --filter @bfitlog/mobile export:web");
+		expect(dockerfile).toContain("/app/apps/mobile/dist");
 	});
 });

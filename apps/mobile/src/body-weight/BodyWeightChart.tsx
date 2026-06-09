@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.border,
 		backgroundColor: colors.card,
-		boxShadow: `0px 12px 24px ${colors.glow}`,
+		boxShadow: `0px 4px 12px ${colors.glow}`,
 	},
 	empty: {
 		padding: spacing.lg,

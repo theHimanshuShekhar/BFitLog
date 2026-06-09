@@ -625,32 +625,129 @@ const substitutes = [
 	],
 ] as const;
 
+function buildExerciseDefaults() {
+	const prescriptionByExerciseId = new Map<
+		string,
+		{
+			targetSets: number;
+			minReps: number | null;
+			maxReps: number | null;
+			durationSeconds: number | null;
+			notes: string;
+		}
+	>();
+	for (const [
+		,
+		exerciseId,
+		,
+		targetSets,
+		minReps,
+		maxReps,
+		durationSeconds,
+		notes,
+	] of planned) {
+		if (!prescriptionByExerciseId.has(exerciseId)) {
+			prescriptionByExerciseId.set(exerciseId, {
+				targetSets,
+				minReps,
+				maxReps,
+				durationSeconds,
+				notes,
+			});
+		}
+	}
+
+	const demoByExerciseId = new Map<
+		string,
+		{ demoGifUrl: string | null; demoVideoUrl: string | null }
+	>();
+	for (const [exerciseId, kind, url] of mediaRows) {
+		const current = demoByExerciseId.get(exerciseId) ?? {
+			demoGifUrl: null,
+			demoVideoUrl: null,
+		};
+		if (kind === "gif") current.demoGifUrl = url;
+		if (kind === "video") current.demoVideoUrl = url;
+		demoByExerciseId.set(exerciseId, current);
+	}
+
+	const substituteByExerciseId = new Map<string, string>();
+	for (const [plannedExerciseId, substituteExerciseId] of substitutes) {
+		const source = planned.find(
+			([dayId, exerciseId]) => `${dayId}-${exerciseId}` === plannedExerciseId,
+		);
+		if (source) substituteByExerciseId.set(source[1], substituteExerciseId);
+	}
+
+	return { prescriptionByExerciseId, demoByExerciseId, substituteByExerciseId };
+}
+
 export async function seedTrainingPlan() {
+	const { prescriptionByExerciseId, demoByExerciseId, substituteByExerciseId } =
+		buildExerciseDefaults();
+
 	await db
 		.insert(trainingPlanTemplates)
 		.values({
 			id: templateId,
 			name: "4-Day Beginner Upper/Lower Split",
 			goal: "Weight loss and muscle building",
+			description:
+				"User-owned starter plan for a rotating four-day beginner upper/lower split.",
 			notes:
 				"Use a rotating Day 1–4 sequence. Rest 60–90 seconds between sets. Increase weight after hitting top reps with good form for two sessions.",
 			createdAt: now,
 			updatedAt: now,
 		})
-		.onConflictDoNothing();
+		.onConflictDoUpdate({
+			target: trainingPlanTemplates.id,
+			set: {
+				description:
+					"User-owned starter plan for a rotating four-day beginner upper/lower split.",
+				notes:
+					"Use a rotating Day 1–4 sequence. Rest 60–90 seconds between sets. Increase weight after hitting top reps with good form for two sessions.",
+				updatedAt: now,
+			},
+		});
 
 	for (const [id, name, equipment, trackingType] of exerciseRows) {
+		const prescription = prescriptionByExerciseId.get(id);
+		const demo = demoByExerciseId.get(id);
+		const values = {
+			id,
+			name,
+			description: prescription?.notes ?? null,
+			equipment,
+			machine: equipment,
+			trackingType,
+			recommendedSets: prescription?.targetSets ?? null,
+			recommendedMinReps: prescription?.minReps ?? null,
+			recommendedMaxReps: prescription?.maxReps ?? null,
+			recommendedDurationSeconds: prescription?.durationSeconds ?? null,
+			demoGifUrl: demo?.demoGifUrl ?? null,
+			demoVideoUrl: demo?.demoVideoUrl ?? null,
+			substituteExerciseId: substituteByExerciseId.get(id) ?? null,
+			createdAt: now,
+			updatedAt: now,
+		};
 		await db
 			.insert(exercises)
-			.values({
-				id,
-				name,
-				equipment,
-				trackingType,
-				createdAt: now,
-				updatedAt: now,
-			})
-			.onConflictDoNothing();
+			.values(values)
+			.onConflictDoUpdate({
+				target: exercises.id,
+				set: {
+					description: values.description,
+					machine: values.machine,
+					recommendedSets: values.recommendedSets,
+					recommendedMinReps: values.recommendedMinReps,
+					recommendedMaxReps: values.recommendedMaxReps,
+					recommendedDurationSeconds: values.recommendedDurationSeconds,
+					demoGifUrl: values.demoGifUrl,
+					demoVideoUrl: values.demoVideoUrl,
+					substituteExerciseId: values.substituteExerciseId,
+					updatedAt: now,
+				},
+			});
 	}
 
 	for (const [exerciseId, kind, url] of mediaRows) {
@@ -669,8 +766,21 @@ export async function seedTrainingPlan() {
 	for (const [id, sequence, title] of dayRows) {
 		await db
 			.insert(trainingDays)
-			.values({ id, templateId, sequence, title })
-			.onConflictDoNothing();
+			.values({
+				id,
+				templateId,
+				sequence,
+				title,
+				description: `${title} workout day.`,
+				notes: "Follow the ordered dynamic warmup, exercises, and static stretches.",
+			})
+			.onConflictDoUpdate({
+				target: trainingDays.id,
+				set: {
+					description: `${title} workout day.`,
+					notes: "Follow the ordered dynamic warmup, exercises, and static stretches.",
+				},
+			});
 		const warmups = warmupsByDay.get(id) ?? [];
 		for (const [index, text] of warmups.entries()) {
 			await db

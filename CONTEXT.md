@@ -17,35 +17,32 @@ The v1 sharing model where both users can see each other's plans, workout logs, 
 _Avoid_: Privacy settings, permissions matrix
 
 **Training Plan**:
-A named collection of ordered Training Days for a user's gym program. A plan is followed as a rotating sequence, not as a fixed weekday calendar. The initial plan is seeded from code; plan editing is an admin capability, not part of the normal logging flow.
-_Avoid_: Gym plan, weekly schedule, program when used ambiguously
+A User-created collection of ordered Workout Days for that User's gym routine. A Training Plan carries its own name, description, tips/notes, and ordered Workout Days. A User creates a Training Plan and activates it; the active plan is followed as a rotating sequence, not as a fixed weekday calendar.
+_Avoid_: Gym plan, weekly schedule, program when used ambiguously, shared template when describing user-owned plans
 
-**Training Day**:
-One step in a Training Plan, labelled by sequence such as Day 1 or Day 2 and usually given a descriptive title such as Upper Body A. The app suggests the next Training Day based on the latest completed Workout Log, but users can manually choose any Training Day.
-_Avoid_: Tuesday workout, Workout Template in user-facing UI
+**Workout Day**:
+One step in a Training Plan, labelled by sequence such as Day 1 or Day 2 and usually given a descriptive name such as Upper Body A. A Workout Day carries its own name, description, tips/notes, ordered pre-workout dynamic warmup stretch text items, ordered Exercises, and ordered post-workout static stretch text items. The app suggests the next Workout Day based on the latest completed Workout Log, but users can manually choose any Workout Day.
+_Avoid_: Tuesday workout, Workout Template in user-facing UI, Training Day
 
 **Exercise**:
-A reusable movement such as Lat Pulldown or Smith Machine Squat. An Exercise can include description, equipment, notes, and embedded media sources for demonstration.
-_Avoid_: Activity, drill
+An atomic prescribed movement such as Lat Pulldown, Dumbbell Row, or Plank. An Exercise carries its own name, description, tracking type, recommended prescription, machine/equipment guidance, demo GIF, demo video, and optional substitute Exercise link. The recommended prescription can be set/reps-based for movements like Dumbbell Rows or time-based for movements like Planks. The recommendation is a default; during a Workout Log, a User may record any number of sets, reps, or time actually performed.
+_Avoid_: Activity, drill, treating recommendations as fixed requirements
 
-**Planned Exercise**:
-An Exercise as prescribed inside a Training Day, including order, target set count, target reps or duration, equipment notes, media, and allowed substitutes. It is the plan-side prescription, not proof that the exercise was performed.
-_Avoid_: Exercise row when the distinction from performed work matters
 
 **Exercise Substitute**:
-An Exercise that may be logged in place of a Planned Exercise when the original exercise is unavailable, painful, or otherwise unsuitable. Preferred substitutes can be defined in the plan, but users can also choose an ad-hoc substitute with a note. A Workout Log should preserve both the originally planned exercise and the substitute actually performed. Exercise progress stats and Progression Hints belong to the substitute actually performed, not the originally planned exercise. A substitute counts as completing the Planned Exercise slot.
-_Avoid_: Replacement when it hides what was originally planned
+An optional substitute Exercise linked from an Exercise and available when the original exercise is unavailable, painful, or otherwise unsuitable. A Workout Log should preserve both the originally selected Exercise and the substitute actually performed. Exercise progress stats and Progression Hints belong to the Exercise actually performed, not the originally selected Exercise.
+_Avoid_: Replacement when it hides what was originally selected
 
 **Skipped Exercise**:
-A Planned Exercise slot intentionally left unperformed during a Workout Log. Skipping requires a note explaining why and does not produce exercise stats or Progression Hints.
+An Exercise intentionally left unperformed during a Workout Log. Skipping requires a note explaining why and does not produce exercise stats or Progression Hints.
 _Avoid_: Silent skip, delete from workout
 
-**Warmup Checklist**:
-A list of preparatory items shown before the planned exercises in a Training Day. Items can be checked during a workout, but they do not produce stats in v1.
+**Dynamic Warmup Stretch**:
+An ordered text item shown before the Exercises in a Workout Day. Dynamic Warmup Stretches are owned by the Workout Day, not reusable Exercise-like records, and they do not produce stats in v1.
 _Avoid_: Warmup log when implying stat tracking
 
-**Cooldown Checklist**:
-A list of post-exercise recovery items shown after the planned exercises in a Training Day. Items can be checked during a workout, but they do not produce stats in v1.
+**Static Stretch**:
+An ordered text item shown after the Exercises in a Workout Day. Static Stretches are owned by the Workout Day, not reusable Exercise-like records, and they do not produce stats in v1.
 _Avoid_: Post exercise warmup, cooldown stats
 
 **Embedded Media**:
@@ -53,7 +50,7 @@ An in-app GIF or video demonstration shown on the exercise detail screen. The so
 _Avoid_: External-only link, leaving the app for demo
 
 **Workout Log**:
-A dated record that a User started or performed a Training Day. Starting a workout creates a draft Workout Log immediately, and completing it makes it count for sequence progression and stats.
+A dated record that a User started or performed a Workout Day. Starting a workout creates a draft Workout Log immediately, and completing it makes it count for sequence progression and stats.
 _Avoid_: Completed day when referring to the stored record
 
 **Set Log**:
@@ -65,7 +62,7 @@ An exercise-level checkbox recorded during a Workout Log to indicate the user be
 _Avoid_: RPE, difficulty, form score
 
 **Progression Hint**:
-A non-automatic suggestion that an exercise may be ready for increased weight, based on completing all planned sets at the top of the rep range with Good Form for two sessions. It never changes the Training Plan or logged weights by itself.
+A non-automatic suggestion that an exercise may be ready for increased weight, based on completing the Exercise's recommended set/rep prescription at the top of the rep range with Good Form for two sessions. It never changes the Training Plan, Exercise recommendation, or logged weights by itself.
 _Avoid_: Auto-progression, automatic weight increase
 
 **Body Weight Log**:
@@ -79,7 +76,7 @@ _Avoid_: Offline-first everything, offline admin editing
 ## Example dialogue
 
 Developer: "Should Day 1 be tied to Tuesday?"
-Domain expert: "No. Training Days rotate. If I complete Day 1, suggest Day 2 next, but let me override."
+Domain expert: "No. Workout Days rotate. If I complete Day 1, suggest Day 2 next, but let me override."
 
 Developer: "If you manually do Day 3 after Day 1, what is next?"
 Domain expert: "Day 4, because Workout Logs are the truth for the sequence."

@@ -235,7 +235,7 @@ export const uiStyles = StyleSheet.create({
 		borderColor: colors.borderStrong,
 		borderRadius: radius.lg,
 		backgroundColor: colors.surface,
-		boxShadow: `0px 10px 24px ${colors.glow}`,
+		boxShadow: `0px 3px 10px ${colors.glow}`,
 	},
 	headerCopy: { flex: 1, gap: spacing.xs },
 	headerAside: { alignItems: "flex-end" },
@@ -270,7 +270,7 @@ export const uiStyles = StyleSheet.create({
 		borderColor: colors.border,
 		borderRadius: radius.lg,
 		backgroundColor: colors.card,
-		boxShadow: `0px 12px 26px ${colors.glow}`,
+		boxShadow: `0px 4px 12px ${colors.glow}`,
 	},
 	cardTitle: {
 		color: colors.text,
@@ -316,7 +316,7 @@ export const uiStyles = StyleSheet.create({
 		borderRadius: radius.md,
 		borderWidth: 1,
 		borderColor: colors.border,
-		boxShadow: `0px 8px 18px ${colors.glow}`,
+		boxShadow: `0px 3px 10px ${colors.glow}`,
 	},
 	buttonCompact: {
 		flex: 1,
@@ -326,7 +326,7 @@ export const uiStyles = StyleSheet.create({
 	buttonPressed: {
 		opacity: 0.86,
 		transform: [{ scale: 0.98 }],
-		boxShadow: `0px 8px 18px ${colors.glow}`,
+		boxShadow: `0px 2px 8px ${colors.glow}`,
 	},
 	buttonDisabled: { opacity: 0.58 },
 	buttonText: {

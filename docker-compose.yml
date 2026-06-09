@@ -1,13 +1,12 @@
 services:
   postgres:
+    container_name: bfitlog_postgres
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-bfitlog}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bfitlog}
       POSTGRES_DB: ${POSTGRES_DB:-bfitlog}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +19,8 @@ services:
       timeout: 5s
       retries: 10
 
-  api:
+  app:
+    container_name: bfitlog_app
     build:
       context: .
       dockerfile: apps/api/Dockerfile
@@ -28,13 +28,14 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://bfitlog:bfitlog@postgres:5432/bfitlog}
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgres://${POSTGRES_USER:-bfitlog}:${POSTGRES_PASSWORD:-bfitlog}@postgres:5432/${POSTGRES_DB:-bfitlog}
       PORT: ${PORT:-3000}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-change-me-in-production}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BETTER_AUTH_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:3000}
       BETTER_AUTH_SECURE_COOKIES: ${BETTER_AUTH_SECURE_COOKIES:-false}
-      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-http://localhost:8081,http://localhost:19006,bfitlog://}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8081}
+      BETTER_AUTH_TRUSTED_ORIGINS: ${BETTER_AUTH_TRUSTED_ORIGINS:-http://localhost:3000,http://localhost:8081,http://localhost:19006,bfitlog://}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8081,http://localhost:19006}
     ports:
       - "3000:3000"
     healthcheck:

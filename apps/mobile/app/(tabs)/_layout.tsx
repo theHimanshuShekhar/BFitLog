@@ -84,7 +84,7 @@ export default function TabsLayout() {
 					borderBottomWidth: 1,
 					borderLeftWidth: 1,
 					borderRadius: 30,
-					boxShadow: `0px 16px 28px ${colors.glow}`,
+					boxShadow: `0px 3px 10px ${colors.glow}`,
 				},
 				tabBarActiveTintColor: colors.cyan,
 				tabBarInactiveTintColor: colors.mutedText,

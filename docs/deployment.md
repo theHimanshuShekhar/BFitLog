@@ -1,6 +1,6 @@
 # Deployment notes
 
-BFitLog is intended to run as a self-hosted Docker Compose stack with a Postgres database and the Hono API. The Expo app is built separately for web/Android and points at the public API URL.
+BFitLog is intended to run as a self-hosted Docker Compose stack with a Postgres database and one `app` service that serves both the Hono API and exported Expo web app. The public deployment can use one Cloudflare Tunnel/domain: `/` serves the Expo web app and `/api/v1/*` serves the API.
 
 ## Required production environment
 
@@ -10,15 +10,15 @@ Set these values explicitly in production; do not rely on development defaults f
 POSTGRES_USER=bfitlog
 POSTGRES_PASSWORD=<strong-random-password>
 POSTGRES_DB=bfitlog
-DATABASE_URL=postgres://bfitlog:<strong-random-password>@postgres:5432/bfitlog
 PORT=3000
-BETTER_AUTH_SECRET=<strong-random-secret>
-BETTER_AUTH_URL=https://bfitlog.example.com
-BETTER_AUTH_TRUSTED_ORIGINS=https://bfitlog.example.com,bfitlog://
-BETTER_AUTH_SECURE_COOKIES=true
-CORS_ALLOWED_ORIGINS=https://bfitlog.example.com
 EXPO_PUBLIC_API_URL=https://bfitlog.example.com
+BETTER_AUTH_SECRET=<strong-random-secret>
+BETTER_AUTH_SECURE_COOKIES=true
+BETTER_AUTH_TRUSTED_ORIGINS=https://bfitlog.example.com,bfitlog://
+CORS_ALLOWED_ORIGINS=https://bfitlog.example.com
 ```
+
+`docker-compose.yml` derives the app container `DATABASE_URL` from `POSTGRES_*` and derives `BETTER_AUTH_URL` from `EXPO_PUBLIC_API_URL`.
 
 Generate `BETTER_AUTH_SECRET` with at least 32 bytes of entropy:
 
@@ -30,25 +30,32 @@ Keep this value stable. Rotating it invalidates existing Better Auth sessions.
 
 ## Reverse proxy and HTTPS assumptions
 
-Production should terminate HTTPS in front of the API container. The API itself listens on `PORT` inside Docker and expects the reverse proxy to expose `BETTER_AUTH_URL` publicly.
+Production should terminate HTTPS in front of the app container. The app listens on `PORT` inside Docker and expects the reverse proxy or Cloudflare Tunnel to expose one public origin.
+
+Public routing:
+
+- `https://bfitlog.example.com/` serves the Expo web app.
+- `https://bfitlog.example.com/api/v1/` returns API metadata.
+- `https://bfitlog.example.com/api/v1/*` serves API routes.
+- `https://bfitlog.example.com/api/v1/auth/*` serves Better Auth routes.
 
 Recommended reverse proxy responsibilities:
 
 - terminate TLS and redirect HTTP to HTTPS;
 - forward `Host`, `X-Forwarded-Proto`, and `X-Forwarded-For` headers;
-- route the public app/API origin to the API service on port `3000`;
+- route the single public app/API origin to the `app` service on port `3000`;
 - enforce request body limits appropriate for JSON API traffic;
-- keep `BETTER_AUTH_URL` and `EXPO_PUBLIC_API_URL` on the same HTTPS origin when possible to simplify cookie behavior.
+- keep `BETTER_AUTH_URL` and `EXPO_PUBLIC_API_URL` on the same HTTPS origin to simplify cookie behavior.
 
 Example Caddy-style shape:
 
 ```caddyfile
 bfitlog.example.com {
-  reverse_proxy api:3000
+  reverse_proxy app:3000
 }
 ```
 
-If the web app is hosted separately, include its HTTPS origin in both `CORS_ALLOWED_ORIGINS` and `BETTER_AUTH_TRUSTED_ORIGINS`. In development, an empty `CORS_ALLOWED_ORIGINS` allows reflected origins for convenience; in production, set the variable explicitly.
+If the web app is hosted separately later, include its HTTPS origin in both `CORS_ALLOWED_ORIGINS` and `BETTER_AUTH_TRUSTED_ORIGINS`. In development, an empty `CORS_ALLOWED_ORIGINS` allows reflected origins for convenience; in production, set the variable explicitly.
 
 ## Dockhand deployment notes
 
@@ -58,9 +65,11 @@ Checklist for a Dockhand environment:
 
 1. Create a production environment file with the variables above.
 2. Persist the `postgres_data` Docker volume.
-3. Expose only the reverse proxy publicly; keep Postgres private to the Docker network.
-4. Point the reverse proxy public hostname at the API service.
-5. Run database migrations and the idempotent training-plan seed before or during API startup. The API image runs both on container startup before starting the server.
+3. Expose only the reverse proxy publicly; keep Postgres private to the Docker network during normal operation.
+4. Point the reverse proxy public hostname at the app service. Frontend/mobile clients must talk only to the app URL; Postgres stays private.
+5. Let the app process run database migrations and the idempotent training-plan seed on every startup before it begins serving requests.
+
+Postgres is intentionally not published on the host in `docker-compose.yml`. The normal migration path is app startup over the Docker internal network, so production migrations do not require opening the database port. For emergency/manual database inspection, use `docker compose exec postgres ...` from the host rather than publishing Postgres publicly.
 
 ## Postgres backup
 
@@ -113,9 +122,9 @@ docker compose exec -T postgres psql \
   -d "${POSTGRES_DB:-bfitlog}" < backups/bfitlog.sql
 ```
 
-After restore, restart the API and run a health check:
+After restore, restart the app and run a health check:
 
 ```bash
-docker compose restart api
+docker compose restart app
 curl -fsS https://bfitlog.example.com/health
 ```

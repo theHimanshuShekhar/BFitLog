@@ -1,0 +1,15 @@
+ALTER TABLE "exercises" ADD COLUMN "machine" text;
+ALTER TABLE "exercises" ADD COLUMN "recommended_sets" integer;
+ALTER TABLE "exercises" ADD COLUMN "recommended_min_reps" integer;
+ALTER TABLE "exercises" ADD COLUMN "recommended_max_reps" integer;
+ALTER TABLE "exercises" ADD COLUMN "recommended_duration_seconds" integer;
+ALTER TABLE "exercises" ADD COLUMN "demo_gif_url" text;
+ALTER TABLE "exercises" ADD COLUMN "demo_video_url" text;
+ALTER TABLE "exercises" ADD COLUMN "substitute_exercise_id" text;
+ALTER TABLE "training_plan_templates" ADD COLUMN "description" text;
+ALTER TABLE "user_training_plans" ADD COLUMN "description" text;
+ALTER TABLE "user_training_plans" ADD COLUMN "notes" text;
+ALTER TABLE "training_days" ADD COLUMN "user_training_plan_id" text;
+ALTER TABLE "training_days" ADD COLUMN "description" text;
+ALTER TABLE "training_days" ADD COLUMN "notes" text;
+ALTER TABLE "training_days" ADD CONSTRAINT "training_days_user_training_plan_id_user_training_plans_id_fk" FOREIGN KEY ("user_training_plan_id") REFERENCES "public"."user_training_plans"("id") ON DELETE cascade ON UPDATE no action;

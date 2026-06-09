@@ -26,14 +26,55 @@ export const exerciseMediaSchema = z.object({
 	sortOrder: z.number().int().nonnegative().optional(),
 });
 
-export const exerciseSchema = z.object({
-	id: entityIdSchema,
-	name: z.string().trim().min(1).max(200),
-	description: z.string().trim().max(2000).nullable().optional(),
-	equipment: z.string().trim().max(200).nullable().optional(),
-	trackingType: exerciseTrackingTypeSchema,
-	media: z.array(exerciseMediaSchema).default([]),
-});
+export const exerciseSchema = z
+	.object({
+		id: entityIdSchema,
+		name: z.string().trim().min(1).max(200),
+		description: z.string().trim().max(2000).nullable().optional(),
+		equipment: z.string().trim().max(200).nullable().optional(),
+		machine: z.string().trim().max(200).nullable().optional(),
+		trackingType: exerciseTrackingTypeSchema,
+		recommendedSets: z.number().int().positive().nullable().optional(),
+		recommendedMinReps: z.number().int().positive().nullable().optional(),
+		recommendedMaxReps: z.number().int().positive().nullable().optional(),
+		recommendedDurationSeconds: z.number().int().positive().nullable().optional(),
+		demoGifUrl: z.string().url().nullable().optional(),
+		demoVideoUrl: z.string().url().nullable().optional(),
+		substituteExerciseId: entityIdSchema.nullable().optional(),
+		media: z.array(exerciseMediaSchema).default([]),
+	})
+	.refine(
+		(value) =>
+			value.trackingType !== "reps_weight" ||
+			(Boolean(value.recommendedMinReps) &&
+				Boolean(value.recommendedMaxReps) &&
+				!value.recommendedDurationSeconds),
+		{
+			message: "Rep-based exercises require recommended reps, not duration",
+			path: ["recommendedMinReps"],
+		},
+	)
+	.refine(
+		(value) =>
+			value.trackingType !== "duration" ||
+			(Boolean(value.recommendedDurationSeconds) &&
+				!value.recommendedMinReps &&
+				!value.recommendedMaxReps),
+		{
+			message: "Time-based exercises require recommended duration, not reps",
+			path: ["recommendedDurationSeconds"],
+		},
+	)
+	.refine(
+		(value) =>
+			!value.recommendedMinReps ||
+			!value.recommendedMaxReps ||
+			value.recommendedMinReps <= value.recommendedMaxReps,
+		{
+			message: "Minimum reps cannot exceed maximum reps",
+			path: ["recommendedMaxReps"],
+		},
+	);
 
 export const exerciseSubstituteSchema = z.object({
 	exercise: exerciseSchema,
@@ -87,7 +128,10 @@ export const checklistItemSchema = z.object({
 export const trainingDaySchema = z.object({
 	id: entityIdSchema,
 	sequence: z.number().int().positive(),
+	name: z.string().trim().min(1).max(200).optional(),
 	title: z.string().trim().min(1).max(200),
+	description: z.string().trim().max(2000).nullable().optional(),
+	notes: noteSchema.nullable().optional(),
 	checklist: z.array(checklistItemSchema).default([]),
 	exercises: z.array(plannedExerciseSchema).default([]),
 });
@@ -96,6 +140,7 @@ export const trainingPlanTemplateSchema = z.object({
 	id: entityIdSchema,
 	name: z.string().trim().min(1).max(200),
 	goal: z.string().trim().max(1000).nullable().optional(),
+	description: z.string().trim().max(2000).nullable().optional(),
 	notes: noteSchema.nullable().optional(),
 	days: z.array(trainingDaySchema).default([]),
 });

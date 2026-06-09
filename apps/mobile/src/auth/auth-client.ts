@@ -3,11 +3,11 @@ import { usernameClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
-import { apiBaseUrl } from "../api/client";
+import { authBaseUrl } from "../api/client";
 import { createAuthStorage } from "./auth-storage";
 
 export const authClient = createAuthClient({
-	baseURL: apiBaseUrl,
+	baseURL: authBaseUrl,
 	plugins: [
 		expoClient({
 			scheme: "bfitlog",

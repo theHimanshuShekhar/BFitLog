@@ -47,19 +47,20 @@ function toDate(value: unknown, fallback = new Date()) {
 	return Number.isNaN(date.getTime()) ? fallback : date;
 }
 
-function formatTarget(planned: {
-	targetSets: number;
+function formatTarget(prescription: {
+	targetSets: number | null;
 	targetMinReps: number | null;
 	targetMaxReps: number | null;
 	targetDurationSeconds: number | null;
 }) {
-	if (planned.targetDurationSeconds) {
-		return `${planned.targetSets} × ${planned.targetDurationSeconds}s`;
+	const sets = prescription.targetSets ?? 1;
+	if (prescription.targetDurationSeconds) {
+		return `${sets} × ${prescription.targetDurationSeconds}s`;
 	}
-	if (planned.targetMinReps && planned.targetMaxReps) {
-		return `${planned.targetSets} × ${planned.targetMinReps}-${planned.targetMaxReps}`;
+	if (prescription.targetMinReps && prescription.targetMaxReps) {
+		return `${sets} × ${prescription.targetMinReps}-${prescription.targetMaxReps}`;
 	}
-	return `${planned.targetSets} sets`;
+	return `${sets} sets`;
 }
 
 export const workoutRoutes = new Hono<{ Variables: Variables }>()
@@ -322,6 +323,10 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 				targetMaxReps: plannedExercises.targetMaxReps,
 				targetDurationSeconds: plannedExercises.targetDurationSeconds,
 				restSeconds: plannedExercises.restSeconds,
+				recommendedSets: exercises.recommendedSets,
+				recommendedMinReps: exercises.recommendedMinReps,
+				recommendedMaxReps: exercises.recommendedMaxReps,
+				recommendedDurationSeconds: exercises.recommendedDurationSeconds,
 				exerciseName: exercises.name,
 			})
 			.from(plannedExercises)
@@ -336,7 +341,13 @@ export const workoutRoutes = new Hono<{ Variables: Variables }>()
 					workoutLogId: workoutId,
 					plannedExerciseId: item.id,
 					plannedExerciseName: item.exerciseName,
-					plannedExerciseTarget: formatTarget(item),
+					plannedExerciseTarget: formatTarget({
+						targetSets: item.recommendedSets ?? item.targetSets,
+						targetMinReps: item.recommendedMinReps ?? item.targetMinReps,
+						targetMaxReps: item.recommendedMaxReps ?? item.targetMaxReps,
+						targetDurationSeconds:
+							item.recommendedDurationSeconds ?? item.targetDurationSeconds,
+					}),
 					restSeconds: item.restSeconds,
 					originalExerciseId: item.exerciseId,
 					performedExerciseId: item.exerciseId,

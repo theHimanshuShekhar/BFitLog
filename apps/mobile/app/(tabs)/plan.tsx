@@ -33,6 +33,7 @@ type TrainingPlanTemplate = {
 	name: string;
 	goal: string | null;
 	notes: string | null;
+	description: string | null;
 	days: TrainingDay[];
 };
 
@@ -49,7 +50,10 @@ type ActivePlanResponse = {
 type TrainingDay = {
 	id: string;
 	sequence: number;
+	name?: string;
 	title: string;
+	description: string | null;
+	notes: string | null;
 	checklist: Array<{
 		id: string;
 		kind: "warmup" | "cooldown";
@@ -72,7 +76,16 @@ type PlannedExercise = {
 		id: string;
 		name: string;
 		equipment: string | null;
+		description: string | null;
+		machine: string | null;
 		trackingType: "reps_weight" | "duration";
+		recommendedSets: number | null;
+		recommendedMinReps: number | null;
+		recommendedMaxReps: number | null;
+		recommendedDurationSeconds: number | null;
+		demoGifUrl: string | null;
+		demoVideoUrl: string | null;
+		substituteExerciseId: string | null;
 		media: Array<{ id: string; kind: "gif" | "video"; url: string }>;
 	} | null;
 	substitutes: Array<{
@@ -80,7 +93,16 @@ type PlannedExercise = {
 			id: string;
 			name: string;
 			equipment: string | null;
+			description: string | null;
+			machine: string | null;
 			trackingType: "reps_weight" | "duration";
+			recommendedSets: number | null;
+			recommendedMinReps: number | null;
+			recommendedMaxReps: number | null;
+			recommendedDurationSeconds: number | null;
+			demoGifUrl: string | null;
+			demoVideoUrl: string | null;
+			substituteExerciseId: string | null;
 		} | null;
 		targetSets: number | null;
 		targetMinReps: number | null;
@@ -199,7 +221,7 @@ export default function PlanScreen() {
 				title="Plan"
 				description={plan?.name ?? "Active training plan"}
 			/>
-			{plan?.goal ? <BodyText muted>Goal: {plan.goal}</BodyText> : null}
+			{plan?.description ? <BodyText muted>{plan.description}</BodyText> : null}
 			{plan?.notes ? <BodyText muted>{plan.notes}</BodyText> : null}
 
 			<VisibleUserPicker
@@ -211,8 +233,12 @@ export default function PlanScreen() {
 			{plan?.days.map((day) => (
 				<Card key={day.id} style={styles.dayCard}>
 					<Text style={styles.dayTitle}>
-						Day {day.sequence}: {day.title}
+						Day {day.sequence}: {day.name ?? day.title}
 					</Text>
+					{day.description ? (
+						<Text style={styles.description}>{day.description}</Text>
+					) : null}
+					{day.notes ? <Text style={styles.status}>{day.notes}</Text> : null}
 
 					<Checklist
 						title="Warmup"
@@ -255,9 +281,7 @@ function Checklist({
 
 function ExerciseRow({ planned }: { planned: PlannedExercise }) {
 	const exercise = planned.exercise;
-	const target = planned.targetDurationSeconds
-		? `${planned.targetSets} × ${formatSeconds(planned.targetDurationSeconds)}`
-		: `${planned.targetSets} × ${planned.targetMinReps}-${planned.targetMaxReps}`;
+	const target = formatExerciseRecommendation(planned);
 
 	return (
 		<View style={styles.exerciseCard}>
@@ -270,11 +294,9 @@ function ExerciseRow({ planned }: { planned: PlannedExercise }) {
 				</Text>
 				<Text style={styles.detailLink}>View details</Text>
 			</Pressable>
-			<Text style={styles.status}>
-				{target} · Rest {formatSeconds(planned.restSeconds)}
-			</Text>
-			{exercise?.equipment ? (
-				<Text style={styles.status}>{exercise.equipment}</Text>
+			<Text style={styles.status}>{target}</Text>
+			{exercise?.machine ?? exercise?.equipment ? (
+				<Text style={styles.status}>{exercise.machine ?? exercise.equipment}</Text>
 			) : null}
 			{planned.notes ? (
 				<Text style={styles.description}>{planned.notes}</Text>
@@ -338,16 +360,47 @@ function MediaPreview({
 	);
 }
 
+function formatExerciseRecommendation(planned: PlannedExercise) {
+	const exercise = planned.exercise;
+	const sets = exercise?.recommendedSets ?? planned.targetSets;
+	const duration =
+		exercise?.recommendedDurationSeconds ?? planned.targetDurationSeconds;
+	const minReps = exercise?.recommendedMinReps ?? planned.targetMinReps;
+	const maxReps = exercise?.recommendedMaxReps ?? planned.targetMaxReps;
+
+	if (duration) return `Recommended: ${sets} × ${formatSeconds(duration)}`;
+	if (minReps && maxReps) return `Recommended: ${sets} × ${minReps}-${maxReps}`;
+	return `Recommended: ${sets} sets`;
+}
+
 function openExerciseDetail(planned: PlannedExercise, target: string) {
 	const exercise = planned.exercise;
 	if (!exercise) return;
+	const media = [
+		...exercise.media,
+		...(exercise.demoGifUrl
+			? [{ id: `${exercise.id}-demo-gif`, kind: "gif" as const, url: exercise.demoGifUrl }]
+			: []),
+		...(exercise.demoVideoUrl
+			? [
+					{
+						id: `${exercise.id}-demo-video`,
+						kind: "video" as const,
+						url: exercise.demoVideoUrl,
+					},
+				]
+			: []),
+	];
 	const params = new URLSearchParams({
 		name: exercise.name,
 		target,
 		trackingType: exercise.trackingType,
-		media: JSON.stringify(exercise.media),
+		media: JSON.stringify(media),
 	});
-	if (exercise.equipment) params.set("equipment", exercise.equipment);
+	if (exercise.description) params.set("description", exercise.description);
+	if (exercise.machine ?? exercise.equipment) {
+		params.set("equipment", exercise.machine ?? exercise.equipment ?? "");
+	}
 	if (planned.notes) params.set("notes", planned.notes);
 	router.push(`/exercise?${params.toString()}` as never);
 }
