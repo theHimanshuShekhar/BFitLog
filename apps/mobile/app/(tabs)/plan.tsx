@@ -2,12 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 import { createElement, useCallback, useState } from "react";
 import {
-	ActivityIndicator,
 	Image,
 	Linking,
 	Pressable,
 	Platform,
-	ScrollView,
 	StyleSheet,
 	Text,
 	View,
@@ -16,7 +14,15 @@ import { apiBaseUrl } from "@/api/client";
 import { authClient } from "@/auth/auth-client";
 import { useAuth } from "@/auth/use-auth";
 import { formatSeconds } from "@/format";
-import { colors, layout, spacing } from "@/theme";
+import { colors, layout, radius, spacing } from "@/theme";
+import {
+	BodyText,
+	Card,
+	LoadingScreen,
+	PageHeader,
+	Screen,
+	SectionLabel,
+} from "@/ui/primitives";
 import { getInlineMediaEmbed } from "@/training-media";
 import { VisibleUserPicker } from "@/users/VisibleUserPicker";
 import { useVisibleUsers } from "@/users/use-visible-users";
@@ -156,11 +162,7 @@ export default function PlanScreen() {
 	);
 
 	if (session.isPending || status === "loading") {
-		return (
-			<View style={styles.centered}>
-				<ActivityIndicator color={colors.primary} />
-			</View>
-		);
+		return <LoadingScreen />;
 	}
 
 	if (!session.data) {
@@ -170,16 +172,15 @@ export default function PlanScreen() {
 
 	if (status === "error") {
 		return (
-			<View style={styles.container}>
-				<Text style={styles.title}>Plan</Text>
-				<View style={styles.card}>
-					<Text style={styles.cardTitle}>Could not load plan</Text>
-					<Text style={styles.description}>{error}</Text>
-					<Text style={styles.description}>
+			<Screen>
+				<PageHeader eyebrow="Training" title="Plan" />
+				<Card title="Could not load plan">
+					<BodyText muted>{error}</BodyText>
+					<BodyText muted>
 						Run the training-plan seed script if the API says the template is
 						missing.
-					</Text>
-				</View>
+					</BodyText>
+				</Card>
 				<Pressable
 					accessibilityRole="button"
 					style={styles.secondaryButton}
@@ -187,16 +188,19 @@ export default function PlanScreen() {
 				>
 					<Text style={styles.secondaryButtonText}>Retry</Text>
 				</Pressable>
-			</View>
+			</Screen>
 		);
 	}
 
 	return (
-		<ScrollView contentContainerStyle={styles.container}>
-			<Text style={styles.title}>Plan</Text>
-			<Text style={styles.description}>{plan?.name}</Text>
-			{plan?.goal ? <Text style={styles.status}>Goal: {plan.goal}</Text> : null}
-			{plan?.notes ? <Text style={styles.status}>{plan.notes}</Text> : null}
+		<Screen>
+			<PageHeader
+				eyebrow="Training"
+				title="Plan"
+				description={plan?.name ?? "Active training plan"}
+			/>
+			{plan?.goal ? <BodyText muted>Goal: {plan.goal}</BodyText> : null}
+			{plan?.notes ? <BodyText muted>{plan.notes}</BodyText> : null}
 
 			<VisibleUserPicker
 				users={visibleUsers}
@@ -205,7 +209,7 @@ export default function PlanScreen() {
 			/>
 
 			{plan?.days.map((day) => (
-				<View key={day.id} style={styles.dayCard}>
+				<Card key={day.id} style={styles.dayCard}>
 					<Text style={styles.dayTitle}>
 						Day {day.sequence}: {day.title}
 					</Text>
@@ -223,9 +227,9 @@ export default function PlanScreen() {
 						title="Cooldown"
 						items={day.checklist.filter((item) => item.kind === "cooldown")}
 					/>
-				</View>
+				</Card>
 			))}
-		</ScrollView>
+		</Screen>
 	);
 }
 
@@ -239,7 +243,7 @@ function Checklist({
 	if (items.length === 0) return null;
 	return (
 		<View style={styles.checklist}>
-			<Text style={styles.sectionTitle}>{title}</Text>
+			<SectionLabel>{title}</SectionLabel>
 			{items.map((item) => (
 				<Text key={item.id} style={styles.bullet}>
 					• {item.text}
@@ -349,53 +353,40 @@ function openExerciseDetail(planned: PlannedExercise, target: string) {
 }
 
 const styles = StyleSheet.create({
-	centered: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: colors.background,
-	},
-	container: {
-		flexGrow: 1,
-		width: "100%",
-		maxWidth: layout.maxContentWidth,
-		alignSelf: "center",
-		gap: spacing.md,
-		padding: spacing.lg,
-		backgroundColor: colors.background,
-	},
-	title: { color: colors.text, fontSize: 28, fontWeight: "800" },
 	description: { color: colors.mutedText, fontSize: 16, lineHeight: 24 },
 	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
-	card: {
-		gap: spacing.sm,
-		padding: spacing.md,
-		borderRadius: 16,
-		backgroundColor: colors.card,
-	},
 	dayCard: {
 		gap: spacing.md,
-		padding: spacing.md,
-		borderRadius: 20,
-		backgroundColor: colors.card,
 	},
-	dayTitle: { color: colors.text, fontSize: 22, fontWeight: "800" },
-	sectionTitle: { color: colors.primary, fontSize: 16, fontWeight: "800" },
+	dayTitle: {
+		color: colors.text,
+		fontSize: 22,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 	checklist: { gap: spacing.xs },
 	bullet: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
 	exerciseList: { gap: spacing.sm },
 	exerciseCard: {
 		gap: spacing.xs,
 		padding: spacing.md,
-		borderRadius: 14,
-		backgroundColor: colors.surface,
+		borderWidth: 1,
+		borderColor: colors.border,
+		borderRadius: radius.md,
+		backgroundColor: colors.cardMuted,
 	},
-	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+	cardTitle: {
+		color: colors.text,
+		fontSize: 18,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 	detailLink: {
-		color: colors.primary,
+		color: colors.text,
 		fontSize: 13,
 		fontWeight: "800",
 		marginTop: spacing.xs,
+		textTransform: "uppercase",
 	},
 	substituteBox: { gap: spacing.xs, marginTop: spacing.xs },
 	mediaList: { gap: spacing.sm, marginTop: spacing.xs },
@@ -403,13 +394,16 @@ const styles = StyleSheet.create({
 	webEmbed: {
 		width: "100%",
 		aspectRatio: 16 / 9,
-		borderWidth: 0,
-		borderRadius: 12,
+		borderWidth: 1,
+		borderColor: colors.border,
+		borderRadius: radius.md,
 	},
 	mediaImage: {
 		width: "100%",
 		aspectRatio: 16 / 9,
-		borderRadius: 12,
+		borderRadius: radius.md,
+		borderWidth: 1,
+		borderColor: colors.border,
 		backgroundColor: colors.card,
 	},
 	mediaButton: {
@@ -417,19 +411,31 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		paddingVertical: spacing.xs,
 		paddingHorizontal: spacing.sm,
-		borderRadius: 999,
+		borderRadius: radius.md,
 		borderWidth: 1,
-		borderColor: colors.primary,
+		borderColor: colors.border,
+		backgroundColor: colors.primarySoft,
 	},
-	mediaText: { color: colors.primary, fontSize: 12, fontWeight: "800" },
+	mediaText: {
+		color: colors.text,
+		fontSize: 12,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 	secondaryButton: {
 		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
 		justifyContent: "center",
 		padding: spacing.md,
-		borderRadius: 999,
+		borderRadius: radius.md,
 		borderWidth: 1,
-		borderColor: colors.border,
+		borderColor: colors.borderStrong,
+		backgroundColor: colors.surfaceRaised,
 	},
-	secondaryButtonText: { color: colors.text, fontSize: 16, fontWeight: "700" },
+	secondaryButtonText: {
+		color: colors.text,
+		fontSize: 16,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 });

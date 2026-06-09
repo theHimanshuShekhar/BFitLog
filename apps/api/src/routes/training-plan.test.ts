@@ -55,6 +55,60 @@ describe("training plan routes", () => {
 					exercise.substitutes.length > 0,
 			),
 		).toBe(true);
+		const warmupTextsByDay = body.template.days.map(
+			(day: { checklist: Array<{ kind: string; text: string }> }) =>
+				day.checklist
+					.filter((item) => item.kind === "warmup")
+					.map((item) => item.text),
+		);
+		expect(warmupTextsByDay).toEqual([
+			[
+				"5 minutes light cardio: walking, cycling, or elliptical at a comfortable pace.",
+				"Arm circles (forward/backward): 30 seconds each direction.",
+				"Shoulder rolls (forward/backward): 10 each direction.",
+				"Cat-cow stretch: 10 slow reps.",
+				"Torso twists: 10 each side.",
+				"Chest openers (interlace fingers behind back, lift arms): 10 reps.",
+				"Arm swings (cross-body): 10 each arm.",
+				"Bodyweight squats: 10 slow reps.",
+				"Leg swings (front-to-back and side-to-side): 10 each leg.",
+			],
+			[
+				"5 minutes light cardio: walking, cycling, or elliptical at a comfortable pace.",
+				"Leg swings (front-to-back and side-to-side): 10 each leg.",
+				"Hip circles: 10 each direction.",
+				"Bodyweight squats: 15 slow reps.",
+				"Walking lunges (optional, if comfortable): 10 each leg.",
+				"Glute bridges: 15 reps.",
+				"Calf raises: 15 reps.",
+				"Ankle rolls: 10 each direction.",
+				"Torso twists: 10 each side.",
+			],
+			[
+				"5 minutes light cardio: walking, cycling, or elliptical at a comfortable pace.",
+				"Arm circles (forward/backward): 30 seconds each direction.",
+				"Shoulder rolls (forward/backward): 10 each direction.",
+				"Cat-cow stretch: 10 slow reps.",
+				"Torso twists: 10 each side.",
+				"Chest openers (interlace fingers behind back, lift arms): 10 reps.",
+				"Arm swings (cross-body): 10 each arm.",
+				"Wrist circles: 10 each direction.",
+				"Bodyweight squats: 10 slow reps.",
+				"Leg swings (front-to-back and side-to-side): 10 each leg.",
+			],
+			[
+				"5 minutes light cardio: walking, cycling, or elliptical at a comfortable pace.",
+				"Leg swings (front-to-back and side-to-side): 10 each leg.",
+				"Hip circles: 10 each direction.",
+				"Bodyweight squats: 15 slow reps.",
+				"Glute bridges: 15 reps.",
+				"Cat-cow stretch: 10 slow reps.",
+				"Hip hinges (mimic deadlift with bodyweight): 10 reps.",
+				"Calf raises: 15 reps.",
+				"Ankle rolls: 10 each direction.",
+				"Torso twists: 10 each side.",
+			],
+		]);
 	});
 
 	it("creates and returns the current user's active default plan", async () => {

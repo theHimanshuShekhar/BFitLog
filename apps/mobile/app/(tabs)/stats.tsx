@@ -2,9 +2,7 @@ import type { BodyWeightGoal, BodyWeightLog } from "@bfitlog/shared";
 import { Link, useFocusEffect, router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
-	ActivityIndicator,
 	Pressable,
-	ScrollView,
 	StyleSheet,
 	Text,
 	View,
@@ -21,7 +19,16 @@ import {
 } from "@/body-weight/body-weight-sync-client";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { formatKg, integerFormatter } from "@/format";
-import { colors, layout, spacing } from "@/theme";
+import { colors, layout, radius, spacing } from "@/theme";
+import {
+	BodyText,
+	Card,
+	LoadingScreen,
+	PageHeader,
+	Screen,
+	SectionLabel,
+	SegmentedControl,
+} from "@/ui/primitives";
 import { VisibleUserPicker } from "@/users/VisibleUserPicker";
 import { useVisibleUsers } from "@/users/use-visible-users";
 import { blurActiveElement } from "@/web-focus";
@@ -83,11 +90,7 @@ export default function StatsScreen() {
 	);
 
 	if (session.isPending) {
-		return (
-			<View style={styles.centered}>
-				<ActivityIndicator color={colors.primary} />
-			</View>
-		);
+		return <LoadingScreen />;
 	}
 
 	if (!session.data) {
@@ -96,52 +99,31 @@ export default function StatsScreen() {
 	}
 
 	return (
-		<ScrollView contentContainerStyle={styles.container}>
-			<Text style={styles.title}>Stats</Text>
-			<Text style={styles.description}>
-				Body weight trend for{" "}
-				{visibleUsers.find((user) => user.id === selectedUserId)?.name ??
-					session.data.user.name}
-			</Text>
+		<Screen>
+			<PageHeader
+				eyebrow="Progress"
+				title="Stats"
+				description={`Body weight, exercise progress, and consistency for ${
+					visibleUsers.find((user) => user.id === selectedUserId)?.name ??
+					session.data.user.name
+				}.`}
+			/>
 			<VisibleUserPicker
 				users={visibleUsers}
 				selectedUserId={selectedUserId ?? session.data.user.id}
 				onSelect={setSelectedUserId}
 			/>
 
-			<View accessibilityRole="tablist" style={styles.rangeRow}>
-				{ranges.map((item) => (
-					<Pressable
-						accessibilityRole="tab"
-						accessibilityState={{ selected: range === item }}
-						key={item}
-						style={[
-							styles.rangeButton,
-							range === item && styles.rangeButtonActive,
-						]}
-						onPress={() => setRange(item)}
-					>
-						<Text
-							style={[
-								styles.rangeText,
-								range === item && styles.rangeTextActive,
-							]}
-						>
-							{item}
-						</Text>
-					</Pressable>
-				))}
-			</View>
+			<SegmentedControl items={ranges} value={range} onChange={setRange} />
 
 			<BodyWeightChart logs={logs} goal={goal} range={range} />
 
-			<View style={styles.card}>
-				<Text style={styles.cardTitle}>Exercise progress</Text>
+			<Card title="Exercise progress">
 				{workoutStats?.exercises.length ? (
 					workoutStats.exercises.map((exercise) => (
 						<View key={exercise.exerciseId} style={styles.statRow}>
-							<Text style={styles.status}>{exercise.exerciseName}</Text>
-							<Text style={styles.description}>
+							<Text style={styles.statTitle}>{exercise.exerciseName}</Text>
+							<BodyText muted>
 								Best:{" "}
 								{exercise.bestWeightKg === null
 									? "—"
@@ -150,33 +132,31 @@ export default function StatsScreen() {
 								{exercise.bestDurationSeconds
 									? ` · Duration: ${integerFormatter.format(exercise.bestDurationSeconds)} sec`
 									: ""}
-							</Text>
+							</BodyText>
 							{exercise.progressionHint ? (
 								<Text style={styles.hint}>{exercise.progressionHint}</Text>
 							) : null}
 						</View>
 					))
 				) : (
-					<Text style={styles.description}>
-						Complete workouts to see exercise stats.
-					</Text>
+					<BodyText muted>Complete workouts to see exercise stats.</BodyText>
 				)}
-			</View>
+			</Card>
 
-			<View style={styles.card}>
-				<Text style={styles.cardTitle}>Workout consistency</Text>
+			<Card title="Workout consistency">
 				{workoutStats?.consistency.length ? (
 					workoutStats.consistency.map((week) => (
-						<Text key={week.week} style={styles.status}>
+						<Text key={week.week} style={styles.consistencyRow}>
 							Week of {week.week}: {week.count} workout
 							{week.count === 1 ? "" : "s"}
 						</Text>
 					))
 				) : (
-					<Text style={styles.description}>No completed workouts yet.</Text>
+					<BodyText muted>No completed workouts yet.</BodyText>
 				)}
-			</View>
+			</Card>
 
+			<SectionLabel>Navigation</SectionLabel>
 			<Link href="/" asChild>
 				<Pressable
 					accessibilityRole="link"
@@ -186,63 +166,46 @@ export default function StatsScreen() {
 					<Text style={styles.secondaryButtonText}>Back home</Text>
 				</Pressable>
 			</Link>
-		</ScrollView>
+		</Screen>
 	);
 }
 
 const styles = StyleSheet.create({
-	centered: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: colors.background,
+	statRow: {
+		gap: spacing.xs,
+		paddingVertical: spacing.sm,
+		borderBottomWidth: 1,
+		borderBottomColor: colors.border,
 	},
-	container: {
-		flexGrow: 1,
-		width: "100%",
-		maxWidth: layout.maxContentWidth,
-		alignSelf: "center",
-		gap: spacing.md,
-		padding: spacing.lg,
-		backgroundColor: colors.background,
+	statTitle: {
+		color: colors.text,
+		fontSize: 16,
+		fontWeight: "800",
+		textTransform: "uppercase",
 	},
-	title: { color: colors.text, fontSize: 28, fontWeight: "800" },
-	description: { color: colors.mutedText, fontSize: 16, lineHeight: 24 },
-	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
-	rangeRow: { flexDirection: "row", gap: spacing.sm },
-	rangeButton: {
-		flex: 1,
-		minHeight: layout.androidMinTouchTarget,
-		alignItems: "center",
-		justifyContent: "center",
+	hint: {
+		color: colors.text,
+		fontSize: 14,
+		fontWeight: "800",
+		lineHeight: 20,
+		backgroundColor: colors.primarySoft,
 		padding: spacing.sm,
-		borderRadius: 999,
-		borderWidth: 1,
-		borderColor: colors.border,
 	},
-	card: {
-		gap: spacing.sm,
-		padding: spacing.md,
-		borderRadius: 16,
-		backgroundColor: colors.card,
-	},
-	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
-	statRow: { gap: spacing.xs },
-	hint: { color: colors.primary, fontSize: 14, lineHeight: 20 },
-	rangeButtonActive: {
-		backgroundColor: colors.primary,
-		borderColor: colors.primary,
-	},
-	rangeText: { color: colors.mutedText, fontWeight: "700" },
-	rangeTextActive: { color: colors.background },
+	consistencyRow: { color: colors.mutedText, fontSize: 14, lineHeight: 22 },
 	secondaryButton: {
 		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
 		justifyContent: "center",
 		padding: spacing.md,
-		borderRadius: 999,
+		borderRadius: radius.md,
 		borderWidth: 1,
-		borderColor: colors.border,
+		borderColor: colors.borderStrong,
+		backgroundColor: colors.surfaceRaised,
 	},
-	secondaryButtonText: { color: colors.text, fontSize: 16, fontWeight: "700" },
+	secondaryButtonText: {
+		color: colors.text,
+		fontSize: 16,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 });

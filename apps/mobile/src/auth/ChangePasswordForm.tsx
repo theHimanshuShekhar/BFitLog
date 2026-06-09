@@ -89,33 +89,42 @@ export function ChangePasswordForm() {
 
 const styles = StyleSheet.create({
 	card: {
-		gap: spacing.sm,
+		gap: spacing.md,
 		padding: spacing.md,
-		borderRadius: 16,
+		borderRadius: 18,
 		borderWidth: 1,
 		borderColor: colors.border,
 		backgroundColor: colors.card,
+		boxShadow: `0px 12px 24px ${colors.glow}`,
 	},
-	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+	cardTitle: {
+		color: colors.text,
+		fontSize: 18,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
 	error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
 	input: {
 		color: colors.text,
 		borderColor: colors.border,
 		borderWidth: 1,
-		borderRadius: 12,
+		borderRadius: 18,
 		padding: spacing.md,
 		backgroundColor: colors.surface,
 	},
 	primaryButton: {
 		alignItems: "center",
 		padding: spacing.md,
-		borderRadius: 999,
+		borderRadius: 18,
+		borderWidth: 1,
+		borderColor: colors.border,
 		backgroundColor: colors.primary,
 	},
 	primaryButtonText: {
-		color: colors.background,
+		color: colors.text,
 		fontSize: 16,
 		fontWeight: "800",
+		textTransform: "uppercase",
 	},
 });

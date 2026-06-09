@@ -2,10 +2,8 @@ import type { BodyWeightLog } from "@bfitlog/shared";
 import { Link, useFocusEffect, router } from "expo-router";
 import { useCallback, useState } from "react";
 import {
-	ActivityIndicator,
 	Pressable,
 	RefreshControl,
-	ScrollView,
 	StyleSheet,
 	Text,
 	TextInput,
@@ -17,7 +15,16 @@ import { pullBodyWeightLogsForUser } from "@/body-weight/body-weight-sync-client
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { confirmDestructive } from "@/confirm";
 import { formatDateTime, formatKg } from "@/format";
-import { colors, layout, spacing } from "@/theme";
+import { colors, layout, radius, spacing } from "@/theme";
+import {
+	BodyText,
+	Card,
+	LoadingScreen,
+	PageHeader,
+	Screen,
+	SectionLabel,
+	StatusPill,
+} from "@/ui/primitives";
 import { VisibleUserPicker } from "@/users/VisibleUserPicker";
 import { useVisibleUsers } from "@/users/use-visible-users";
 import {
@@ -135,11 +142,7 @@ export default function HistoryScreen() {
 	);
 
 	if (session.isPending) {
-		return (
-			<View style={styles.centered}>
-				<ActivityIndicator color={colors.primary} />
-			</View>
-		);
+		return <LoadingScreen />;
 	}
 
 	if (!session.data) {
@@ -148,8 +151,8 @@ export default function HistoryScreen() {
 	}
 
 	return (
-		<ScrollView
-			contentContainerStyle={styles.container}
+		<Screen
+			style={styles.container}
 			refreshControl={
 				<RefreshControl
 					tintColor={colors.primary}
@@ -158,18 +161,32 @@ export default function HistoryScreen() {
 				/>
 			}
 		>
-			<Text style={styles.title}>History</Text>
-			<Text style={styles.description}>
-				Body weight logs for{" "}
-				{visibleUsers.find((user) => user.id === selectedUserId)?.name ??
-					session.data.user.name}
-			</Text>
+			<PageHeader
+				eyebrow="Timeline"
+				title="History"
+				description={`Completed workouts and body-weight logs for ${
+					visibleUsers.find((user) => user.id === selectedUserId)?.name ??
+					session.data.user.name
+				}.`}
+				aside={
+					<StatusPill
+						label={syncStatus}
+						tone={
+							syncStatus.includes("Synced")
+								? "success"
+								: syncStatus.includes("Offline") ||
+										syncStatus.includes("Unable")
+									? "warning"
+									: "info"
+						}
+					/>
+				}
+			/>
 			<VisibleUserPicker
 				users={visibleUsers}
 				selectedUserId={selectedUserId ?? session.data.user.id}
 				onSelect={setSelectedUserId}
 			/>
-			<Text style={styles.status}>{syncStatus}</Text>
 
 			<Pressable
 				accessibilityRole="button"
@@ -179,17 +196,15 @@ export default function HistoryScreen() {
 				<Text style={styles.secondaryButtonText}>Refresh</Text>
 			</Pressable>
 
-			<Text style={styles.sectionTitle}>Workouts</Text>
+			<SectionLabel>Workouts</SectionLabel>
 			{workouts.length === 0 ? (
-				<View style={styles.card}>
-					<Text style={styles.cardTitle}>No completed workouts yet</Text>
-					<Text style={styles.description}>
-						Complete a workout draft to see it here.
-					</Text>
-				</View>
+				<Card
+					title="No completed workouts yet"
+					subtitle="Complete a workout draft to see it here."
+				/>
 			) : (
 				workouts.map((workout) => (
-					<View key={workout.id} style={styles.card}>
+					<Card key={workout.id}>
 						<Text style={styles.cardTitle}>
 							Day {workout.trainingDay.sequence}: {workout.trainingDay.title}
 						</Text>
@@ -197,7 +212,7 @@ export default function HistoryScreen() {
 							{formatDateTime(workout.completedAt ?? workout.startedAt)}
 						</Text>
 						{workout.note ? (
-							<Text style={styles.description}>{workout.note}</Text>
+							<BodyText muted>{workout.note}</BodyText>
 						) : null}
 						<Link href={`/workout?workoutId=${workout.id}` as never} asChild>
 							<Pressable
@@ -207,21 +222,16 @@ export default function HistoryScreen() {
 								<Text style={styles.secondaryButtonText}>View details</Text>
 							</Pressable>
 						</Link>
-					</View>
+					</Card>
 				))
 			)}
 
-			<Text style={styles.sectionTitle}>Body weight</Text>
+			<SectionLabel>Body weight</SectionLabel>
 			{logs.length === 0 ? (
-				<View style={styles.card}>
-					<Text style={styles.cardTitle}>No entries yet</Text>
-					<Text style={styles.description}>
-						Add body weight from Home to see it here.
-					</Text>
-				</View>
+				<Card title="No entries yet" subtitle="Add body weight from Home to see it here." />
 			) : (
 				logs.map((log) => (
-					<View key={log.id} style={styles.card}>
+					<Card key={log.id}>
 						{editingLogId === log.id ? (
 							<>
 								<TextInput
@@ -266,7 +276,7 @@ export default function HistoryScreen() {
 									{formatDateTime(log.measuredAt)}
 								</Text>
 								{log.note ? (
-									<Text style={styles.description}>{log.note}</Text>
+									<BodyText muted>{log.note}</BodyText>
 								) : null}
 								{isOwnUser ? (
 									<View style={styles.buttonRow}>
@@ -288,80 +298,67 @@ export default function HistoryScreen() {
 								) : null}
 							</>
 						)}
-					</View>
+					</Card>
 				))
 			)}
-		</ScrollView>
+		</Screen>
 	);
 }
 
 const styles = StyleSheet.create({
-	centered: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: colors.background,
-	},
 	container: {
-		flexGrow: 1,
-		width: "100%",
-		maxWidth: layout.maxContentWidth,
-		alignSelf: "center",
-		gap: spacing.md,
-		padding: spacing.lg,
-		backgroundColor: colors.background,
+		paddingBottom: layout.bottomTabBarInset,
 	},
-	title: { color: colors.text, fontSize: 28, fontWeight: "800" },
-	description: { color: colors.mutedText, fontSize: 16, lineHeight: 24 },
-	status: { color: colors.mutedText, fontSize: 14 },
-	card: {
-		gap: spacing.xs,
-		padding: spacing.md,
-		borderRadius: 16,
-		backgroundColor: colors.card,
-	},
-	sectionTitle: {
-		color: colors.primary,
+	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
+	cardTitle: {
+		color: colors.text,
 		fontSize: 18,
 		fontWeight: "800",
-		marginTop: spacing.sm,
+		textTransform: "uppercase",
 	},
-	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
 	input: {
 		color: colors.text,
 		borderColor: colors.border,
 		borderWidth: 1,
-		borderRadius: 12,
+		borderRadius: radius.md,
 		padding: spacing.md,
-		backgroundColor: colors.surface,
+		backgroundColor: colors.surfaceRaised,
 	},
 	buttonRow: { flexDirection: "row", gap: spacing.sm },
 	dangerButton: {
 		alignItems: "center",
 		padding: spacing.sm,
-		borderRadius: 999,
+		borderRadius: radius.md,
 		borderWidth: 1,
 		borderColor: colors.danger,
+		backgroundColor: colors.dangerSoft,
 	},
-	dangerButtonText: { color: colors.danger, fontSize: 14, fontWeight: "700" },
+	dangerButtonText: {
+		color: colors.text,
+		fontSize: 14,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 	dangerButtonCompact: {
 		flex: 1,
 		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
 		justifyContent: "center",
 		padding: spacing.sm,
-		borderRadius: 999,
+		borderRadius: radius.md,
 		borderWidth: 1,
 		borderColor: colors.danger,
+		backgroundColor: colors.dangerSoft,
 	},
 	secondaryButton: {
 		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
 		justifyContent: "center",
 		padding: spacing.md,
-		borderRadius: 999,
+		borderRadius: radius.md,
 		borderWidth: 1,
-		borderColor: colors.border,
+		borderColor: colors.borderStrong,
+		backgroundColor: colors.surfaceRaised,
 	},
 	secondaryButtonCompact: {
 		flex: 1,
@@ -369,9 +366,15 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		justifyContent: "center",
 		padding: spacing.sm,
-		borderRadius: 999,
+		borderRadius: radius.md,
 		borderWidth: 1,
-		borderColor: colors.border,
+		borderColor: colors.borderStrong,
+		backgroundColor: colors.surfaceRaised,
 	},
-	secondaryButtonText: { color: colors.text, fontSize: 16, fontWeight: "700" },
+	secondaryButtonText: {
+		color: colors.text,
+		fontSize: 16,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 });

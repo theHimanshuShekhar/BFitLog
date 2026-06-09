@@ -158,7 +158,16 @@ describe("workout routes", () => {
 				notes: "Machine chest press if the Smith machine is unavailable.",
 			}),
 		]);
-		expect(started.workout.checklist).toHaveLength(3);
+		expect(
+			started.workout.checklist.filter(
+				(item: { kind: "warmup" | "cooldown" }) => item.kind === "warmup",
+			),
+		).toHaveLength(9);
+		expect(
+			started.workout.checklist.filter(
+				(item: { kind: "warmup" | "cooldown" }) => item.kind === "cooldown",
+			),
+		).toHaveLength(1);
 
 		const draft = await app.request("/workouts/draft", { headers: { cookie } });
 		expect(draft.status).toBe(200);

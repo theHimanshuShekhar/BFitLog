@@ -4,8 +4,42 @@ import { isDefaultAdminUser } from "../../src/auth/default-admin-onboarding";
 import { useAuth } from "../../src/auth/use-auth";
 import { colors } from "../../src/theme";
 
-function TabIcon({ color, label }: { color: ColorValue; label: string }) {
-	return <Text style={{ color, fontSize: 20 }}>{label}</Text>;
+function TabIcon({
+	color,
+	focused,
+	label,
+}: {
+	color: ColorValue;
+	focused: boolean;
+	label: string;
+}) {
+	return (
+		<View
+			style={{
+				alignItems: "center",
+				justifyContent: "center",
+				width: 36,
+				height: 32,
+				borderWidth: focused ? 1 : 0,
+				borderRadius: 18,
+				borderColor: focused ? colors.cyan : colors.border,
+				backgroundColor: focused ? colors.primarySoft : "transparent",
+				transform: [{ translateY: focused ? -1 : 0 }],
+				boxShadow: focused ? `0px 4px 10px ${colors.cyan}` : "none",
+			}}
+		>
+			<Text
+				style={{
+					color: focused ? colors.cyan : color,
+					fontSize: 17,
+					fontWeight: "800",
+					lineHeight: 20,
+				}}
+			>
+				{label}
+			</Text>
+		</View>
+	);
 }
 
 export default function TabsLayout() {
@@ -33,49 +67,84 @@ export default function TabsLayout() {
 	return (
 		<Tabs
 			screenOptions={{
-				headerStyle: { backgroundColor: colors.surface },
-				headerTintColor: colors.text,
+				headerShown: false,
 				tabBarStyle: {
-					backgroundColor: colors.surface,
-					borderTopColor: colors.border,
+					position: "absolute",
+					left: 12,
+					right: 12,
+					bottom: 14,
+					height: 70,
+					paddingTop: 7,
+					paddingBottom: 8,
+					paddingHorizontal: 8,
+					backgroundColor: colors.overlay,
+					borderColor: colors.borderStrong,
+					borderTopWidth: 1,
+					borderRightWidth: 1,
+					borderBottomWidth: 1,
+					borderLeftWidth: 1,
+					borderRadius: 30,
+					boxShadow: `0px 16px 28px ${colors.glow}`,
 				},
-				tabBarActiveTintColor: colors.primary,
+				tabBarActiveTintColor: colors.cyan,
 				tabBarInactiveTintColor: colors.mutedText,
+				tabBarItemStyle: {
+					height: 54,
+					marginHorizontal: 1,
+					paddingVertical: 2,
+					borderRadius: 22,
+				},
+				tabBarLabelStyle: {
+					fontSize: 10,
+					fontWeight: "800",
+					letterSpacing: 0.4,
+					textTransform: "uppercase",
+				},
 			}}
 		>
 			<Tabs.Screen
 				name="index"
 				options={{
 					title: "Home",
-					tabBarIcon: ({ color }) => <TabIcon color={color} label="⌂" />,
+					tabBarIcon: ({ color, focused }) => (
+						<TabIcon color={color} focused={focused} label="⌂" />
+					),
 				}}
 			/>
 			<Tabs.Screen
 				name="plan"
 				options={{
 					title: "Plan",
-					tabBarIcon: ({ color }) => <TabIcon color={color} label="▤" />,
+					tabBarIcon: ({ color, focused }) => (
+						<TabIcon color={color} focused={focused} label="▤" />
+					),
 				}}
 			/>
 			<Tabs.Screen
 				name="history"
 				options={{
 					title: "History",
-					tabBarIcon: ({ color }) => <TabIcon color={color} label="◷" />,
+					tabBarIcon: ({ color, focused }) => (
+						<TabIcon color={color} focused={focused} label="◷" />
+					),
 				}}
 			/>
 			<Tabs.Screen
 				name="stats"
 				options={{
 					title: "Stats",
-					tabBarIcon: ({ color }) => <TabIcon color={color} label="↗" />,
+					tabBarIcon: ({ color, focused }) => (
+						<TabIcon color={color} focused={focused} label="↗" />
+					),
 				}}
 			/>
 			<Tabs.Screen
 				name="settings"
 				options={{
 					title: "Settings",
-					tabBarIcon: ({ color }) => <TabIcon color={color} label="⚙" />,
+					tabBarIcon: ({ color, focused }) => (
+						<TabIcon color={color} focused={focused} label="⚙" />
+					),
 				}}
 			/>
 		</Tabs>

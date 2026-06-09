@@ -38,17 +38,17 @@ export function VisibleUserPicker({
 }
 
 const styles = StyleSheet.create({
-	row: { flexDirection: "row", gap: spacing.sm },
+	row: { flexDirection: "row", gap: 0 },
 	button: {
 		flex: 1,
-		borderRadius: 999,
+		borderRadius: 18,
 		borderWidth: 1,
 		borderColor: colors.border,
 		paddingVertical: spacing.sm,
 		paddingHorizontal: spacing.md,
 		alignItems: "center",
 	},
-	buttonActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-	text: { color: colors.text, fontWeight: "700" },
-	textActive: { color: colors.background },
+	buttonActive: { backgroundColor: colors.primary, borderColor: colors.border },
+	text: { color: colors.text, fontWeight: "800", textTransform: "uppercase" },
+	textActive: { color: colors.text },
 });

@@ -2,9 +2,7 @@ import type { BodyWeightLog } from "@bfitlog/shared";
 import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-	ActivityIndicator,
 	Pressable,
-	ScrollView,
 	StyleSheet,
 	Text,
 	View,
@@ -14,7 +12,17 @@ import { useAuth } from "@/auth/use-auth";
 import { AddBodyWeightLogForm } from "@/body-weight/AddBodyWeightLogForm";
 import { getBodyWeightRepository } from "@/body-weight/repository";
 import { formatKg } from "@/format";
-import { colors, layout, spacing } from "@/theme";
+import { colors, layout, radius, spacing } from "@/theme";
+import {
+	BodyText,
+	Button,
+	Card,
+	LoadingScreen,
+	PageHeader,
+	Screen,
+	StatusPill,
+	uiStyles,
+} from "@/ui/primitives";
 import { blurActiveElement } from "@/web-focus";
 import {
 	getActivePlan,
@@ -111,11 +119,7 @@ export default function HomeScreen() {
 	}, [session.data, session.isPending, setupChecked]);
 
 	if (!setupChecked || session.isPending) {
-		return (
-			<View style={styles.centered}>
-				<ActivityIndicator color={colors.primary} />
-			</View>
-		);
+		return <LoadingScreen />;
 	}
 
 	const user = session.data?.user;
@@ -139,53 +143,40 @@ export default function HomeScreen() {
 	};
 
 	return (
-		<ScrollView contentContainerStyle={styles.container}>
-			<View style={styles.topBar}>
-				<Text style={styles.eyebrow}>BFitLog</Text>
-				<View
-					style={[
-						styles.apiBadge,
-						status === "offline" && styles.apiBadgeOffline,
-					]}
-				>
-					{status === "checking" ? (
-						<ActivityIndicator color={colors.primary} size="small" />
-					) : (
-						<Text
-							style={[
-								styles.apiBadgeText,
-								status === "offline" && styles.apiBadgeTextOffline,
-							]}
-						>
-							API {status === "online" ? "Online" : "Offline"}
-						</Text>
-					)}
-				</View>
-			</View>
-			<Text style={styles.title}>Home</Text>
-			<Text style={styles.description}>
-				Track body weight locally and sync when the server is reachable.
-			</Text>
+		<Screen>
+			<PageHeader
+				eyebrow="BFitLog"
+				title="Today"
+				description="Mobile-first training, local body-weight tracking, and trusted partner visibility."
+				aside={
+					<StatusPill
+						label={`API ${status === "checking" ? "Checking" : status === "online" ? "Online" : "Offline"}`}
+						tone={
+							status === "online"
+								? "success"
+								: status === "offline"
+									? "danger"
+									: "info"
+						}
+					/>
+				}
+			/>
 
-			<View style={styles.card}>
-				<Text style={styles.cardTitle}>Signed in</Text>
-				<Text style={styles.status}>{user?.name ?? "Unknown user"}</Text>
+			<View style={styles.metricGrid}>
+				<Card title="Signed in" style={styles.metricCard}>
+					<Text style={styles.metricValue}>{user?.name ?? "Unknown user"}</Text>
+				</Card>
+				<Card title="Latest body weight" style={styles.metricCard}>
+					<Text style={styles.metricValue}>
+						{latestLog ? formatKg(latestLog.weightKg) : "No log yet"}
+					</Text>
+				</Card>
 			</View>
 
-			<View style={styles.card}>
-				<Text style={styles.cardTitle}>Latest body weight</Text>
-				<Text style={styles.status}>
-					{latestLog
-						? formatKg(latestLog.weightKg)
-						: "No body weight logged yet"}
-				</Text>
-			</View>
-
-			<View style={styles.card}>
-				<Text style={styles.cardTitle}>Workout</Text>
-				<Text style={styles.status}>
+			<Card title="Workout">
+				<BodyText muted>
 					{nextWorkoutLabel ?? "Start or resume today's draft workout."}
-				</Text>
+				</BodyText>
 				{trainingDays.length ? (
 					<View style={styles.dayOverrideRow}>
 						{trainingDays.map((day) => (
@@ -217,22 +208,18 @@ export default function HomeScreen() {
 					</View>
 				) : null}
 				{workoutStatus === "error" ? (
-					<Text style={styles.error}>
+					<Text style={uiStyles.bodyMuted}>
 						Could not start workout. Check API connectivity and active plan.
 					</Text>
 				) : null}
-				<Pressable
-					accessibilityRole="button"
+				<Button
 					accessibilityLabel={workoutCta}
-					style={styles.primaryButton}
+					label={workoutStatus === "loading" ? "Opening…" : workoutCta}
+					variant="primary"
 					onPress={() => void openWorkout()}
 					disabled={workoutStatus === "loading"}
-				>
-					<Text style={styles.primaryButtonText}>
-						{workoutStatus === "loading" ? "Opening…" : workoutCta}
-					</Text>
-				</Pressable>
-			</View>
+				/>
+			</Card>
 
 			{user ? (
 				<AddBodyWeightLogForm userId={user.id} onSaved={setLatestLog} />
@@ -257,86 +244,21 @@ export default function HomeScreen() {
 					<Text style={styles.secondaryButtonText}>Open settings</Text>
 				</Pressable>
 			</Link>
-		</ScrollView>
+		</Screen>
 	);
 }
 
 const styles = StyleSheet.create({
-	centered: {
-		flex: 1,
-		alignItems: "center",
-		justifyContent: "center",
-		backgroundColor: colors.background,
-	},
-	container: {
-		flexGrow: 1,
-		width: "100%",
-		maxWidth: layout.maxContentWidth,
-		alignSelf: "center",
-		gap: spacing.md,
-		padding: spacing.lg,
-		backgroundColor: colors.background,
-	},
-	topBar: {
+	metricGrid: {
 		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
 		gap: spacing.md,
+		flexWrap: "wrap",
 	},
-	apiBadge: {
-		minHeight: 32,
-		alignItems: "center",
-		justifyContent: "center",
-		paddingHorizontal: spacing.md,
-		borderRadius: 999,
-		borderWidth: 1,
-		borderColor: colors.primary,
-		backgroundColor: colors.surface,
-	},
-	apiBadgeOffline: {
-		borderColor: colors.danger,
-	},
-	apiBadgeText: {
-		color: colors.primary,
-		fontSize: 13,
-		fontWeight: "800",
-	},
-	apiBadgeTextOffline: {
-		color: colors.danger,
-	},
-	eyebrow: {
-		color: colors.primary,
-		fontSize: 14,
-		fontWeight: "700",
-		letterSpacing: 1,
-		textTransform: "uppercase",
-	},
-	title: {
+	metricCard: { flex: 1, minWidth: 220 },
+	metricValue: {
 		color: colors.text,
-		fontSize: 32,
+		fontSize: 24,
 		fontWeight: "800",
-	},
-	description: {
-		color: colors.mutedText,
-		fontSize: 16,
-		lineHeight: 24,
-	},
-	card: {
-		gap: spacing.sm,
-		padding: spacing.md,
-		borderWidth: 1,
-		borderColor: colors.border,
-		borderRadius: 16,
-		backgroundColor: colors.card,
-	},
-	cardTitle: {
-		color: colors.text,
-		fontSize: 18,
-		fontWeight: "700",
-	},
-	status: {
-		color: colors.mutedText,
-		fontSize: 16,
 	},
 	dayOverrideRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
 	dayOverrideButton: {
@@ -344,46 +266,35 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		justifyContent: "center",
 		paddingHorizontal: spacing.md,
-		borderRadius: 999,
+		borderRadius: radius.md,
 		borderWidth: 1,
 		borderColor: colors.border,
+		backgroundColor: colors.surface,
 	},
 	dayOverrideButtonActive: {
 		backgroundColor: colors.primary,
-		borderColor: colors.primary,
+		borderColor: colors.border,
 	},
-	dayOverrideText: { color: colors.mutedText, fontWeight: "800" },
-	dayOverrideTextActive: { color: colors.background },
-	error: {
-		color: colors.danger,
-		fontSize: 14,
-		lineHeight: 20,
-	},
-	primaryButton: {
-		minHeight: layout.androidMinTouchTarget,
-		alignItems: "center",
-		justifyContent: "center",
-		padding: spacing.md,
-		borderRadius: 999,
-		backgroundColor: colors.primary,
-	},
-	primaryButtonText: {
-		color: colors.background,
-		fontSize: 16,
+	dayOverrideText: {
+		color: colors.mutedText,
 		fontWeight: "800",
+		textTransform: "uppercase",
 	},
+	dayOverrideTextActive: { color: colors.text },
 	secondaryButton: {
 		minHeight: layout.androidMinTouchTarget,
 		alignItems: "center",
 		justifyContent: "center",
 		padding: spacing.md,
-		borderRadius: 999,
+		borderRadius: radius.md,
 		borderWidth: 1,
-		borderColor: colors.border,
+		borderColor: colors.borderStrong,
+		backgroundColor: colors.surfaceRaised,
 	},
 	secondaryButtonText: {
 		color: colors.text,
 		fontSize: 16,
-		fontWeight: "700",
+		fontWeight: "800",
+		textTransform: "uppercase",
 	},
 });

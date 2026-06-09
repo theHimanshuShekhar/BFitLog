@@ -76,7 +76,7 @@ export function BodyWeightChart({ logs, goal, range }: Props) {
 					x2={width - padding}
 					y2={height - padding}
 					stroke={colors.border}
-					strokeWidth={1}
+					strokeWidth={2}
 				/>
 				<Line
 					x1={padding}
@@ -84,7 +84,7 @@ export function BodyWeightChart({ logs, goal, range }: Props) {
 					x2={padding}
 					y2={height - padding}
 					stroke={colors.border}
-					strokeWidth={1}
+					strokeWidth={2}
 				/>
 				{goalY ? (
 					<>
@@ -93,14 +93,14 @@ export function BodyWeightChart({ logs, goal, range }: Props) {
 							y1={goalY}
 							x2={width - padding}
 							y2={goalY}
-							stroke={colors.primary}
+							stroke={colors.cyan}
 							strokeDasharray="5 5"
-							strokeWidth={1.5}
+							strokeWidth={3}
 						/>
 						<SvgText
 							x={width - padding}
 							y={goalY - 4}
-							fill={colors.primary}
+							fill={colors.cyan}
 							fontSize={10}
 							textAnchor="end"
 						>
@@ -108,7 +108,7 @@ export function BodyWeightChart({ logs, goal, range }: Props) {
 						</SvgText>
 					</>
 				) : null}
-				<Path d={path} stroke={colors.primary} strokeWidth={3} fill="none" />
+				<Path d={path} stroke={colors.cyan} strokeWidth={4} fill="none" />
 				{scaled.map((point) => (
 					<Circle
 						key={point.log.id}
@@ -116,6 +116,8 @@ export function BodyWeightChart({ logs, goal, range }: Props) {
 						cy={point.y}
 						r={4}
 						fill={colors.primary}
+						stroke={colors.cyan}
+						strokeWidth={2}
 					/>
 				))}
 			</Svg>
@@ -140,16 +142,26 @@ function filterLogs(logs: BodyWeightLog[], range: ChartRange) {
 
 const styles = StyleSheet.create({
 	container: {
-		gap: spacing.sm,
+		gap: spacing.md,
 		padding: spacing.md,
-		borderRadius: 16,
+		borderRadius: 18,
+		borderWidth: 1,
+		borderColor: colors.border,
 		backgroundColor: colors.card,
+		boxShadow: `0px 12px 24px ${colors.glow}`,
 	},
 	empty: {
 		padding: spacing.lg,
-		borderRadius: 16,
+		borderRadius: 18,
+		borderWidth: 1,
+		borderColor: colors.border,
 		backgroundColor: colors.card,
 	},
 	emptyText: { color: colors.mutedText, textAlign: "center" },
-	summary: { color: colors.mutedText, fontSize: 14 },
+	summary: {
+		color: colors.text,
+		fontSize: 14,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 });

@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
 	ActivityIndicator,
@@ -156,11 +155,7 @@ export function AdminUserManagement() {
 			setDisplayName("");
 			setPassword("");
 			if (result.defaultAdminDeleted) {
-				setMessage(
-					"Real admin created. Default admin was deleted; log in with the new admin account.",
-				);
-				router.replace("/login");
-				return;
+				setMessage("Real admin created. Default admin was deleted.");
 			}
 			setUsers(await listAdminUsers());
 			setStatus("ready");
@@ -324,49 +319,70 @@ function userIdForName(users: AdminUser[], username: string) {
 
 const styles = StyleSheet.create({
 	card: {
-		gap: spacing.sm,
+		gap: spacing.md,
 		padding: spacing.md,
-		borderRadius: 16,
+		borderRadius: 18,
 		borderWidth: 1,
 		borderColor: colors.border,
 		backgroundColor: colors.card,
+		boxShadow: `0px 12px 24px ${colors.glow}`,
 	},
-	cardTitle: { color: colors.text, fontSize: 18, fontWeight: "800" },
+	cardTitle: {
+		color: colors.text,
+		fontSize: 18,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 	description: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
 	status: { color: colors.mutedText, fontSize: 14, lineHeight: 20 },
-	sectionTitle: { color: colors.primary, fontSize: 15, fontWeight: "800" },
+	sectionTitle: {
+		color: colors.text,
+		fontSize: 15,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 	error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
 	userCard: {
 		gap: spacing.sm,
 		padding: spacing.sm,
-		borderRadius: 12,
+		borderRadius: 18,
+		borderWidth: 1,
+		borderColor: colors.border,
 		backgroundColor: colors.surface,
 	},
 	input: {
 		color: colors.text,
 		borderColor: colors.border,
 		borderWidth: 1,
-		borderRadius: 12,
+		borderRadius: 18,
 		padding: spacing.md,
 		backgroundColor: colors.surface,
 	},
 	primaryButton: {
 		alignItems: "center",
 		padding: spacing.md,
-		borderRadius: 999,
+		borderRadius: 18,
+		borderWidth: 1,
+		borderColor: colors.border,
 		backgroundColor: colors.primary,
 	},
 	primaryButtonText: {
-		color: colors.background,
+		color: colors.text,
 		fontSize: 16,
 		fontWeight: "800",
+		textTransform: "uppercase",
 	},
 	secondaryButton: {
 		alignItems: "center",
 		padding: spacing.sm,
-		borderRadius: 999,
+		borderRadius: 18,
 		borderWidth: 1,
 		borderColor: colors.border,
 	},
-	secondaryButtonText: { color: colors.text, fontSize: 14, fontWeight: "700" },
+	secondaryButtonText: {
+		color: colors.text,
+		fontSize: 14,
+		fontWeight: "800",
+		textTransform: "uppercase",
+	},
 });

@@ -258,10 +258,66 @@ const dayRows = [
 	["day-4-lower-b", 4, "Lower Body B"],
 ] as const;
 
-const warmups = [
-	"5 minutes light cardio: walking, cycling, or elliptical at a comfortable pace.",
-	"Dynamic stretches for the day: controlled arm/leg/hip/torso movements.",
-];
+const warmupsByDay = new Map<string, readonly string[]>([
+	[
+		"day-1-upper-a",
+		[
+			"5 minutes light cardio: walking, cycling, or elliptical at a comfortable pace.",
+			"Arm circles (forward/backward): 30 seconds each direction.",
+			"Shoulder rolls (forward/backward): 10 each direction.",
+			"Cat-cow stretch: 10 slow reps.",
+			"Torso twists: 10 each side.",
+			"Chest openers (interlace fingers behind back, lift arms): 10 reps.",
+			"Arm swings (cross-body): 10 each arm.",
+			"Bodyweight squats: 10 slow reps.",
+			"Leg swings (front-to-back and side-to-side): 10 each leg.",
+		],
+	],
+	[
+		"day-2-lower-a",
+		[
+			"5 minutes light cardio: walking, cycling, or elliptical at a comfortable pace.",
+			"Leg swings (front-to-back and side-to-side): 10 each leg.",
+			"Hip circles: 10 each direction.",
+			"Bodyweight squats: 15 slow reps.",
+			"Walking lunges (optional, if comfortable): 10 each leg.",
+			"Glute bridges: 15 reps.",
+			"Calf raises: 15 reps.",
+			"Ankle rolls: 10 each direction.",
+			"Torso twists: 10 each side.",
+		],
+	],
+	[
+		"day-3-upper-b",
+		[
+			"5 minutes light cardio: walking, cycling, or elliptical at a comfortable pace.",
+			"Arm circles (forward/backward): 30 seconds each direction.",
+			"Shoulder rolls (forward/backward): 10 each direction.",
+			"Cat-cow stretch: 10 slow reps.",
+			"Torso twists: 10 each side.",
+			"Chest openers (interlace fingers behind back, lift arms): 10 reps.",
+			"Arm swings (cross-body): 10 each arm.",
+			"Wrist circles: 10 each direction.",
+			"Bodyweight squats: 10 slow reps.",
+			"Leg swings (front-to-back and side-to-side): 10 each leg.",
+		],
+	],
+	[
+		"day-4-lower-b",
+		[
+			"5 minutes light cardio: walking, cycling, or elliptical at a comfortable pace.",
+			"Leg swings (front-to-back and side-to-side): 10 each leg.",
+			"Hip circles: 10 each direction.",
+			"Bodyweight squats: 15 slow reps.",
+			"Glute bridges: 15 reps.",
+			"Cat-cow stretch: 10 slow reps.",
+			"Hip hinges (mimic deadlift with bodyweight): 10 reps.",
+			"Calf raises: 15 reps.",
+			"Ankle rolls: 10 each direction.",
+			"Torso twists: 10 each side.",
+		],
+	],
+]);
 
 const planned = [
 	[
@@ -615,6 +671,7 @@ export async function seedTrainingPlan() {
 			.insert(trainingDays)
 			.values({ id, templateId, sequence, title })
 			.onConflictDoNothing();
+		const warmups = warmupsByDay.get(id) ?? [];
 		for (const [index, text] of warmups.entries()) {
 			await db
 				.insert(trainingDayChecklistItems)
@@ -625,7 +682,10 @@ export async function seedTrainingPlan() {
 					text,
 					sortOrder: index + 1,
 				})
-				.onConflictDoNothing();
+				.onConflictDoUpdate({
+					target: trainingDayChecklistItems.id,
+					set: { kind: "warmup", text, sortOrder: index + 1 },
+				});
 		}
 		await db
 			.insert(trainingDayChecklistItems)
@@ -636,7 +696,14 @@ export async function seedTrainingPlan() {
 				text: "Cool down with easy walking and gentle stretches for worked muscle groups.",
 				sortOrder: 1,
 			})
-			.onConflictDoNothing();
+			.onConflictDoUpdate({
+				target: trainingDayChecklistItems.id,
+				set: {
+					kind: "cooldown",
+					text: "Cool down with easy walking and gentle stretches for worked muscle groups.",
+					sortOrder: 1,
+				},
+			});
 	}
 
 	for (const [
