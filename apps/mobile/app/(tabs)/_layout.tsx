@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { isDefaultAdminUser } from "../../src/auth/default-admin-onboarding";
 import { useAuth } from "../../src/auth/use-auth";
-import { colors } from "../../src/theme";
+import { colors, layout } from "../../src/theme";
 
 function TabIcon({
 	color,
@@ -76,8 +76,13 @@ export default function TabsLayout() {
 				headerShown: false,
 				tabBarStyle: {
 					position: "absolute",
-					left: Platform.OS === "web" ? 16 : 12,
-					right: Platform.OS === "web" ? 28 : 12,
+					...(Platform.OS === "web"
+						? {
+								width: "100%",
+								maxWidth: layout.maxContentWidth,
+								alignSelf: "center" as const,
+							}
+						: { left: 12, right: 12 }),
 					bottom: 14,
 					height: 70,
 					paddingTop: 7,
